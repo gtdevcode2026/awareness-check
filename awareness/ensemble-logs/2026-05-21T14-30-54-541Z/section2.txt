@@ -1,0 +1,1 @@
+{"section2Bullets":["Supply chain vulnerabilities can expose our systems to attackers and increase security risks.","Be cautious with software packages; they can contain hidden threats that compromise security.","Stay informed about security incidents to better protect your login details and company data."]}

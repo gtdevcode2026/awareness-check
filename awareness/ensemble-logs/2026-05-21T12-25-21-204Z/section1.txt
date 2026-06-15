@@ -1,0 +1,1 @@
+{"section1Bullets":["Look for unexpected messages about software updates or changes to your tools.","Be cautious of links that lead to unfamiliar websites or require unusual permissions.","Check for unusual package names in your development tools that you did not install.","Watch for messages claiming urgent action is needed regarding your account or access."]}

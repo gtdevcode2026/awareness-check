@@ -1,0 +1,1 @@
+{"section2Bullets":["Change your password if you have an account with the affected company.","Use two-factor authentication for added security.","Regularly update your passwords to protect your personal information."]}

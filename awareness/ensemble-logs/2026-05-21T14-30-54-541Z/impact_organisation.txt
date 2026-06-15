@@ -1,0 +1,1 @@
+{"bullets":["A breach in supply chain security can expose our systems to attackers.","Malicious software in popular tools may compromise our development processes.","Vulnerabilities in vendor software can lead to data leaks and financial losses."]}

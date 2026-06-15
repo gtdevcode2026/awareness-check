@@ -1,0 +1,9 @@
+{
+  "timestamp": "2026-05-26T07:40:35.913Z",
+  "target": "me@1.2.3.4",
+  "port": "8080",
+  "name": "awareness",
+  "url": "http://1.2.3.4:8080",
+  "dryRun": true,
+  "result": "DRY-RUN"
+}

@@ -1,0 +1,1 @@
+{"bullets":["Supply chain vulnerabilities can expose security weaknesses, making it easier for attackers to strike.","Be cautious with software packages; even popular ones can be compromised by hidden threats.","Always verify the source of software updates to protect against malicious changes."]}

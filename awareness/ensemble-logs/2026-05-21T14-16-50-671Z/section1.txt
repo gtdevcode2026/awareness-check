@@ -1,0 +1,1 @@
+{"section1Bullets":["Look for unexpected messages about software updates or changes to your tools.","Be cautious of links that lead to unfamiliar websites or ask for your login details.","Check for unusual requests for access to shared resources or sensitive information.","Watch for messages that mention popular tools but contain spelling errors or strange phrasing."]}

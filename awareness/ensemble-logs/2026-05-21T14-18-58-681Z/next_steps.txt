@@ -1,0 +1,1 @@
+{"bullets":["Change your login details for any affected accounts immediately.","Report any suspicious activity to the IT team.","Avoid using compromised software packages until further notice."]}

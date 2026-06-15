@@ -1,0 +1,1 @@
+{"section2Bullets":["Supply chain vulnerabilities can expose our systems to attackers and increase security risks.","Be cautious when using third-party software, as it may contain hidden threats or malicious code.","Stay informed about security incidents to better protect your login details and sensitive information."]}

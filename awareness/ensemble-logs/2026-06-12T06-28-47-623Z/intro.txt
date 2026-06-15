@@ -1,0 +1,1 @@
+{"intro":"Attackers are currently using a fake ChatGPT download site to deliver malware, targeting users searching for the legitimate service. Additionally, a data breach at Nottingham University has compromised the records of over 450,000 students. These incidents highlight the importance of being cautious with online downloads and protecting your personal information."}

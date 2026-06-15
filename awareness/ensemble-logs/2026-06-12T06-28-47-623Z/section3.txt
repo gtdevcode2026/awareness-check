@@ -1,0 +1,1 @@
+{"section3Bullets":["Avoid downloading software from unofficial sites, like fake ChatGPT pages delivering malware.","Check if your login details were leaked in the Nottingham University data breach and change them.","Be cautious of sponsored search results; they may lead to phishing sites that look legitimate."]}

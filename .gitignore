@@ -1,0 +1,34 @@
+# === managed by push_to_github.py (do not edit this block) ===
+# Claude / AI assistant files
+.claude/
+CLAUDE.md
+.claude.json
+.claude.json.tmp*
+.agents/
+skills-lock.json
+.impeccable/
+
+# Build / test artifacts
+node_modules/
+dist/
+playwright-report/
+test-results/
+ensemble-logs/
+.playwright-mcp/
+graphify-out/
+baseline-critical-path-audit-results.json
+*.log
+.DS_Store
+Thumbs.db
+# === end managed block ===
+
+# === managed by githubpush.py (Claude files only) ===
+.claude/
+CLAUDE.md
+.claude.json
+.claude.json.tmp*
+.agents/
+AGENTS.md
+skills-lock.json
+.impeccable/
+# === end managed block ===

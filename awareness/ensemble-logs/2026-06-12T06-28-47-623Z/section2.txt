@@ -1,0 +1,1 @@
+{"section2Bullets":["Always verify websites before downloading anything to avoid malware.","Be cautious of links that look similar to trusted sites.","Protect your personal information to prevent data breaches like the one at Nottingham University."]}

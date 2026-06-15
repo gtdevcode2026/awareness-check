@@ -1,0 +1,22 @@
+{
+  "intro": {
+    "combined": 17,
+    "dedicated": 17,
+    "winner": "combined"
+  },
+  "section1": {
+    "combined": 4,
+    "dedicated": 14,
+    "winner": "dedicated"
+  },
+  "section2": {
+    "combined": 13,
+    "dedicated": 13,
+    "winner": "combined"
+  },
+  "section3": {
+    "combined": 13,
+    "dedicated": 13,
+    "winner": "combined"
+  }
+}

@@ -1,0 +1,42 @@
+services:
+  awareness:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: awareness:latest
+    container_name: awareness
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health.html"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    # If you want auto-HTTPS in front of this container, uncomment the
+    # `caddy` service below and set CADDY_DOMAIN.
+    # depends_on:
+    #   - caddy
+
+  # ── Optional: front the container with Caddy for free TLS. ────────────────
+  # caddy:
+  #   image: caddy:2-alpine
+  #   container_name: caddy
+  #   restart: unless-stopped
+  #   ports:
+  #     - "80:80"
+  #     - "443:443"
+  #   environment:
+  #     - CADDY_DOMAIN=awareness.example.com
+  #   command: >
+  #     caddy reverse-proxy
+  #     --from $${CADDY_DOMAIN}
+  #     --to awareness:80
+  #   volumes:
+  #     - caddy_data:/data
+  #     - caddy_config:/config
+
+# volumes:
+#   caddy_data:
+#   caddy_config:

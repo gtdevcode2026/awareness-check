@@ -1,0 +1,1 @@
+{"section3Bullets":["Review your software packages and ensure you are not using axios versions 1.14.1 or 0.30.4.","Change your login details if you use Trellix products to protect against potential breaches.","Verify all software updates come from trusted sources to avoid supply chain vulnerabilities."]}

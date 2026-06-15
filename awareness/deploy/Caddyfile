@@ -1,0 +1,53 @@
+# Awareness Newsletter — Caddyfile (auto-HTTPS, the smallest production config).
+#
+# Replace __DOMAIN__ and __WEB_ROOT__. Caddy provisions TLS automatically via
+# ACME on first start as long as the domain points at this host.
+#
+# Validate: caddy validate --config deploy/Caddyfile
+# Run     : caddy run --config deploy/Caddyfile
+
+__DOMAIN__ {
+    root * __WEB_ROOT__
+    encode gzip zstd
+
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "geolocation=(), microphone=(), camera=(), payment=(), usb=()"
+        Cross-Origin-Opener-Policy "same-origin"
+        Cross-Origin-Resource-Policy "same-origin"
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://api.anthropic.com https://api.openai.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com https://api.rss2json.com https:; frame-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'"
+        -Server
+    }
+
+    @hidden {
+        path /tests/* /scripts/* /docs/* /node_modules/* /ensemble-logs/* /playwright-report/* /test-results/* /deploy/* /package.json /package-lock.json /eslint.config.js /playwright.config.js /baseline-critical-path-audit-results.json
+        path /.*
+    }
+    respond @hidden 404
+
+    # Legacy redirect.
+    redir /builder.html /index.html#section-home permanent
+
+    # Health endpoint with no-store.
+    @health path /health.html
+    header @health Cache-Control "no-store"
+
+    # Cache HTML for zero seconds (always revalidate).
+    @html path *.html
+    header @html Cache-Control "public, max-age=0, must-revalidate"
+
+    # JS / CSS — moderate cache.
+    @code path *.js *.css
+    header @code Cache-Control "public, max-age=86400, must-revalidate"
+
+    # Static assets — weekly.
+    @assets path *.jpg *.jpeg *.png *.gif *.webp *.ico *.svg *.woff *.woff2 *.ttf *.eot
+    header @assets Cache-Control "public, max-age=604800"
+
+    # Multi-page fallback for client-side hash routes.
+    try_files {path} {path}/ /index.html
+    file_server
+}

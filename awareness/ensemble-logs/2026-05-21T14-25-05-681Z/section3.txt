@@ -1,0 +1,1 @@
+{"section3Bullets":["Review your software packages and ensure you are not using axios versions 1.14.1 or 0.30.4.","Change your login details if you suspect they may have been exposed in any recent breaches.","Be cautious of unexpected emails or messages that ask for sensitive information or prompt you to click links."]}

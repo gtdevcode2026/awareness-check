@@ -1,0 +1,1 @@
+{"bullets":["Supply chain vulnerabilities can expose multiple companies to significant security risks.","Popular software libraries can be compromised, affecting countless developers and applications globally.","Increased scrutiny and regulatory pressure on software security practices may follow these incidents."]}

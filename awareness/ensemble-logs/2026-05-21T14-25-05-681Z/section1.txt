@@ -1,0 +1,1 @@
+{"section1Bullets":["Unexpected messages ask for your login details or personal information.","Links in messages lead to unfamiliar websites or ask for software downloads.","Unusual updates or changes in popular software packages may indicate a security risk.","Messages contain poor grammar or spelling mistakes, which is uncommon in official communications."]}

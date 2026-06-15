@@ -1,0 +1,1 @@
+{"section3Bullets":["Review your software dependencies and ensure they are from trusted sources.","Change your login details if you use Trellix products.","Verify the sender of any unexpected emails regarding software updates."]}

@@ -1,0 +1,26 @@
+- generic [active] [ref=e1]:
+  - img "ABInBev" [ref=e2]
+  - generic [ref=e3]: Security & Compliance Awareness
+  - generic [ref=e4]: Monthly Bulletin
+  - generic [ref=e5]: Vishing
+  - generic [ref=e7]: A caller posing as the bank fraud desk pressures staff to read back a one-time passcode "to stop a fraudulent transaction." The urgency is the trap.
+  - img "Person receiving a suspicious phone call" [ref=e8]
+  - text: Protect yourself from a Vishing attack
+  - generic [ref=e9]: Slow down — a real fraud desk never needs you to rush or read codes aloud.
+  - generic [ref=e10]: Pressure, fear and authority are deliberate manipulation cues, not proof.
+  - generic [ref=e11]: Hang up and call the bank back on the official number from your card.
+  - generic [ref=e12]: A scripted, panicked or "do it now" tone is a red flag — verify first.
+  - link "Report to SOC Now → soc-support@ab-inbev.com" [ref=e13] [cursor=pointer]:
+    - /url: mailto:soc-support@ab-inbev.com
+  - paragraph [ref=e14]: Security & Compliance Awareness Portal
+  - paragraph [ref=e15]: Training modules, policies, and past bulletins.
+  - link "Visit Portal" [ref=e16] [cursor=pointer]:
+    - /url: https://awareness.ab-inbev.com
+  - table [ref=e17]:
+    - rowgroup [ref=e18]:
+      - row [ref=e19]:
+        - cell [ref=e20]
+  - table [ref=e21]:
+    - rowgroup [ref=e22]:
+      - row "Scan for Portal" [ref=e23]:
+        - cell "Scan for Portal" [ref=e24]

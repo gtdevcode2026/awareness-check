@@ -1,0 +1,69 @@
+=== PROMPT ===
+You are writing internal corporate security communications for a general employee audience with no IT or cybersecurity background. Write in a warm, clear, professional tone — like a trusted colleague from the security team sending a company-wide email. Use plain everyday language. Never use jargon, acronyms, or technical terms without immediately explaining them in simple words. Be direct, specific, and human. Every sentence should feel natural and immediately useful to someone sitting at their office desk.
+
+You complete REQUEST 2 of 2: exactly three imperative "What you should do" lines for ONE bulletin story. You are the lead editor for an internal organization-wide security awareness bulletin (technical and non-technical readers).
+Voice: CERT / CISA–style operational awareness — calm, factual, concise. Not marketing, not tabloid, not "thought leadership".
+
+STYLE (mandatory):
+- Professional, neutral, present tense where natural. No narrative, anecdotes, metaphors, or "story" framing.
+- No filler or throat-clearing. Never use: "it is important to note", "it is worth noting", "remember that", "in today's world", "as we all know", "needless to say", "at the end of the day", "in conclusion", "this article", "the takeaway is", "here's what you need to know", "so,", "basically", "actually", "staying vigilant", "be mindful", "bad actors", "in today's digital landscape".
+- Plain-language substitution: never use the word "credentials". Say "login details" or "username and password" instead. This applies in every section, every bullet, every sentence — no exceptions.
+- No rhetorical questions, exclamation marks, hype, jokes, slang, tabloid tone, or vendor/marketing voice.
+- Forbidden in JSON values: URLs, scam-style urgency.
+
+GROUNDING (mandatory):
+- The user's Content / Stories block is the only source of facts. Paraphrase what is stated or clearly implied; do not invent statistics, victim counts, CVEs, patch levels, legal outcomes, or named products not present in the text.
+- Prefer concrete vocabulary from the article (channel, platform, attack pattern, geography) over generic security words.
+- If the source is thin, stay appropriately high-level rather than inventing precision.
+
+WATCHOUTS (JSON key "watchouts", array length 3):
+- Each string: imperative mood; max 10 words; max 60 characters including spaces; no URLs; no exclamation marks.
+- Slot 1: strongest preventive or hardening action tied to THIS threat (specific beat generic).
+- Slot 2: how an affected reader would notice, verify, or safely check the risk.
+- Slot 3: escalate or report through normal org channels (IT, AppSec, SOC, manager)—process names only, never mailto or links.
+
+RELEVANCE TEST (silent, before you write): each line must contain at least one concrete anchor paraphrased from the article (e.g. text, email, npm, payroll, VPN, USB, invoice, QR, browser, cloud console)—not interchangeable slogans.
+
+SUPPLY CHAIN / DEV TOOLING: if the story involves malicious packages, registries, CI/CD, GitHub Actions, install scripts, or theft of developer or build secrets, all three lines must reflect pipeline or software hygiene (dependencies, lockfiles, scoped tokens, approved registries, AppSec review). Hard-ban unrelated consumer lines such as "use a different password on every website" or "enable MFA everywhere" unless the source explicitly describes mass theft of employee or customer login databases.
+
+NEGATIVE EXAMPLES (never output or paraphrase these patterns): "Stay vigilant online", "Be aware of cyber threats", "Security is everyone's job", "Always use strong passwords".
+
+VOICE GUARD: Never imitate scam or phishing language (no "Click here", "Act now", "URGENT", "verify your account now", congratulations, time pressure).
+
+Return ONLY valid JSON: {"watchouts":["…","…","…"]}
+
+You are writing three "What you should do" lines for the same bulletin item. Read the Content first; the Approved summary is for alignment only — do not paste it into watchouts.
+
+SOURCE
+Title: Welcome to BlackFile: Inside a Vishing Extortion Operation
+Source: Mandiant (Google)
+Date: 2026-05-15
+Content:
+
+
+Written by: Austin Larsen, Tyler McLellan, Genevieve Stark, Dan Ebreo
+
+
+
+
+Introduction 
+
+Google Threat Intelligence Group (GTIG) has continued to track an expansive extortion campaign by UNC6671, a threat actor operating under the "BlackFile" brand, that targets organizations via sophisticated voice phishing (vishing) and single sign-on (SSO) compromise. By leveraging adversary-in-the-middle (AiTM) techniques to bypass traditional perimeter defenses and multi-factor authentication (MFA), UNC6671 gains deep access to cloud environments. The group primarily targets Microsoft 365 and Okta…
+
+Approved summary (alignment only — do not copy into watchouts): An extortion campaign by the group UNC6671, known as BlackFile, targets organizations through voice phishing and single sign-on compromise. This program highlights the risk as the group uses advanced techniques to bypass security measures and gain access to cloud environments.
+
+CURATION MODE: balanced
+
+TASK (request 2 of 2 — watchouts only)
+- Output exactly three imperative lines, max 10 words and 60 characters each, no URLs, no exclamation marks.
+- Order: (1) reduce exposure / prevent recurrence for this threat, (2) recognize or verify safely, (3) report or escalate per org process.
+- Each line must echo at least one concrete element from the Content (channel, system, data type, attack pattern)—if you cannot, you are being too generic; rewrite.
+
+If the content is about malicious npm or other packages, supply chain or CI/CD compromise, or theft of developer or cloud build secrets, write watchouts for engineering and pipeline risk (dependencies, lockfiles, CI tokens, approved tooling)—not generic consumer password-reset advice unless the article clearly states customer or employee account databases were breached.
+
+
+
+Output: JSON only, no markdown. Key allowed: watchouts (array of exactly 3 strings) only.
+
+=== RESPONSE ===
+{"watchouts":["Limit access to Microsoft 365 and Okta accounts","Verify calls for sensitive information carefully","Report suspicious calls to your manager immediately"]}

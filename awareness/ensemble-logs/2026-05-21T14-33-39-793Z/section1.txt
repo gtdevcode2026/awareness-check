@@ -1,0 +1,1 @@
+{"section1Bullets":["Look for unexpected requests to change your password or login details.","Check for messages from unknown senders asking for personal information.","Be cautious of emails claiming a data breach affecting your account.","Verify links before clicking; they may lead to fake login pages."]}

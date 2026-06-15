@@ -1,0 +1,66 @@
+=== PROMPT ===
+You are writing internal corporate security communications for a general employee audience with no IT or cybersecurity background. Write in a warm, clear, professional tone — like a trusted colleague from the security team sending a company-wide email. Use plain everyday language. Never use jargon, acronyms, or technical terms without immediately explaining them in simple words. Be direct, specific, and human. Every sentence should feel natural and immediately useful to someone sitting at their office desk.
+
+You are a senior security-comms writer producing slot copy for an internal newsletter builder. You are the lead editor for an internal organization-wide security awareness bulletin (technical and non-technical readers).
+Voice: CERT / CISA–style operational awareness — calm, factual, concise. Not marketing, not tabloid, not "thought leadership".
+
+STYLE (mandatory):
+- Professional, neutral, present tense where natural. No narrative, anecdotes, metaphors, or "story" framing.
+- No filler or throat-clearing. Never use: "it is important to note", "it is worth noting", "remember that", "in today's world", "as we all know", "needless to say", "at the end of the day", "in conclusion", "this article", "the takeaway is", "here's what you need to know", "so,", "basically", "actually", "staying vigilant", "be mindful", "bad actors", "in today's digital landscape".
+- Plain-language substitution: never use the word "credentials". Say "login details" or "username and password" instead. This applies in every section, every bullet, every sentence — no exceptions.
+- No rhetorical questions, exclamation marks, hype, jokes, slang, tabloid tone, or vendor/marketing voice.
+- Forbidden in JSON values: URLs, scam-style urgency.
+
+GROUNDING (mandatory):
+- The user's Content / Stories block is the only source of facts. Paraphrase what is stated or clearly implied; do not invent statistics, victim counts, CVEs, patch levels, legal outcomes, or named products not present in the text.
+- Prefer concrete vocabulary from the article (channel, platform, attack pattern, geography) over generic security words.
+- If the source is thin, stay appropriately high-level rather than inventing precision.
+
+ANTI-GENERIC RULES (strict — these are the most common failure mode):
+- Every line must name a concrete behaviour, signal, channel, system, or action drawn from the actual Stories JSON. Generic advice ("review security practices", "monitor unusual behaviour", "stay informed", "limit access", "be vigilant", "maintain awareness") is REJECTED — rewrite to name the specific thing the story describes.
+- Concrete = mentions one of: the attack vector named in the story (npm, PyPI, CI/CD, install script, postMessage hook, BEC reply chain, RDP, OAuth consent, QR code, smishing, etc.), the action a reader takes today (rotate the leaked token, freeze the affected pipeline, block the sender domain, verify the requester out-of-band, check package provenance, disconnect the device, forward to SOC), OR a named signal a reader could observe (unexpected dependency update, second-stage download, request for gift cards, login from new geography, unfamiliar sender domain).
+- BANNED OPENINGS unless immediately paired with a concrete object from the stories: "Review", "Monitor", "Stay", "Be", "Limit", "Maintain", "Ensure", "Always", "Remember", "Understand", "Recognize", "Increase awareness". Replace with imperative verbs that name the action: "Verify", "Rotate", "Pin", "Block", "Forward", "Disconnect", "Patch", "Audit", "Freeze", "Report", "Confirm by phone", "Forward to SOC", "Pause the install".
+- SWAP TEST per line: if the line would still make sense for an unrelated threat type (phishing vs ransomware vs supply-chain vs smishing), it is too generic — rewrite it so it would NOT apply to an unrelated threat.
+- At least half the lines must reference a specific noun from the stories (a registry name, a vendor type, a system name, a workflow stage, a file type, a channel) — not just the abstract category label.
+
+Output: JSON only, exactly the keys requested in the user message. Each string must be defensible from the provided Stories JSON—no invented incidents, no URLs, no scam tone, no exclamation marks, no filler phrases ("it is important to note", "remember that", "in today's world"). Prefer concrete nouns from the articles over generic security platitudes.
+
+Template: a "Vishing" (voice-phishing) awareness poster. It has FOUR detection-signal icons in a FIXED order, each a fixed behavioral theme. Generate tips that teach HOW TO IDENTIFY this specific threat, not generic defense responses.
+
+Article:
+Title: "Report: AI-Enabled Social Engineering Attacks Are on the Rise"
+Type: "Social Engineering"
+Summary: "
+ 
+   
+ 
+Threat actors are increasingly using AI-enabled social engineering to get around technical security measures, according to a new report from Visa. Social engineering attacks were behind the largest number of losses in the second half of last year.
+"
+
+Your task:
+1. Read and understand what THREAT or ATTACK TYPE this article describes.
+2. Write a 1-2 sentence description of what this specific threat IS (e.g., "Phishing is when...", "Data breaches occur when..."). Base it entirely on the article's content and type.
+3. Generate 4 detection-focused tips specific to THIS threat.
+
+Return ONLY valid JSON (no markdown) with two keys:
+- "nlVishingIntro": string, 1-2 sentences (max 230 chars). A clear, accurate description of what the threat in this article is. Do NOT use generic language—explain what makes THIS specific threat dangerous or how it works.
+- "nlVishingTips": array of EXACTLY 4 strings (each max 130 chars), imperative voice, one per theme IN THIS ORDER:
+  1. TIMING/PRESSURE SIGNAL — Identify when an attacker tries to rush or pressure you. What specific urgency tactic applies to THIS threat?
+  2. EMOTIONAL MANIPULATION SIGNAL — Identify emotional hooks (urgency, fear, authority, curiosity). What specific emotional pressure appears in THIS threat scenario?
+  3. LEGITIMACY RED FLAG — Identify how to verify the caller/sender is real. What specific verification step reveals THIS threat?
+  4. BEHAVIORAL ANOMALY — Identify unusual communication patterns (tone, script, requests, behavior). What specific oddity signals THIS threat?
+
+For EACH tip, provide a concrete, specific behavioral indicator or red flag that would help employees spot THIS THREAT in real-time. Frame as "watch for…", "notice if…", "check whether…", or "listen for…" to teach detection, not defense.
+
+Mode: balanced
+
+=== RESPONSE ===
+{
+  "nlVishingIntro": "Vishing is when attackers use voice calls to manipulate individuals into revealing sensitive information, often using AI to enhance their tactics.",
+  "nlVishingTips": [
+    "Watch for callers who pressure you to act quickly, claiming urgent issues that require immediate resolution.",
+    "Notice if the caller uses fear tactics, such as threats of account suspension or legal action, to provoke a quick response.",
+    "Check whether the caller provides a callback number and verify it independently to confirm their legitimacy.",
+    "Listen for unusual speech patterns, such as overly scripted dialogue or inconsistent details that raise suspicion."
+  ]
+}

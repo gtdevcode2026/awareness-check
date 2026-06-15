@@ -1,0 +1,16 @@
+- generic [active] [ref=e1]:
+  - img "Red flag warning" [ref=e2]
+  - generic [ref=e5]:
+    - text: Always stop and
+    - strong [ref=e6]: take your time
+    - text: to understand what information you’re being asked to share.
+  - img "Red flag warning" [ref=e7]
+  - generic [ref=e10]:
+    - strong [ref=e11]: Stay vigilant
+    - text: and don’t accept anyone online at face value.
+  - img "Red flag warning" [ref=e12]
+  - generic [ref=e15]:
+    - strong [ref=e16]: Don’t instantly try to offer your help online.
+    - text: Social engineers are very skilful in using emotional tactics to get you to respond. Do your research first!
+  - link "Report to SOC Now → soc-support@ab-inbev.com" [ref=e17] [cursor=pointer]:
+    - /url: mailto:soc-support@ab-inbev.com

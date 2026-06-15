@@ -1,0 +1,1 @@
+{"bullets":["Compromised software could lead to vulnerabilities in our applications and systems.","Supply chain attacks may disrupt our development processes and project timelines.","Exposed security controls could make our data more attractive to attackers targeting our organization."]}

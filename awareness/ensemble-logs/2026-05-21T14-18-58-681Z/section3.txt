@@ -1,0 +1,1 @@
+{"section3Bullets":["Review your software packages and ensure they are from trusted sources only.","Change your login details if you use any affected versions of axios NPM packages.","Stay alert for unusual emails or messages that may be phishing attempts related to recent breaches."]}

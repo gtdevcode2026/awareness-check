@@ -1,0 +1,1 @@
+{"bullets":["Supply chain vulnerabilities can expose our security tools to attackers.","Always verify software packages before using them.","Stay informed about recent security incidents to protect our systems."]}

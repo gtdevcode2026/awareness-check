@@ -1,0 +1,266 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - navigation "Global menu" [ref=e4]:
+      - link "Home" [ref=e5] [cursor=pointer]:
+        - /url: index.html#section-home
+      - link "Keywords" [ref=e6] [cursor=pointer]:
+        - /url: keywords.html
+      - link "Curation lab" [ref=e7] [cursor=pointer]:
+        - /url: curation-lab.html
+      - link "Editor" [ref=e8] [cursor=pointer]:
+        - /url: editor.html
+      - link "Send" [ref=e9] [cursor=pointer]:
+        - /url: send.html
+      - link "Projects" [ref=e10] [cursor=pointer]:
+        - /url: projects.html
+      - link "Config" [ref=e11] [cursor=pointer]:
+        - /url: config.html
+    - generic "Primary flow" [ref=e12]:
+      - generic [ref=e13]: Fetch
+      - generic [ref=e14]: →
+      - generic [ref=e15]: Curate
+      - generic [ref=e16]: →
+      - generic [ref=e17]: Build
+      - generic [ref=e18]: →
+      - generic [ref=e19]: Preview
+      - generic [ref=e20]: →
+      - generic [ref=e21]: Edit
+      - generic [ref=e22]: →
+      - generic [ref=e23]: Approve
+      - generic [ref=e24]: →
+      - generic [ref=e25]: Send
+  - generic [ref=e26]:
+    - complementary [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]: Newsletter Generator
+        - generic [ref=e30]:
+          - text: Phishing & Security
+          - emphasis [ref=e31]: Awareness
+        - generic [ref=e32]: v11 — 12 Templates · 35+ Feeds · 10 Countries
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35] [cursor=pointer]:
+            - generic [ref=e36]: ⚙ Configuration Hub
+            - generic [ref=e37]: ›
+          - generic [ref=e38]:
+            - generic [ref=e39]: AI, email delivery (Microsoft Graph or SMTP relay), source management, and keyword actions now live in a dedicated configuration page.
+            - button "Open Config" [ref=e40] [cursor=pointer]
+            - button "Open Keywords" [ref=e41] [cursor=pointer]
+        - generic [ref=e43] [cursor=pointer]:
+          - generic [ref=e44]: 📡 Feed Health
+          - generic [ref=e45]: ›
+      - generic [ref=e46]:
+        - button "Generate Newsletter →" [ref=e47] [cursor=pointer]
+        - button "Generate (English only) →" [ref=e48] [cursor=pointer]
+    - main [ref=e49]:
+      - generic [ref=e51]:
+        - button "Home" [ref=e52] [cursor=pointer]
+        - generic [ref=e53]: /
+        - button "Compose" [ref=e54] [cursor=pointer]
+        - button "Projects" [ref=e55] [cursor=pointer]
+        - button "Config" [ref=e56] [cursor=pointer]
+        - button "Keywords" [ref=e57] [cursor=pointer]
+        - button "Projects" [ref=e58] [cursor=pointer]
+      - generic [ref=e59]:
+        - heading "Choose Template" [level=2] [ref=e60]:
+          - text: Choose
+          - emphasis [ref=e61]: Template
+        - paragraph [ref=e62]: 14 layouts inspired by JPMorgan, Goldman Sachs, Microsoft, Deloitte & more
+      - generic [ref=e63]: Ready (8)
+      - group [ref=e64]:
+        - generic "▶ Newsletter Templates 2 articles (5)" [ref=e65] [cursor=pointer]:
+          - text: ▶ Newsletter Templates
+          - generic [ref=e66]: 2 articles
+          - generic [ref=e67]: (5)
+        - generic [ref=e68]:
+          - generic [ref=e69] [cursor=pointer]:
+            - generic [ref=e71]: Corporate Alert
+            - generic [ref=e72]: Leadership and broad staff notices.
+            - button "👁 Preview" [ref=e73]
+            - text: ✓
+          - generic [ref=e74] [cursor=pointer]:
+            - generic [ref=e76]: bankpage1_static
+            - generic [ref=e77]: Bank-themed brief with centered Arial hero and content-width Report-to-SOC button.
+            - button "👁 Preview" [ref=e78]
+          - generic [ref=e79] [cursor=pointer]:
+            - generic [ref=e81]: bankpage1_dynamic
+            - generic [ref=e82]: Bank page with two clickable article cards replacing the laptop illustration.
+            - button "👁 Preview" [ref=e83]
+          - generic [ref=e84] [cursor=pointer]:
+            - generic [ref=e86]: Action Required Bulletin
+            - generic [ref=e87]: Branded monthly bulletin with hero call-to-action, two article cards, and a scam-alert block.
+            - button "👁 Preview" [ref=e88]
+          - generic [ref=e89] [cursor=pointer]:
+            - generic [ref=e91]: Phishing Maestro
+            - generic [ref=e92]: Dark/gold security awareness bulletin with threat-alert hero, red-flag list, two article cards, and three stat tiles.
+            - button "👁 Preview" [ref=e93]
+      - group [ref=e94]:
+        - generic "▶ Poster Templates 1 article (3)" [ref=e95] [cursor=pointer]:
+          - text: ▶ Poster Templates
+          - generic [ref=e96]: 1 article
+          - generic [ref=e97]: (3)
+        - generic [ref=e98]:
+          - generic [ref=e99] [cursor=pointer]:
+            - generic [ref=e101]: Poster Tips
+            - generic [ref=e102]: "Single-panel awareness poster: ABInBev masthead, AI headline + precaution, hero illustration, and a portal/QR footer. Selects one article."
+            - button "👁 Preview" [ref=e103]
+          - generic [ref=e104] [cursor=pointer]:
+            - generic [ref=e106]: How to Spot Shield
+            - generic [ref=e107]: "Article-driven security poster: Dynamic article-type heading, AI-generated threat description, hero image, and four article-derived detection tips with mascot icons. Selects one article."
+            - button "👁 Preview" [ref=e108]
+          - generic [ref=e109] [cursor=pointer]:
+            - img [ref=e111]:
+              - generic [ref=e115]: Social Eng.
+              - generic [ref=e118]: REPORT TO SOC NOW
+            - generic [ref=e119]: Social Engineering
+            - generic [ref=e120]: "Article-driven social-engineering poster: attack-type headline, AI threat intro, line-art hero, and three AI red flags of the selected attack. Selects one article."
+            - button "👁 Preview" [ref=e121]
+      - group [ref=e122]:
+        - generic "▶ Beta · In Development (25)" [ref=e123] [cursor=pointer]:
+          - text: ▶ Beta · In Development
+          - generic [ref=e124]: (25)
+        - text: ▶
+      - generic [ref=e125]:
+        - heading "Select Articles" [level=2] [ref=e126]:
+          - text: Select
+          - emphasis [ref=e127]: Articles
+        - paragraph [ref=e128]: Pick up to 2 articles for your newsletter
+      - generic [ref=e130]:
+        - generic [ref=e131]:
+          - generic [ref=e132]: "3"
+          - generic [ref=e133]: Total Stored
+        - generic [ref=e134]:
+          - generic [ref=e135]: "3"
+          - generic [ref=e136]: Last 7 Days
+        - generic [ref=e137]:
+          - generic [ref=e138]: "3"
+          - generic [ref=e139]: Last 30 Days
+        - generic [ref=e140]:
+          - generic [ref=e141]: "3"
+          - generic [ref=e142]: Sources
+      - generic [ref=e143]:
+        - button "↓ Fetch Live News" [ref=e144] [cursor=pointer]
+        - button "💾 Load from DB" [ref=e145] [cursor=pointer]
+        - button "Clear" [ref=e146] [cursor=pointer]
+        - generic [ref=e147]:
+          - button "7d" [ref=e148] [cursor=pointer]
+          - button "14d" [ref=e149] [cursor=pointer]
+          - button "30d" [ref=e150] [cursor=pointer]
+          - button "90d" [ref=e151] [cursor=pointer]
+          - button "All" [ref=e152] [cursor=pointer]
+        - generic [ref=e153]:
+          - text: Curation
+          - combobox "Curation" [ref=e154]:
+            - option "Concise"
+            - option "Balanced" [selected]
+            - option "Deep"
+        - generic [ref=e155]: Loaded 3 baseline fallback articles
+        - generic [ref=e156]: "Loaded: 3 | In range: 3 | Showing: 3 | Selected: 0/2"
+      - generic [ref=e158]: Fetch telemetry appears after the first live run.
+      - generic [ref=e159]:
+        - generic [ref=e160]:
+          - generic [ref=e161]: "3"
+          - generic [ref=e162]: Loaded Articles
+        - generic [ref=e163]:
+          - generic [ref=e164]: "3"
+          - generic [ref=e165]: Last 7 Days
+        - generic [ref=e166]:
+          - generic [ref=e167]: "3"
+          - generic [ref=e168]: Showing (Filter)
+        - generic [ref=e169]:
+          - generic [ref=e170]: 0/2
+          - generic [ref=e171]: Selected
+      - generic [ref=e173]: "[12:30:23] › 💾 3 articles from database"
+      - img [ref=e175]:
+        - generic [ref=e179]: "3"
+        - generic [ref=e180]: ARTICLES
+        - generic [ref=e181]: "â—\x8f Data Breach (1)"
+        - generic [ref=e182]: "â—\x8f Phishing (1)"
+        - generic [ref=e183]: "â—\x8f Smishing (1)"
+      - search "Filter articles by keyword" [ref=e184]:
+        - generic [ref=e185]: Search
+        - searchbox "Search" [ref=e186]
+      - generic [ref=e187]:
+        - generic [ref=e188]:
+          - generic [ref=e189]:
+            - text: Select up to
+            - strong [ref=e190]: "2"
+            - text: articles
+          - generic [ref=e191]:
+            - generic [ref=e192]:
+              - text: "Selected:"
+              - generic [ref=e193]: "0"
+              - text: / 2
+            - generic [ref=e194]:
+              - text: Sort
+              - combobox "Sort" [ref=e195]:
+                - option "Newest first" [selected]
+                - option "Oldest first"
+        - generic [ref=e196]:
+          - button "All" [ref=e197] [cursor=pointer]
+          - button "Data Breach" [ref=e198] [cursor=pointer]
+          - button "Phishing" [ref=e199] [cursor=pointer]
+          - button "Smishing" [ref=e200] [cursor=pointer]
+        - generic [ref=e201] [cursor=pointer]:
+          - button "✕" [ref=e202]
+          - generic [ref=e203]:
+            - img [ref=e205]
+            - generic [ref=e212]:
+              - generic [ref=e213]:
+                - text: KrebsOnSecurity
+                - generic [ref=e214]: ✦ AI
+              - generic [ref=e215]: Major Data Breach Exposes 2 Million Customer Records — Change Your Passwords Now
+          - generic [ref=e216]: A large retail company has confirmed that hackers stole personal data including names, email addresses, and encrypted passwords of 2 million customers. If you have an account with this service, change your password immediately and enable two-factor authentication.
+          - generic [ref=e217]:
+            - generic [ref=e218]: Data Breach
+            - generic [ref=e219]: LV5
+            - generic [ref=e220]: 11 Jun 2026 · Yesterday
+            - link "↗" [ref=e221]:
+              - /url: https://baseline.local/article-3
+          - generic [ref=e223]: Confidence 0%
+          - generic [ref=e224]:
+            - button "Unclear" [ref=e225]
+            - button "Too long" [ref=e226]
+            - button "Not actionable" [ref=e227]
+        - generic [ref=e228] [cursor=pointer]:
+          - button "✕" [ref=e229]
+          - generic [ref=e230]:
+            - img [ref=e232]
+            - generic [ref=e236]:
+              - generic [ref=e237]:
+                - text: Bleeping Computer
+                - generic [ref=e238]: ✦ AI
+              - generic [ref=e239]: New Phishing Scam Impersonates IT Department — Asks Staff to "Verify" Passwords
+          - generic [ref=e240]: A new phishing campaign is sending fake emails that look like they come from your IT department, asking you to click a link and "verify" your password. The emails use your company logo and even address you by name — but the link leads to a fake login page that steals your credentials.
+          - generic [ref=e241]:
+            - generic [ref=e242]: Phishing
+            - generic [ref=e243]: LV4
+            - generic [ref=e244]: 11 Jun 2026 · Yesterday
+            - link "↗" [ref=e245]:
+              - /url: https://baseline.local/article-1
+          - generic [ref=e247]: Confidence 0%
+          - generic [ref=e248]:
+            - button "Unclear" [ref=e249]
+            - button "Too long" [ref=e250]
+            - button "Not actionable" [ref=e251]
+        - generic [ref=e252] [cursor=pointer]:
+          - button "✕" [ref=e253]
+          - generic [ref=e254]:
+            - img [ref=e256]
+            - generic [ref=e262]:
+              - generic [ref=e263]:
+                - text: The Hacker News
+                - generic [ref=e264]: ✦ AI
+              - generic [ref=e265]: Employees Tricked by Fake "Missed Delivery" Text Messages — Smishing on the Rise
+          - generic [ref=e266]: Scammers are sending text messages pretending to be from delivery companies like FedEx and DHL, claiming you have a missed package. The link in the text leads to a page that asks for your credit card details. This type of attack is called "smishing" — phishing via SMS.
+          - generic [ref=e267]:
+            - generic [ref=e268]: Smishing
+            - generic [ref=e269]: LV3
+            - generic [ref=e270]: 11 Jun 2026 · Yesterday
+            - link "↗" [ref=e271]:
+              - /url: https://baseline.local/article-2
+          - generic [ref=e273]: Confidence 0%
+          - generic [ref=e274]:
+            - button "Unclear" [ref=e275]
+            - button "Too long" [ref=e276]
+            - button "Not actionable" [ref=e277]

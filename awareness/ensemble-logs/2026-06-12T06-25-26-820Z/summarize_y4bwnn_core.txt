@@ -1,0 +1,64 @@
+=== PROMPT ===
+You are writing internal corporate security communications for a general employee audience with no IT or cybersecurity background. Write in a warm, clear, professional tone — like a trusted colleague from the security team sending a company-wide email. Use plain everyday language. Never use jargon, acronyms, or technical terms without immediately explaining them in simple words. Be direct, specific, and human. Every sentence should feel natural and immediately useful to someone sitting at their office desk.
+
+You complete REQUEST 1 of 2 for a single item in that bulletin. You are the lead editor for an internal organization-wide security awareness bulletin (technical and non-technical readers).
+Voice: CERT / CISA–style operational awareness — calm, factual, concise. Not marketing, not tabloid, not "thought leadership".
+
+STYLE (mandatory):
+- Professional, neutral, present tense where natural. No narrative, anecdotes, metaphors, or "story" framing.
+- No filler or throat-clearing. Never use: "it is important to note", "it is worth noting", "remember that", "in today's world", "as we all know", "needless to say", "at the end of the day", "in conclusion", "this article", "the takeaway is", "here's what you need to know", "so,", "basically", "actually", "staying vigilant", "be mindful", "bad actors", "in today's digital landscape".
+- Plain-language substitution: never use the word "credentials". Say "login details" or "username and password" instead. This applies in every section, every bullet, every sentence — no exceptions.
+- No rhetorical questions, exclamation marks, hype, jokes, slang, tabloid tone, or vendor/marketing voice.
+- Forbidden in JSON values: URLs, scam-style urgency.
+
+GROUNDING (mandatory):
+- The user's Content / Stories block is the only source of facts. Paraphrase what is stated or clearly implied; do not invent statistics, victim counts, CVEs, patch levels, legal outcomes, or named products not present in the text.
+- Prefer concrete vocabulary from the article (channel, platform, attack pattern, geography) over generic security words.
+- If the source is thin, stay appropriately high-level rather than inventing precision.
+
+TASK — produce three fields only (no watchouts in this response):
+
+1) summary (string)
+- Obey the user message sentence count and hard character cap exactly.
+- First sentence: what happened or what threat class is active, using terms that appear in the source where possible.
+- Follow-on sentence(s): organizational relevance (who should care and why) only if supported by the text; otherwise one calm clause on why the program is flagging it.
+- Do not paste the title as the whole summary; do not quote long spans verbatim.
+
+2) threatLevel (integer 1–5)
+- 1–2: background or research-only pieces with no clear active risk to typical staff workflows.
+- 3: meaningful risk for some roles or common workflows.
+- 4–5: active exploitation, fast-moving campaigns, or incidents that likely require immediate staff or IT action. When uncertain, prefer 3 over 5.
+
+3) category (exact enum string)
+- One of: Phishing, Password & MFA, Data Breach, Ransomware, Social Engineering, Malware, Scam & Fraud, Vulnerability, Advisory, Insider Threat, Security News, Smishing.
+- Classify from the dominant mechanism in the body, not from a sensational headline. Example: npm or CI supply-chain abuse with developer-token theft → "Security News" or "Malware" is usually better than "Password & MFA" unless the piece is truly about end-user password compromise at scale.
+
+Return ONLY valid JSON with exactly these keys (no markdown fences, no commentary):
+{"summary":"…","threatLevel":3,"category":"Category"}
+
+You are curating one item for an internal security bulletin. Read the Content carefully before writing.
+
+SOURCE
+Title: VECT: Ransomware by design, Wiper by accident
+Source: Check Point Research
+Date: 2026-04-28
+Content:
+Key Takeaways Background VECT Ransomware is a Ransomware-as-a-Service (RaaS) program that made its first appearance in December 2025 on a Russian-language cybercrime forum. After claiming their first two victims in January 2026, the group got back into the public eye due to an announcement of a partnership with TeamPCP, the actor behind several supply-chain attacks […]
+The post VECT: Ransomware by design, Wiper by accident appeared first on Check Point Research.
+
+
+CURATION MODE: balanced
+Summary shape: Exactly 2 or 3 short sentences.
+Hard cap: JSON field "summary" must be at most 300 characters including spaces (prefer shorter if complete).
+
+TASK (request 1 of 2 — summary + metadata only; do not output watchouts)
+1. Write "summary" from the Content only: what happened or what is in scope, then why the program is surfacing it. Use vocabulary that appears in the Content when you can.
+2. Set "threatLevel" using the calibration in your system instructions.
+3. Set "category" from the dominant mechanism in the Content (not from the title alone).
+
+Hard rules: no URLs; no filler phrases; no exclamation marks; do not fabricate numbers, CVEs, or vendor claims absent from the Content.
+
+Output: JSON only, no markdown. Keys allowed: summary, threatLevel, category only.
+
+=== RESPONSE ===
+{"summary":"VECT Ransomware is a Ransomware-as-a-Service program that emerged in December 2025 and has already claimed victims. This program is relevant as it highlights ongoing threats in the cyber landscape that could impact our organization.","threatLevel":3,"category":"Ransomware"}

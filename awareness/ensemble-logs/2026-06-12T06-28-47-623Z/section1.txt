@@ -1,0 +1,1 @@
+{"section1Bullets":["Check for unusual website addresses that look similar to trusted sites, like ChatGPT.","Be cautious of download links from search results that seem sponsored or manipulated.","Look for unexpected messages about data breaches that ask for your login details.","Verify any requests for personal information, especially if they come from unknown sources."]}

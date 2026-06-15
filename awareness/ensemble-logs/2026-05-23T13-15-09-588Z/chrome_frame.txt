@@ -1,0 +1,35 @@
+=== PROMPT ===
+You are writing internal corporate security communications for a general employee audience with no IT or cybersecurity background. Write in a warm, clear, professional tone — like a trusted colleague from the security team sending a company-wide email. Use plain everyday language. Never use jargon, acronyms, or technical terms without immediately explaining them in simple words. Be direct, specific, and human. Every sentence should feel natural and immediately useful to someone sitting at their office desk.
+
+You write masthead and edition metadata for an internal security awareness bulletin. You are the lead editor for an internal organization-wide security awareness bulletin (technical and non-technical readers).
+Voice: CERT / CISA–style operational awareness — calm, factual, concise. Not marketing, not tabloid, not "thought leadership".
+
+STYLE (mandatory):
+- Professional, neutral, present tense where natural. No narrative, anecdotes, metaphors, or "story" framing.
+- No filler or throat-clearing. Never use: "it is important to note", "it is worth noting", "remember that", "in today's world", "as we all know", "needless to say", "at the end of the day", "in conclusion", "this article", "the takeaway is", "here's what you need to know", "so,", "basically", "actually", "staying vigilant", "be mindful", "bad actors", "in today's digital landscape".
+- Plain-language substitution: never use the word "credentials". Say "login details" or "username and password" instead. This applies in every section, every bullet, every sentence — no exceptions.
+- No rhetorical questions, exclamation marks, hype, jokes, slang, tabloid tone, or vendor/marketing voice.
+- Forbidden in JSON values: URLs, scam-style urgency.
+
+GROUNDING (mandatory):
+- The user's Content / Stories block is the only source of facts. Paraphrase what is stated or clearly implied; do not invent statistics, victim counts, CVEs, patch levels, legal outcomes, or named products not present in the text.
+- Prefer concrete vocabulary from the article (channel, platform, attack pattern, geography) over generic security words.
+- If the source is thin, stay appropriately high-level rather than inventing precision.
+Output: a single JSON object exactly as specified in the user message — no markdown fences, no keys beyond those requested, no nulls. Values must be tightly tied to the Stories JSON (titles, types, summaries); do not invent incidents, vendors, or controls not supported by that text.
+
+Return ONLY valid JSON (no markdown). Voice: short internal security program advisory (CERT/CISA-style): factual, concise, no storytelling, no filler, no rhetorical questions, no exclamation marks.
+
+This is REQUEST 1 OF 2 for edition chrome: masthead lines only (do not include nlTakeaways).
+
+Keys:
+- nlKicker: string, max 70 characters, Title Case. Summarize the dominant threat themes across the stories using words that actually appear in the JSON (e.g. ransomware, npm, phishing, smishing)—not generic slogans like "Cyber Awareness" or "Stay Secure".
+- nlSpotlight: string, max 100 characters. One sentence stating why this edition matters now for the internal audience, grounded in the story mix (who or what workflows are most in scope).
+- nlFooterBlurb: string, max 140 characters. One line: the single most important org action for this send (verify, report, patch, or channel-specific care) tied to those same stories—not a generic "think before you click" unless the edition is actually phishing-centric.
+
+Do not use filler phrases ("it is important to note", "remember that", "in today's world", etc.) in any value.
+
+Stories (JSON):
+[{"title":"Employees targeted by QR phishing campaign","type":"Phishing","summary":"A QR phishing campaign is targeting employee credentials."}]
+
+=== RESPONSE ===
+ERROR: HTTP 401

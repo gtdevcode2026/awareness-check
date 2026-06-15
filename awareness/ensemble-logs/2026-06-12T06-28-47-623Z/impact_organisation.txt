@@ -1,0 +1,1 @@
+{"bullets":["Employees may unknowingly download malware from fake sites, risking their devices and data.","A data breach could expose sensitive employee information, leading to identity theft and privacy concerns.","Malware infections can disrupt workflows, causing delays and potential financial losses for the company."]}

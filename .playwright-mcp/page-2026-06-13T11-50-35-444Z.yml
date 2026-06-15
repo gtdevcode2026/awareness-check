@@ -1,0 +1,612 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - navigation "Global menu" [ref=e4]:
+      - link "Home" [ref=e5] [cursor=pointer]:
+        - /url: index.html#section-home
+      - link "Keywords" [ref=e6] [cursor=pointer]:
+        - /url: keywords.html
+      - link "Curation lab" [ref=e7] [cursor=pointer]:
+        - /url: curation-lab.html
+      - link "Editor" [ref=e8] [cursor=pointer]:
+        - /url: editor.html
+      - link "Send" [ref=e9] [cursor=pointer]:
+        - /url: send.html
+      - link "Projects" [ref=e10] [cursor=pointer]:
+        - /url: projects.html
+      - link "Config" [ref=e11] [cursor=pointer]:
+        - /url: config.html
+    - generic "Primary flow" [ref=e12]:
+      - generic [ref=e13]: Fetch
+      - generic [ref=e14]: →
+      - generic [ref=e15]: Curate
+      - generic [ref=e16]: →
+      - generic [ref=e17]: Build
+      - generic [ref=e18]: →
+      - generic [ref=e19]: Preview
+      - generic [ref=e20]: →
+      - generic [ref=e21]: Edit
+      - generic [ref=e22]: →
+      - generic [ref=e23]: Approve
+      - generic [ref=e24]: →
+      - generic [ref=e25]: Send
+  - generic [ref=e26]:
+    - complementary [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]: Newsletter Generator
+        - generic [ref=e30]:
+          - text: Phishing & Security
+          - emphasis [ref=e31]: Awareness
+        - generic [ref=e32]: v11 — 12 Templates · 35+ Feeds · 10 Countries
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35] [cursor=pointer]:
+            - generic [ref=e36]: ⚙ Configuration Hub
+            - generic [ref=e37]: ›
+          - generic [ref=e38]:
+            - generic [ref=e39]: AI, email delivery (Microsoft Graph or SMTP relay), source management, and keyword actions now live in a dedicated configuration page.
+            - button "Open Config" [ref=e40] [cursor=pointer]
+            - button "Open Keywords" [ref=e41] [cursor=pointer]
+        - generic [ref=e43] [cursor=pointer]:
+          - generic [ref=e44]: 📡 Feed Health
+          - generic [ref=e45]: ›
+      - generic [ref=e46]:
+        - button "Generate Newsletter →" [ref=e47] [cursor=pointer]
+        - button "Generate (English only) →" [ref=e48] [cursor=pointer]
+    - main [ref=e49]:
+      - generic [ref=e51]:
+        - button "Home" [ref=e52] [cursor=pointer]
+        - generic [ref=e53]: /
+        - button "Compose" [ref=e54] [cursor=pointer]
+        - button "Projects" [ref=e55] [cursor=pointer]
+        - button "Config" [ref=e56] [cursor=pointer]
+        - button "Keywords" [ref=e57] [cursor=pointer]
+        - button "Projects" [ref=e58] [cursor=pointer]
+      - generic [ref=e59]:
+        - heading "Choose Template" [level=2] [ref=e60]:
+          - text: Choose
+          - emphasis [ref=e61]: Template
+        - paragraph [ref=e62]: 14 layouts inspired by JPMorgan, Goldman Sachs, Microsoft, Deloitte & more
+      - generic [ref=e63]: Ready (8)
+      - group [ref=e64]:
+        - generic "▶ Newsletter Templates 2 articles (5)" [ref=e65] [cursor=pointer]:
+          - text: ▶ Newsletter Templates
+          - generic [ref=e66]: 2 articles
+          - generic [ref=e67]: (5)
+        - 'group "Template 1 of 5: Corporate Alert" [ref=e69]':
+          - button "Previous template" [disabled] [ref=e70]:
+            - img [ref=e71]
+          - generic [ref=e73]:
+            - generic:
+              - generic [ref=e75] [cursor=pointer]:
+                - iframe [ref=e77]:
+                  - generic [active] [ref=f2e1]:
+                    - table [ref=f2e2]:
+                      - rowgroup [ref=f2e3]:
+                        - row "Weekly Security Bulletin · ABC Corp Stay Safe Online 13 Jun 2026" [ref=f2e4]:
+                          - cell "Weekly Security Bulletin · ABC Corp Stay Safe Online 13 Jun 2026" [ref=f2e5]:
+                            - text: Weekly Security Bulletin · ABC Corp
+                            - generic [ref=f2e6]:
+                              - text: Stay Safe
+                              - text: Online
+                            - text: 13 Jun 2026
+                          - cell [ref=f2e7]
+                    - table [ref=f2e8]:
+                      - rowgroup [ref=f2e9]:
+                        - row "⚠ THINK BEFORE YOU CLICK — PROTECT YOURSELF AND YOUR TEAM" [ref=f2e10]:
+                          - cell "⚠ THINK BEFORE YOU CLICK — PROTECT YOURSELF AND YOUR TEAM" [ref=f2e11]
+                    - generic [ref=f2e12]:
+                      - text: Phishing
+                      - generic [ref=f2e13]: HIGH
+                    - table [ref=f2e14]:
+                      - rowgroup [ref=f2e15]:
+                        - row "New Phishing Scam Impersonates IT Department — Asks Staff to \"Verify\" Passwords" [ref=f2e16]:
+                          - cell [ref=f2e17]
+                          - cell "New Phishing Scam Impersonates IT Department — Asks Staff to \"Verify\" Passwords" [ref=f2e18]
+                    - text: A new phishing campaign is sending fake emails that look like they come from your IT department, asking you to click a link and "verify" your password. The emails use your company logo and even address you by name — but the link leads to a fake login page that steals your credentials.
+                    - link "↗ Read more — Bleeping Computer · 13 Jun 2026" [ref=f2e19] [cursor=pointer]:
+                      - /url: "#"
+                    - table [ref=f2e20]:
+                      - rowgroup [ref=f2e21]:
+                        - row "What You Should Do › Never click password reset links you didn't request › Check the sender's full email address carefully › Report suspicious IT emails to security team" [ref=f2e22]:
+                          - cell "What You Should Do › Never click password reset links you didn't request › Check the sender's full email address carefully › Report suspicious IT emails to security team" [ref=f2e23]:
+                            - text: What You Should Do
+                            - table [ref=f2e24]:
+                              - rowgroup [ref=f2e25]:
+                                - row "› Never click password reset links you didn't request" [ref=f2e26]:
+                                  - cell "›" [ref=f2e27]
+                                  - cell "Never click password reset links you didn't request" [ref=f2e28]
+                            - table [ref=f2e29]:
+                              - rowgroup [ref=f2e30]:
+                                - row "› Check the sender's full email address carefully" [ref=f2e31]:
+                                  - cell "›" [ref=f2e32]
+                                  - cell "Check the sender's full email address carefully" [ref=f2e33]
+                            - table [ref=f2e34]:
+                              - rowgroup [ref=f2e35]:
+                                - row "› Report suspicious IT emails to security team" [ref=f2e36]:
+                                  - cell "›" [ref=f2e37]
+                                  - cell "Report suspicious IT emails to security team" [ref=f2e38]
+                    - generic [ref=f2e39]:
+                      - text: Smishing
+                      - generic [ref=f2e40]: ELEVATED
+                    - table [ref=f2e41]:
+                      - rowgroup [ref=f2e42]:
+                        - row "Employees Tricked by Fake \"Missed Delivery\" Text Messages — Smishing on the Rise" [ref=f2e43]:
+                          - cell [ref=f2e44]
+                          - cell "Employees Tricked by Fake \"Missed Delivery\" Text Messages — Smishing on the Rise" [ref=f2e45]
+                    - text: Scammers are sending text messages pretending to be from delivery companies like FedEx and DHL, claiming you have a missed package. The link in the text leads to a page that asks for your credit card details. This type of attack is called "smishing" — phishing via SMS.
+                    - link "↗ Read more — The Hacker News · 13 Jun 2026" [ref=f2e46] [cursor=pointer]:
+                      - /url: "#"
+                    - table [ref=f2e47]:
+                      - rowgroup [ref=f2e48]:
+                        - row "What You Should Do › Don't click links in unexpected text messages › Call the delivery company directly if unsure › Delete suspicious texts and report to IT" [ref=f2e49]:
+                          - cell "What You Should Do › Don't click links in unexpected text messages › Call the delivery company directly if unsure › Delete suspicious texts and report to IT" [ref=f2e50]:
+                            - text: What You Should Do
+                            - table [ref=f2e51]:
+                              - rowgroup [ref=f2e52]:
+                                - row "› Don't click links in unexpected text messages" [ref=f2e53]:
+                                  - cell "›" [ref=f2e54]
+                                  - cell "Don't click links in unexpected text messages" [ref=f2e55]
+                            - table [ref=f2e56]:
+                              - rowgroup [ref=f2e57]:
+                                - row "› Call the delivery company directly if unsure" [ref=f2e58]:
+                                  - cell "›" [ref=f2e59]
+                                  - cell "Call the delivery company directly if unsure" [ref=f2e60]
+                            - table [ref=f2e61]:
+                              - rowgroup [ref=f2e62]:
+                                - row "› Delete suspicious texts and report to IT" [ref=f2e63]:
+                                  - cell "›" [ref=f2e64]
+                                  - cell "Delete suspicious texts and report to IT" [ref=f2e65]
+                    - table [ref=f2e66]:
+                      - rowgroup [ref=f2e67]:
+                        - row [ref=f2e68]:
+                          - cell [ref=f2e69]
+                        - row "Key Takeaways This Edition 01 Verify senders before you click links 02 Do not tap links in surprise SMS messages 03 Report phishing and spam to IT 04 Use strong unique passwords everywhere 05 Never share MFA codes with anyone 06 Lock your screen when you step away STOP · THINK · REPORT — soc-support@ab-inbev.com" [ref=f2e70]:
+                          - cell "Key Takeaways This Edition 01 Verify senders before you click links 02 Do not tap links in surprise SMS messages 03 Report phishing and spam to IT 04 Use strong unique passwords everywhere 05 Never share MFA codes with anyone 06 Lock your screen when you step away STOP · THINK · REPORT — soc-support@ab-inbev.com" [ref=f2e71]:
+                            - text: Key Takeaways This Edition
+                            - table [ref=f2e72]:
+                              - rowgroup [ref=f2e73]:
+                                - row "01 Verify senders before you click links 02 Do not tap links in surprise SMS messages 03 Report phishing and spam to IT" [ref=f2e74]:
+                                  - cell "01 Verify senders before you click links" [ref=f2e75]:
+                                    - table [ref=f2e76]:
+                                      - rowgroup [ref=f2e77]:
+                                        - row "01 Verify senders before you click links" [ref=f2e78]:
+                                          - cell "01 Verify senders before you click links" [ref=f2e79]
+                                  - cell "02 Do not tap links in surprise SMS messages" [ref=f2e80]:
+                                    - table [ref=f2e81]:
+                                      - rowgroup [ref=f2e82]:
+                                        - row "02 Do not tap links in surprise SMS messages" [ref=f2e83]:
+                                          - cell "02 Do not tap links in surprise SMS messages" [ref=f2e84]
+                                  - cell "03 Report phishing and spam to IT" [ref=f2e85]:
+                                    - table [ref=f2e86]:
+                                      - rowgroup [ref=f2e87]:
+                                        - row "03 Report phishing and spam to IT" [ref=f2e88]:
+                                          - cell "03 Report phishing and spam to IT" [ref=f2e89]
+                                - row "04 Use strong unique passwords everywhere 05 Never share MFA codes with anyone 06 Lock your screen when you step away" [ref=f2e90]:
+                                  - cell "04 Use strong unique passwords everywhere" [ref=f2e91]:
+                                    - table [ref=f2e92]:
+                                      - rowgroup [ref=f2e93]:
+                                        - row "04 Use strong unique passwords everywhere" [ref=f2e94]:
+                                          - cell "04 Use strong unique passwords everywhere" [ref=f2e95]
+                                  - cell "05 Never share MFA codes with anyone" [ref=f2e96]:
+                                    - table [ref=f2e97]:
+                                      - rowgroup [ref=f2e98]:
+                                        - row "05 Never share MFA codes with anyone" [ref=f2e99]:
+                                          - cell "05 Never share MFA codes with anyone" [ref=f2e100]
+                                  - cell "06 Lock your screen when you step away" [ref=f2e101]:
+                                    - table [ref=f2e102]:
+                                      - rowgroup [ref=f2e103]:
+                                        - row "06 Lock your screen when you step away" [ref=f2e104]:
+                                          - cell "06 Lock your screen when you step away" [ref=f2e105]
+                            - table [ref=f2e106]:
+                              - rowgroup [ref=f2e107]:
+                                - row "STOP · THINK · REPORT — soc-support@ab-inbev.com" [ref=f2e108]:
+                                  - cell "STOP · THINK · REPORT — soc-support@ab-inbev.com" [ref=f2e109]
+                    - table [ref=f2e110]:
+                      - rowgroup [ref=f2e111]:
+                        - row "See Something Suspicious? Don't Click. Don't Reply. Report It. Forward suspicious emails to the security team. Every report helps protect our entire organization. Report to soc-support@ab-inbev.com" [ref=f2e112]:
+                          - cell "See Something Suspicious? Don't Click. Don't Reply. Report It. Forward suspicious emails to the security team. Every report helps protect our entire organization. Report to soc-support@ab-inbev.com" [ref=f2e113]:
+                            - text: See Something Suspicious? Don't Click. Don't Reply. Report It. Forward suspicious emails to the security team. Every report helps protect our entire organization.
+                            - table [ref=f2e114]:
+                              - rowgroup [ref=f2e115]:
+                                - row "Report to soc-support@ab-inbev.com" [ref=f2e116]:
+                                  - cell "Report to soc-support@ab-inbev.com" [ref=f2e117]:
+                                    - link "Report to soc-support@ab-inbev.com" [ref=f2e118] [cursor=pointer]:
+                                      - /url: mailto:soc-support@ab-inbev.com
+                    - table [ref=f2e119]:
+                      - rowgroup [ref=f2e120]:
+                        - row "ABC Security Awareness Portal Training modules, policies, and past bulletins. Visit Portal" [ref=f2e121]:
+                          - cell "ABC Security Awareness Portal Training modules, policies, and past bulletins. Visit Portal" [ref=f2e122]:
+                            - link "ABC Security Awareness Portal" [ref=f2e123] [cursor=pointer]:
+                              - /url: https://security.abc.com/awareness
+                            - text: Training modules, policies, and past bulletins.
+                            - link "Visit Portal" [ref=f2e124] [cursor=pointer]:
+                              - /url: https://security.abc.com/awareness
+                    - table [ref=f2e125]:
+                      - rowgroup [ref=f2e126]:
+                        - row "ABC Corp · Security Awareness · soc-support@ab-inbev.com" [ref=f2e127]:
+                          - cell "ABC Corp · Security Awareness · soc-support@ab-inbev.com" [ref=f2e128]:
+                            - text: ABC Corp · Security Awareness ·
+                            - link "soc-support@ab-inbev.com" [ref=f2e129] [cursor=pointer]:
+                              - /url: mailto:soc-support@ab-inbev.com
+                - generic [ref=e78]: ✓ Selected
+              - iframe [ref=e82] [cursor=pointer]:
+                - generic [ref=f3e2]:
+                  - img "AB InBev" [ref=f3e3]
+                  - generic [ref=f3e4]: Security & Compliance Awareness
+                  - generic [ref=f3e5]: Weekly Bulletin
+                  - generic [ref=f3e6]:
+                    - text: Think before
+                    - emphasis [ref=f3e7]: you click.
+                  - text: One bad click can cost everything — stop. look. report.
+                  - img "Cybercriminal stealing credentials — phishing concept illustration" [ref=f3e8]
+                  - paragraph [ref=f3e9]: Dear Colleague,
+                  - paragraph [ref=f3e10]: A new phishing campaign is sending fake emails that look like they come from your IT department, asking you to click a link and "verify" your password.
+                  - img "A phishing email with callouts shown on a laptop screen" [ref=f3e11]
+                  - paragraph [ref=f3e12]: How to spot
+                  - generic [ref=f3e13]: •
+                  - text: New Phishing Scam Impersonates IT Department — Asks Staff to "Verify" Passwords
+                  - generic [ref=f3e14]: •
+                  - text: Employees Tricked by Fake "Missed Delivery" Text Messages — Smishing on the Rise
+                  - generic [ref=f3e15]: •
+                  - text: Unexpected attachments or links to login pages.
+                  - generic [ref=f3e16]: •
+                  - text: Requests for credentials, payment details, or money transfers.
+                  - paragraph [ref=f3e17]: Impact on our organisation
+                  - generic [ref=f3e18]: •
+                  - text: Attacks can disrupt operations and customer-facing services.
+                  - generic [ref=f3e19]: •
+                  - text: Recovering from an incident takes time, staff effort, and tooling.
+                  - generic [ref=f3e20]: •
+                  - text: Compromised information may have to be reported to regulators or customers.
+                  - paragraph [ref=f3e21]: Next Steps (If Affected)
+                  - generic [ref=f3e22]: •
+                  - text: Stop what you are doing and call IT or the SOC immediately.
+                  - generic [ref=f3e23]: •
+                  - text: Do not delete anything — preserve evidence for the investigation team.
+                  - generic [ref=f3e24]: •
+                  - text: Follow your team's documented incident-response checklist.
+                  - paragraph [ref=f3e25]: Impact
+                  - generic [ref=f3e26]: •
+                  - text: Attacks of this kind hit many sectors and continue to grow each year.
+                  - generic [ref=f3e27]: •
+                  - text: Both individuals and organisations bear costs beyond the initial event.
+                  - generic [ref=f3e28]: •
+                  - text: Regulators and insurers are responding with stricter expectations.
+                  - paragraph [ref=f3e29]: What you should remember
+                  - generic [ref=f3e30]: •
+                  - text: Slow down — attackers rely on speed and pressure to succeed.
+                  - generic [ref=f3e31]: •
+                  - text: Verify any unusual request through a trusted channel before you act.
+                  - generic [ref=f3e32]: •
+                  - text: Reporting early limits damage for you and everyone around you.
+                  - paragraph [ref=f3e33]: Stay safe
+                  - generic [ref=f3e34]: •
+                  - text: Pause before you click — a few seconds prevents most incidents.
+                  - generic [ref=f3e35]: •
+                  - text: Report suspicious emails using the button below.
+                  - generic [ref=f3e36]: •
+                  - text: "Share what you saw — security is a team effort. ● Global insights: What's happening out there ● Key takeaways"
+                  - generic [ref=f3e37]: Pause → Don't engage → Report
+                  - paragraph [ref=f3e38]: Forward suspicious emails to the security team. Every report helps protect the entire organisation and enables the SOC to act faster.
+                  - text: Report to SOC Now →
+                  - link "soc-support@ab-inbev.com" [ref=f3e39] [cursor=pointer]:
+                    - /url: mailto:soc-support@ab-inbev.com
+                  - paragraph [ref=f3e40]: ABC Security Awareness Portal
+                  - paragraph [ref=f3e41]: Training modules, policies, and past bulletins.
+                  - link "Visit Portal" [ref=f3e42] [cursor=pointer]:
+                    - /url: https://security.abc.com/awareness
+                  - table [ref=f3e43]:
+                    - rowgroup [ref=f3e44]:
+                      - row [ref=f3e45]:
+                        - cell [ref=f3e46]
+                  - table [ref=f3e47]:
+                    - rowgroup [ref=f3e48]:
+                      - row "Scan for Portal" [ref=f3e49]:
+                        - cell "Scan for Portal" [ref=f3e50]
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: …
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: …
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: …
+            - generic [ref=e83]:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: Corporate Alert
+                    - generic:
+                      - generic: Ready
+                    - generic:
+                      - generic: Leadership and broad staff notices.
+                    - button "👁 Preview" [ref=e85] [cursor=pointer]
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: bankpage1_static
+                    - generic:
+                      - generic: Ready
+                    - generic:
+                      - generic: Bank-themed brief with centered Arial hero and content-width Report-to-SOC button.
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: bankpage1_dynamic
+                    - generic:
+                      - generic: Ready
+                    - generic:
+                      - generic: Bank page with two clickable article cards replacing the laptop illustration.
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: Action Required Bulletin
+                    - generic:
+                      - generic: Ready
+                    - generic:
+                      - generic: Branded monthly bulletin with hero call-to-action, two article cards, and a scam-alert block.
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: Phishing Maestro
+                    - generic:
+                      - generic: Ready
+                    - generic:
+                      - generic: Dark/gold security awareness bulletin with threat-alert hero, red-flag list, two article cards, and three stat tiles.
+          - button "Next template" [ref=e86] [cursor=pointer]:
+            - img [ref=e87]
+      - group [ref=e89]:
+        - generic "▶ Poster Templates 1 article (3)" [ref=e90] [cursor=pointer]:
+          - text: ▶ Poster Templates
+          - generic [ref=e91]: 1 article
+          - generic [ref=e92]: (3)
+        - 'group "Template 1 of 3: Poster Tips" [ref=e94]':
+          - button "Previous template" [disabled] [ref=e95]:
+            - img [ref=e96]
+          - generic [ref=e98]:
+            - generic:
+              - iframe [ref=e102] [cursor=pointer]:
+                - generic [active] [ref=f4e1]:
+                  - img "ABInBev" [ref=f4e2]
+                  - generic [ref=f4e3]: Security & Compliance Awareness
+                  - generic [ref=f4e4]: Monthly Bulletin
+                  - text: New Phishing Scam Impersonates IT Department — Asks Staff to "Verify" Passwords Tip 1
+                  - generic [ref=f4e5]: Never click password reset links you didn't request
+                  - text: Tip 2
+                  - generic [ref=f4e6]: Check the sender's full email address carefully
+                  - text: Tip 3
+                  - generic [ref=f4e7]: Report suspicious IT emails to security team
+                  - img "Masked thieves steal a password and money from a login screen while a fishing hook lifts the password field" [ref=f4e8]
+                  - link "Report to SOC Now → soc-support@ab-inbev.com" [ref=f4e9] [cursor=pointer]:
+                    - /url: mailto:soc-support@ab-inbev.com
+                  - paragraph [ref=f4e10]: ABC Security Awareness Portal
+                  - paragraph [ref=f4e11]: Training modules, policies, and past bulletins.
+                  - link "Visit Portal" [ref=f4e12] [cursor=pointer]:
+                    - /url: https://security.abc.com/awareness
+                  - table [ref=f4e13]:
+                    - rowgroup [ref=f4e14]:
+                      - row [ref=f4e15]:
+                        - cell [ref=f4e16]
+                  - table [ref=f4e17]:
+                    - rowgroup [ref=f4e18]:
+                      - row "Scan for Portal" [ref=f4e19]:
+                        - cell "Scan for Portal" [ref=f4e20]
+              - iframe [ref=e106] [cursor=pointer]:
+                - generic [active] [ref=f5e1]:
+                  - img "ABInBev" [ref=f5e2]
+                  - generic [ref=f5e3]: Security & Compliance Awareness
+                  - generic [ref=f5e4]: Monthly Bulletin
+                  - generic [ref=f5e5]: Phishing
+                  - generic [ref=f5e7]: Voice Phishing, also known as Vishing, is quickly growing in popularity. Scammers attempt to get you to react to verbal requests and hand over personal, private, sensitive or valuable data over the phone.
+                  - img "Person receiving a suspicious phone call" [ref=f5e8]
+                  - text: How to Spot
+                  - generic [ref=f5e9]: Always stop and take your time to understand what you’re being asked to divulge over the phone.
+                  - generic [ref=f5e10]: Don’t fall for emotional manipulation tactics, such as a sense of urgency, sense of authority or sense of curiosity.
+                  - generic [ref=f5e11]: Always verify the legitimacy of the caller.
+                  - generic [ref=f5e12]: Look out for context and tone of the call.
+                  - link "Report to SOC Now → soc-support@ab-inbev.com" [ref=f5e13] [cursor=pointer]:
+                    - /url: mailto:soc-support@ab-inbev.com
+                  - paragraph [ref=f5e14]: ABC Security Awareness Portal
+                  - paragraph [ref=f5e15]: Training modules, policies, and past bulletins.
+                  - link "Visit Portal" [ref=f5e16] [cursor=pointer]:
+                    - /url: https://security.abc.com/awareness
+                  - table [ref=f5e17]:
+                    - rowgroup [ref=f5e18]:
+                      - row [ref=f5e19]:
+                        - cell [ref=f5e20]
+                  - table [ref=f5e21]:
+                    - rowgroup [ref=f5e22]:
+                      - row "Scan for Portal" [ref=f5e23]:
+                        - cell "Scan for Portal" [ref=f5e24]
+              - generic:
+                - generic:
+                  - generic:
+                    - generic: …
+            - generic [ref=e107]:
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: Poster Tips
+                    - generic:
+                      - generic: Ready
+                    - generic:
+                      - generic: "Single-panel awareness poster: ABInBev masthead, AI headline + precaution, hero illustration, and a portal/QR footer. Selects one article."
+                    - button "👁 Preview" [ref=e109] [cursor=pointer]
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: How to Spot Shield
+                    - generic:
+                      - generic: Ready
+                    - generic:
+                      - generic: "Article-driven security poster: Dynamic article-type heading, AI-generated threat description, hero image, and four article-derived detection tips with mascot icons. Selects one article."
+              - generic:
+                - generic:
+                  - generic:
+                    - generic:
+                      - generic: Social Engineering
+                    - generic:
+                      - generic: Ready
+                    - generic:
+                      - generic: "Article-driven social-engineering poster: attack-type headline, AI threat intro, line-art hero, and three AI red flags of the selected attack. Selects one article."
+          - button "Next template" [ref=e110] [cursor=pointer]:
+            - img [ref=e111]
+      - group [ref=e113]:
+        - generic "▶ Beta · In Development (25)" [ref=e114] [cursor=pointer]:
+          - text: ▶ Beta · In Development
+          - generic [ref=e115]: (25)
+      - generic [ref=e116]:
+        - heading "Select Articles" [level=2] [ref=e117]:
+          - text: Select
+          - emphasis [ref=e118]: Articles
+        - paragraph [ref=e119]: Pick up to 2 articles for your newsletter
+      - generic [ref=e121]:
+        - generic [ref=e122]:
+          - generic [ref=e123]: "3"
+          - generic [ref=e124]: Total Stored
+        - generic [ref=e125]:
+          - generic [ref=e126]: "3"
+          - generic [ref=e127]: Last 7 Days
+        - generic [ref=e128]:
+          - generic [ref=e129]: "3"
+          - generic [ref=e130]: Last 30 Days
+        - generic [ref=e131]:
+          - generic [ref=e132]: "3"
+          - generic [ref=e133]: Sources
+      - generic [ref=e134]:
+        - button "↓ Fetch Live News" [ref=e135] [cursor=pointer]
+        - button "💾 Load from DB" [ref=e136] [cursor=pointer]
+        - button "Clear" [ref=e137] [cursor=pointer]
+        - generic [ref=e138]:
+          - button "7d" [ref=e139] [cursor=pointer]
+          - button "14d" [ref=e140] [cursor=pointer]
+          - button "30d" [ref=e141] [cursor=pointer]
+          - button "90d" [ref=e142] [cursor=pointer]
+          - button "All" [ref=e143] [cursor=pointer]
+        - generic [ref=e144]:
+          - text: Curation
+          - combobox "Curation" [ref=e145]:
+            - option "Concise"
+            - option "Balanced" [selected]
+            - option "Deep"
+        - generic [ref=e146]: Loaded 3 baseline fallback articles
+        - generic [ref=e147]: "Loaded: 3 | In range: 3 | Showing: 3 | Selected: 0/2"
+      - generic [ref=e149]: Fetch telemetry appears after the first live run.
+      - generic [ref=e150]:
+        - generic [ref=e151]:
+          - generic [ref=e152]: "3"
+          - generic [ref=e153]: Loaded Articles
+        - generic [ref=e154]:
+          - generic [ref=e155]: "3"
+          - generic [ref=e156]: Last 7 Days
+        - generic [ref=e157]:
+          - generic [ref=e158]: "3"
+          - generic [ref=e159]: Showing (Filter)
+        - generic [ref=e160]:
+          - generic [ref=e161]: 0/2
+          - generic [ref=e162]: Selected
+      - generic [ref=e164]: "[17:20:33] › 💾 3 articles from database"
+      - img [ref=e166]:
+        - generic [ref=e170]: "3"
+        - generic [ref=e171]: ARTICLES
+        - generic [ref=e172]: "â—\x8f Data Breach (1)"
+        - generic [ref=e173]: "â—\x8f Phishing (1)"
+        - generic [ref=e174]: "â—\x8f Smishing (1)"
+      - search "Filter articles by keyword" [ref=e175]:
+        - generic [ref=e176]: Search
+        - searchbox "Search" [ref=e177]
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - generic [ref=e180]:
+            - text: Select up to
+            - strong [ref=e181]: "2"
+            - text: articles
+          - generic [ref=e182]:
+            - generic [ref=e183]:
+              - text: "Selected:"
+              - generic [ref=e184]: "0"
+              - text: / 2
+            - generic [ref=e185]:
+              - text: Sort
+              - combobox "Sort" [ref=e186]:
+                - option "Newest first" [selected]
+                - option "Oldest first"
+        - generic [ref=e187]:
+          - button "All" [ref=e188] [cursor=pointer]
+          - button "Data Breach" [ref=e189] [cursor=pointer]
+          - button "Phishing" [ref=e190] [cursor=pointer]
+          - button "Smishing" [ref=e191] [cursor=pointer]
+        - generic [ref=e192] [cursor=pointer]:
+          - button "✕" [ref=e193]
+          - generic [ref=e194]:
+            - img [ref=e196]
+            - generic [ref=e203]:
+              - generic [ref=e204]:
+                - text: KrebsOnSecurity
+                - generic [ref=e205]: ✦ AI
+              - generic [ref=e206]: Major Data Breach Exposes 2 Million Customer Records — Change Your Passwords Now
+          - generic [ref=e207]: A large retail company has confirmed that hackers stole personal data including names, email addresses, and encrypted passwords of 2 million customers. If you have an account with this service, change your password immediately and enable two-factor authentication.
+          - generic [ref=e208]:
+            - generic [ref=e209]: Data Breach
+            - generic [ref=e210]: LV5
+            - generic [ref=e211]: 11 Jun 2026 · 2 days ago
+            - link "↗" [ref=e212]:
+              - /url: https://baseline.local/article-3
+          - generic [ref=e214]: Confidence 0%
+          - generic [ref=e215]:
+            - button "Unclear" [ref=e216]
+            - button "Too long" [ref=e217]
+            - button "Not actionable" [ref=e218]
+        - generic [ref=e219] [cursor=pointer]:
+          - button "✕" [ref=e220]
+          - generic [ref=e221]:
+            - img [ref=e223]
+            - generic [ref=e227]:
+              - generic [ref=e228]:
+                - text: Bleeping Computer
+                - generic [ref=e229]: ✦ AI
+              - generic [ref=e230]: New Phishing Scam Impersonates IT Department — Asks Staff to "Verify" Passwords
+          - generic [ref=e231]: A new phishing campaign is sending fake emails that look like they come from your IT department, asking you to click a link and "verify" your password. The emails use your company logo and even address you by name — but the link leads to a fake login page that steals your credentials.
+          - generic [ref=e232]:
+            - generic [ref=e233]: Phishing
+            - generic [ref=e234]: LV4
+            - generic [ref=e235]: 11 Jun 2026 · 2 days ago
+            - link "↗" [ref=e236]:
+              - /url: https://baseline.local/article-1
+          - generic [ref=e238]: Confidence 0%
+          - generic [ref=e239]:
+            - button "Unclear" [ref=e240]
+            - button "Too long" [ref=e241]
+            - button "Not actionable" [ref=e242]
+        - generic [ref=e243] [cursor=pointer]:
+          - button "✕" [ref=e244]
+          - generic [ref=e245]:
+            - img [ref=e247]
+            - generic [ref=e253]:
+              - generic [ref=e254]:
+                - text: The Hacker News
+                - generic [ref=e255]: ✦ AI
+              - generic [ref=e256]: Employees Tricked by Fake "Missed Delivery" Text Messages — Smishing on the Rise
+          - generic [ref=e257]: Scammers are sending text messages pretending to be from delivery companies like FedEx and DHL, claiming you have a missed package. The link in the text leads to a page that asks for your credit card details. This type of attack is called "smishing" — phishing via SMS.
+          - generic [ref=e258]:
+            - generic [ref=e259]: Smishing
+            - generic [ref=e260]: LV3
+            - generic [ref=e261]: 11 Jun 2026 · 2 days ago
+            - link "↗" [ref=e262]:
+              - /url: https://baseline.local/article-2
+          - generic [ref=e264]: Confidence 0%
+          - generic [ref=e265]:
+            - button "Unclear" [ref=e266]
+            - button "Too long" [ref=e267]
+            - button "Not actionable" [ref=e268]

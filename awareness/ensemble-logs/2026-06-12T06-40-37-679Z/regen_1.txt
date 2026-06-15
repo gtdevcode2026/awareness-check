@@ -1,0 +1,53 @@
+=== PROMPT ===
+You are writing internal corporate security communications for a general employee audience with no IT or cybersecurity background. Write in a warm, clear, professional tone — like a trusted colleague from the security team sending a company-wide email. Use plain everyday language. Never use jargon, acronyms, or technical terms without immediately explaining them in simple words. Be direct, specific, and human. Every sentence should feel natural and immediately useful to someone sitting at their office desk.
+You are the lead editor for an internal organization-wide security awareness bulletin (technical and non-technical readers).
+Voice: CERT / CISA–style operational awareness — calm, factual, concise. Not marketing, not tabloid, not "thought leadership".
+
+STYLE (mandatory):
+- Professional, neutral, present tense where natural. No narrative, anecdotes, metaphors, or "story" framing.
+- No filler or throat-clearing. Never use: "it is important to note", "it is worth noting", "remember that", "in today's world", "as we all know", "needless to say", "at the end of the day", "in conclusion", "this article", "the takeaway is", "here's what you need to know", "so,", "basically", "actually", "staying vigilant", "be mindful", "bad actors", "in today's digital landscape".
+- Plain-language substitution: never use the word "credentials". Say "login details" or "username and password" instead. This applies in every section, every bullet, every sentence — no exceptions.
+- No rhetorical questions, exclamation marks, hype, jokes, slang, tabloid tone, or vendor/marketing voice.
+- Forbidden in JSON values: URLs, scam-style urgency.
+
+GROUNDING (mandatory):
+- The user's Content / Stories block is the only source of facts. Paraphrase what is stated or clearly implied; do not invent statistics, victim counts, CVEs, patch levels, legal outcomes, or named products not present in the text.
+- Prefer concrete vocabulary from the article (channel, platform, attack pattern, geography) over generic security words.
+- If the source is thin, stay appropriately high-level rather than inventing precision.
+You are rewriting a small contiguous section of a security-awareness newsletter for employees.
+Return ONLY valid JSON of the form: {"items": ["...", "..."]}.
+The "items" array MUST contain EXACTLY 1 entries, in the same order as the originals.
+Each entry must mirror the ROLE and APPROXIMATE LENGTH of the matching original (bullet stays a short bullet; paragraph stays a paragraph).
+Use only facts that are supported by the provided source articles.
+Stay in the calm, factual, employee-facing voice — no emojis, no exclamation marks, no marketing flourishes.
+
+{
+  "instruction": "(no extra instruction — write a different but equivalent version using the same source articles)",
+  "sentenceStyleHint": "Exactly 2 or 3 short sentences.",
+  "targetLanguage": {
+    "code": "en",
+    "label": "English"
+  },
+  "originalTexts": [
+    "Data breaches can expose sensitive information of hundreds of thousands, impacting trust in institutions."
+  ],
+  "sourceArticles": [
+    {
+      "title": "Attackers Use Spoofed ChatGPT Site to Deliver Malware",
+      "type": "Phishing",
+      "summary": "Researchers at Malwarebytes warn that a fake ChatGPT download site is delivering malware. The attackers use sponsored results and SEO manipulation to target users who search for “ChatGPT download.” The phishing page is a convincingly spoofed version of the legitimate ChatGPT website, which delivers malware tailored to…"
+    },
+    {
+      "title": "Nottingham University data breach affects over 450,000 students",
+      "type": "Data Breach",
+      "summary": "The University of Nottingham confirmed on Wednesday that a hacking group gained access to its student records system in a breach affecting both current students and alums. [...]"
+    }
+  ]
+}
+
+=== RESPONSE ===
+{
+  "items": [
+    "Data breaches can lead to the exposure of personal information for many individuals, which can damage trust in organizations."
+  ]
+}

@@ -1,0 +1,63 @@
+=== PROMPT ===
+You are writing internal corporate security communications for a general employee audience with no IT or cybersecurity background. Write in a warm, clear, professional tone — like a trusted colleague from the security team sending a company-wide email. Use plain everyday language. Never use jargon, acronyms, or technical terms without immediately explaining them in simple words. Be direct, specific, and human. Every sentence should feel natural and immediately useful to someone sitting at their office desk.
+
+You complete REQUEST 2 of 2: exactly three imperative "What you should do" lines for ONE bulletin story. You are the lead editor for an internal organization-wide security awareness bulletin (technical and non-technical readers).
+Voice: CERT / CISA–style operational awareness — calm, factual, concise. Not marketing, not tabloid, not "thought leadership".
+
+STYLE (mandatory):
+- Professional, neutral, present tense where natural. No narrative, anecdotes, metaphors, or "story" framing.
+- No filler or throat-clearing. Never use: "it is important to note", "it is worth noting", "remember that", "in today's world", "as we all know", "needless to say", "at the end of the day", "in conclusion", "this article", "the takeaway is", "here's what you need to know", "so,", "basically", "actually", "staying vigilant", "be mindful", "bad actors", "in today's digital landscape".
+- Plain-language substitution: never use the word "credentials". Say "login details" or "username and password" instead. This applies in every section, every bullet, every sentence — no exceptions.
+- No rhetorical questions, exclamation marks, hype, jokes, slang, tabloid tone, or vendor/marketing voice.
+- Forbidden in JSON values: URLs, scam-style urgency.
+
+GROUNDING (mandatory):
+- The user's Content / Stories block is the only source of facts. Paraphrase what is stated or clearly implied; do not invent statistics, victim counts, CVEs, patch levels, legal outcomes, or named products not present in the text.
+- Prefer concrete vocabulary from the article (channel, platform, attack pattern, geography) over generic security words.
+- If the source is thin, stay appropriately high-level rather than inventing precision.
+
+WATCHOUTS (JSON key "watchouts", array length 3):
+- Each string: imperative mood; max 10 words; max 60 characters including spaces; no URLs; no exclamation marks.
+- Slot 1: strongest preventive or hardening action tied to THIS threat (specific beat generic).
+- Slot 2: how an affected reader would notice, verify, or safely check the risk.
+- Slot 3: escalate or report through normal org channels (IT, AppSec, SOC, manager)—process names only, never mailto or links.
+
+RELEVANCE TEST (silent, before you write): each line must contain at least one concrete anchor paraphrased from the article (e.g. text, email, npm, payroll, VPN, USB, invoice, QR, browser, cloud console)—not interchangeable slogans.
+
+SUPPLY CHAIN / DEV TOOLING: if the story involves malicious packages, registries, CI/CD, GitHub Actions, install scripts, or theft of developer or build secrets, all three lines must reflect pipeline or software hygiene (dependencies, lockfiles, scoped tokens, approved registries, AppSec review). Hard-ban unrelated consumer lines such as "use a different password on every website" or "enable MFA everywhere" unless the source explicitly describes mass theft of employee or customer login databases.
+
+NEGATIVE EXAMPLES (never output or paraphrase these patterns): "Stay vigilant online", "Be aware of cyber threats", "Security is everyone's job", "Always use strong passwords".
+
+VOICE GUARD: Never imitate scam or phishing language (no "Click here", "Act now", "URGENT", "verify your account now", congratulations, time pressure).
+
+Return ONLY valid JSON: {"watchouts":["…","…","…"]}
+
+You are writing three "What you should do" lines for the same bulletin item. Read the Content first; the Approved summary is for alignment only — do not paste it into watchouts.
+
+SOURCE
+Title: Tycoon 2FA Phishing Kit Analysis
+Source: Cybereason
+Date: 2025-11-03
+Content:
+ 
+    
+ 
+The Tycoon 2FA phishing kit is a sophisticated Phishing-as-a-Service (PhaaS) platform that emerged in August 2023, designed to bypass two-factor authentication (2FA) and multi-factor authentication (MFA) protections, primarily targeting Microsoft 365 and Gmail accounts. Utilizing an Adversary-in-the-Middle (AiTM) approach, it employs a reverse proxy server to host deceptive phishing pages that mimic legitimate login interfaces, capturing user credentials and session cookies in real-time. According to the Any.run malware trends tracker, Tycoon 2FA leads with over 64,000 reported…
+
+Approved summary (alignment only — do not copy into watchouts): The Tycoon 2FA phishing kit targets Microsoft 365 and Gmail accounts, using a method to bypass two-factor authentication protections. This program highlights the risk of sophisticated phishing attacks that can capture login details and session information in real-time.
+
+CURATION MODE: balanced
+
+TASK (request 2 of 2 — watchouts only)
+- Output exactly three imperative lines, max 10 words and 60 characters each, no URLs, no exclamation marks.
+- Order: (1) reduce exposure / prevent recurrence for this threat, (2) recognize or verify safely, (3) report or escalate per org process.
+- Each line must echo at least one concrete element from the Content (channel, system, data type, attack pattern)—if you cannot, you are being too generic; rewrite.
+
+If the content is about malicious npm or other packages, supply chain or CI/CD compromise, or theft of developer or cloud build secrets, write watchouts for engineering and pipeline risk (dependencies, lockfiles, CI tokens, approved tooling)—not generic consumer password-reset advice unless the article clearly states customer or employee account databases were breached.
+
+
+
+Output: JSON only, no markdown. Key allowed: watchouts (array of exactly 3 strings) only.
+
+=== RESPONSE ===
+{"watchouts":["Use approved login pages for Microsoft 365 and Gmail","Check for unusual login requests or pages","Report phishing attempts to your manager immediately"]}

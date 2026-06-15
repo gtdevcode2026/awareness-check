@@ -1,0 +1,1 @@
+{"intro":"Recent incidents highlight the risks of supply chain vulnerabilities, with attackers breaching Trellix's source code and compromising the popular axios package. These actions can expose security controls and introduce malicious software into widely used tools. This matters because it can affect the security of the software we rely on every day."}

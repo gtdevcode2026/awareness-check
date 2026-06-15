@@ -1,0 +1,1 @@
+{"bullets":["Supply chain vulnerabilities can expose multiple companies to increased risks and potential breaches.","Popular software libraries, like axios, can impact countless applications and users when compromised.","Regulatory scrutiny on supply chain security is likely to increase as breaches become more common."]}

@@ -1,0 +1,1 @@
+{"intro":"Hackers have stolen personal data from a large retail company, affecting 2 million customers. If you have an account with this service, please change your password and enable two-factor authentication. This matters because your personal information could be at risk if it falls into the wrong hands."}

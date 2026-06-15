@@ -1,0 +1,1 @@
+{"bullets":["Phishing attacks can lead to significant financial losses for businesses and individuals alike.","Data breaches can expose sensitive information of hundreds of thousands, impacting trust in institutions.","Malware delivery through fake sites can disrupt operations across various sectors, including education and technology."]}

@@ -1,0 +1,155 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - navigation "Global menu" [ref=e4]:
+      - link "Home" [ref=e5] [cursor=pointer]:
+        - /url: index.html#section-home
+      - link "Keywords" [ref=e6] [cursor=pointer]:
+        - /url: keywords.html
+      - link "Curation lab" [ref=e7] [cursor=pointer]:
+        - /url: curation-lab.html
+      - link "Editor" [ref=e8] [cursor=pointer]:
+        - /url: editor.html
+      - link "Send" [ref=e9] [cursor=pointer]:
+        - /url: send.html
+      - link "Projects" [ref=e10] [cursor=pointer]:
+        - /url: projects.html
+      - link "Config" [ref=e11] [cursor=pointer]:
+        - /url: config.html
+    - generic "Primary flow" [ref=e12]:
+      - generic [ref=e13]: Fetch
+      - generic [ref=e14]: →
+      - generic [ref=e15]: Curate
+      - generic [ref=e16]: →
+      - generic [ref=e17]: Build
+      - generic [ref=e18]: →
+      - generic [ref=e19]: Preview
+      - generic [ref=e20]: →
+      - generic [ref=e21]: Edit
+      - generic [ref=e22]: →
+      - generic [ref=e23]: Approve
+      - generic [ref=e24]: →
+      - generic [ref=e25]: Send
+  - generic [ref=e26]:
+    - complementary [ref=e27]:
+      - generic [ref=e28]:
+        - generic [ref=e29]: Newsletter Generator
+        - generic [ref=e30]:
+          - text: Phishing & Security
+          - emphasis [ref=e31]: Awareness
+        - generic [ref=e32]: v11 — 12 Templates · 35+ Feeds · 10 Countries
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35] [cursor=pointer]:
+            - generic [ref=e36]: ⚙ Configuration Hub
+            - generic [ref=e37]: ›
+          - generic [ref=e38]:
+            - generic [ref=e39]: AI, email delivery (Microsoft Graph or SMTP relay), source management, and keyword actions now live in a dedicated configuration page.
+            - button "Open Config" [ref=e40] [cursor=pointer]
+            - button "Open Keywords" [ref=e41] [cursor=pointer]
+        - generic [ref=e43] [cursor=pointer]:
+          - generic [ref=e44]: 📡 Feed Health
+          - generic [ref=e45]: ›
+      - generic [ref=e46]:
+        - button "Generate Newsletter →" [ref=e47] [cursor=pointer]
+        - button "Generate (English only) →" [ref=e48] [cursor=pointer]
+    - main [ref=e49]:
+      - generic [ref=e51]:
+        - button "Home" [ref=e52] [cursor=pointer]
+        - generic [ref=e53]: /
+        - button "Compose" [ref=e54] [cursor=pointer]
+        - button "Projects" [ref=e55] [cursor=pointer]
+        - button "Config" [ref=e56] [cursor=pointer]
+        - button "Keywords" [ref=e57] [cursor=pointer]
+        - button "Projects" [ref=e58] [cursor=pointer]
+      - generic [ref=e59]:
+        - heading "Choose Template" [level=2] [ref=e60]:
+          - text: Choose
+          - emphasis [ref=e61]: Template
+        - paragraph [ref=e62]: 14 layouts inspired by JPMorgan, Goldman Sachs, Microsoft, Deloitte & more
+      - generic [ref=e63]: Ready (6)
+      - generic [ref=e64]:
+        - generic [ref=e65] [cursor=pointer]:
+          - generic [ref=e67]: Corporate Alert
+          - generic [ref=e68]: Leadership and broad staff notices.
+          - button "👁 Preview" [ref=e69]
+          - text: ✓
+        - generic [ref=e70] [cursor=pointer]:
+          - generic [ref=e72]: bankpage1_static
+          - generic [ref=e73]: Bank-themed brief with centered Arial hero and content-width Report-to-SOC button.
+          - button "👁 Preview" [ref=e74]
+        - generic [ref=e75] [cursor=pointer]:
+          - generic [ref=e77]: bankpage1_dynamic
+          - generic [ref=e78]: Bank page with two clickable article cards replacing the laptop illustration.
+          - button "👁 Preview" [ref=e79]
+        - generic [ref=e80] [cursor=pointer]:
+          - generic [ref=e82]: Action Required Bulletin
+          - generic [ref=e83]: Branded monthly bulletin with hero call-to-action, two article cards, and a scam-alert block.
+          - button "👁 Preview" [ref=e84]
+        - generic [ref=e85] [cursor=pointer]:
+          - img [ref=e87]:
+            - generic [ref=e91]: ABInBev
+            - generic [ref=e92]: SECURITY & COMPLIANCE
+            - generic [ref=e93]: MONTHLY BULLETIN
+            - generic [ref=e95]: Create Strong &
+            - generic [ref=e96]: Unique Passwords
+            - generic [ref=e97]: Using one password makes you an easy target
+            - generic [ref=e105]: KEEP YOURSELF SAFE AND SECURE
+            - generic [ref=e107]: Awareness Portal
+            - generic [ref=e109]: VISIT
+          - generic [ref=e116]: Strong Passwords
+          - generic [ref=e117]: "Single-panel awareness poster: ABInBev masthead, AI headline + precaution, hero illustration, and a portal/QR footer. Selects one article."
+          - button "👁 Preview" [ref=e118]
+        - generic [ref=e119] [cursor=pointer]:
+          - generic [ref=e121]: Phishing Maestro
+          - generic [ref=e122]: Dark/gold security awareness bulletin with threat-alert hero, red-flag list, two article cards, and three stat tiles.
+          - button "👁 Preview" [ref=e123]
+      - group [ref=e124]:
+        - generic "▶ Beta · In Development (27)" [ref=e125] [cursor=pointer]:
+          - text: ▶ Beta · In Development
+          - generic [ref=e126]: (27)
+        - text: ▶
+      - generic [ref=e127]:
+        - heading "Select Articles" [level=2] [ref=e128]:
+          - text: Select
+          - emphasis [ref=e129]: Articles
+        - paragraph [ref=e130]: Pick up to 2 articles for your newsletter
+      - generic [ref=e131]:
+        - button "↓ Fetch Live News" [ref=e132] [cursor=pointer]
+        - button "💾 Load from DB" [ref=e133] [cursor=pointer]
+        - button "Clear" [ref=e134] [cursor=pointer]
+        - generic [ref=e135]:
+          - button "7d" [ref=e136] [cursor=pointer]
+          - button "14d" [ref=e137] [cursor=pointer]
+          - button "30d" [ref=e138] [cursor=pointer]
+          - button "90d" [ref=e139] [cursor=pointer]
+          - button "All" [ref=e140] [cursor=pointer]
+        - generic [ref=e141]:
+          - text: Curation
+          - combobox "Curation" [ref=e142]:
+            - option "Concise"
+            - option "Balanced" [selected]
+            - option "Deep"
+      - generic [ref=e144]: Fetch telemetry appears after the first live run.
+      - generic [ref=e145]:
+        - generic [ref=e146]:
+          - generic [ref=e147]: "0"
+          - generic [ref=e148]: Loaded Articles
+        - generic [ref=e149]:
+          - generic [ref=e150]: "0"
+          - generic [ref=e151]: Last 7 Days
+        - generic [ref=e152]:
+          - generic [ref=e153]: "0"
+          - generic [ref=e154]: Showing (Filter)
+        - generic [ref=e155]:
+          - generic [ref=e156]: 0/2
+          - generic [ref=e157]: Selected
+      - search "Filter articles by keyword" [ref=e158]:
+        - generic [ref=e159]: Search
+        - searchbox "Search" [ref=e160]
+      - generic [ref=e162]:
+        - generic [ref=e163]: 🎣
+        - paragraph [ref=e164]:
+          - text: Click
+          - strong [ref=e165]: "\"Fetch Live News\""
+          - text: to get the latest phishing & security articles
+        - paragraph [ref=e166]: or "Load from DB" to use previously saved articles
