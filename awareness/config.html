@@ -485,14 +485,18 @@
         <div class="toggle"><span>QR Code</span><label><input type="checkbox" id="feat-qr" checked></label></div>
         <div class="toggle"><span>SVG Illustrations</span><label><input type="checkbox" id="feat-illus" checked></label></div>
         <div class="toggle"><span>Enable AI</span><label><input type="checkbox" id="feat-ai" checked></label></div>
-        <div class="field"><label>AI Provider</label><select id="ai-provider"><option value="claude">Claude (Anthropic)</option><option value="openai">GPT-4o Mini (OpenAI)</option></select></div>
+        <div class="field"><label>AI Provider</label><select id="ai-provider"><option value="claude">Claude (Anthropic)</option><option value="openai">GPT-4o Mini (OpenAI)</option><option value="custom">Custom (OpenAI-compatible)</option></select></div>
         <div class="field" id="ai-custom-base-field" style="display:none"><label>Custom Base URL</label><input id="ai-base-url" placeholder="http://localhost:11434" spellcheck="false" autocomplete="off"><p class="title-sub" style="margin:.35rem 0 0">OpenAI-compatible endpoint — Ollama, OpenRouter, LM Studio, vLLM, LiteLLM, Groq… Browser calls need CORS enabled on the server (for Ollama: <code>OLLAMA_ORIGINS</code>).</p></div>
         <div class="field" id="ai-custom-model-field" style="display:none"><label>Custom Model</label><input id="ai-model" placeholder="llama3.1" spellcheck="false" autocomplete="off"></div>
-        <div class="field" id="ai-custom-test-field" style="display:none"><button type="button" class="btn" onclick="App.UI.testCustomAIConnection()">Test connection</button><p class="title-sub" id="ai-custom-test-status" style="margin:.4rem 0 0" aria-live="polite"></p></div>
         <div class="field"><label>AI API Key</label><input type="password" id="ai-key" placeholder="sk-... (leave blank for keyless local servers)" autocomplete="new-password" spellcheck="false"></div>
         <div class="save-actions compact">
           <button class="btn" onclick="App.UI.saveAISettings()">Save AI Settings</button>
+          <button type="button" class="btn" id="ai-custom-test-btn" style="display:none" onclick="App.UI.testCustomAIConnection()">Test connection</button>
           <button class="btn primary" onclick="saveAllConfig()">Save All</button>
+        </div>
+        <div id="ai-custom-test-field" style="display:none;margin-top:.6rem">
+          <p class="title-sub" id="ai-custom-test-status" style="margin:0" aria-live="polite"></p>
+          <pre id="ai-custom-test-debug" style="display:none;margin:.5rem 0 0;padding:.6rem .7rem;background:#0c0c0c;border:1px solid #333;border-radius:6px;font:12px/1.45 'JetBrains Mono',ui-monospace,monospace;color:#d4d4d4;white-space:pre-wrap;word-break:break-word;max-height:340px;overflow:auto" aria-live="polite"></pre>
         </div>
       </div>
 

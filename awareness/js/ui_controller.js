@@ -1322,7 +1322,7 @@ App.UI = (() => {
   // selected (no-op on pages where the fields are hidden inputs without wrappers).
   function syncCustomProviderFields() {
     const isCustom = (document.getElementById('ai-provider')?.value || 'claude') === 'custom';
-    for (const id of ['ai-custom-base-field', 'ai-custom-model-field', 'ai-custom-test-field']) {
+    for (const id of ['ai-custom-base-field', 'ai-custom-model-field', 'ai-custom-test-field', 'ai-custom-test-btn']) {
       const el = document.getElementById(id);
       if (el) el.style.display = isCustom ? '' : 'none';
     }
@@ -1342,12 +1342,7 @@ App.UI = (() => {
     const aiKeyEl = document.getElementById('ai-key');
     const baseUrlEl = document.getElementById('ai-base-url');
     const modelEl = document.getElementById('ai-model');
-    if (providerEl && cfg.provider) {
-      // Coerce an unknown/removed provider (e.g. a previously-saved 'custom')
-      // to the first available option so the dropdown never renders blank.
-      const known = Array.from(providerEl.options).some((o) => o.value === cfg.provider);
-      providerEl.value = known ? cfg.provider : (providerEl.options[0] && providerEl.options[0].value) || 'claude';
-    }
+    if (providerEl && cfg.provider) providerEl.value = cfg.provider;
     // Base URL + model are non-secret and restored straight from the persisted
     // (localStorage) settings.
     if (baseUrlEl) baseUrlEl.value = cfg.customBaseUrl || '';
@@ -1389,6 +1384,7 @@ App.UI = (() => {
   // whether it is reachable — used by the "Test connection" button in Config.
   async function testCustomAIConnection() {
     const statusEl = document.getElementById('ai-custom-test-status');
+    const debugEl = document.getElementById('ai-custom-test-debug');
     const dom = readAISettingsDom();
     if (dom.provider !== 'custom') {
       showToast('Select the Custom (OpenAI-compatible) provider first.', true);
@@ -1396,11 +1392,40 @@ App.UI = (() => {
     }
     const url = App.AISummarizer.normalizeChatCompletionsUrl(dom.baseUrl);
     if (statusEl) { statusEl.textContent = 'Testing connection…'; statusEl.style.color = ''; }
+    if (debugEl) { debugEl.style.display = 'none'; debugEl.textContent = ''; }
     const result = await App.AISummarizer.checkCustomEndpoint(aiSummarizerConfigFromDom(dom));
     const msg = App.AISummarizer.describeCustomEndpointResult(result, url);
     if (statusEl) {
       statusEl.textContent = msg;
       statusEl.style.color = result.ok ? '#1a7f37' : '#b3261e';
+    }
+    // Show the exact request sent and the raw response received, so a failing
+    // endpoint is easy to debug. The API key is never printed (only whether one
+    // was attached) — see the Safety note in CLAUDE.md.
+    if (debugEl) {
+      const req = result.request || {};
+      const out = [];
+      out.push('REQUEST');
+      out.push(`POST ${req.url || url || '(no URL resolved)'}`);
+      out.push(`Authorization: ${req.hasKey ? 'Bearer ***** (key attached)' : '(none — keyless)'}`);
+      out.push('Content-Type: application/json');
+      out.push('');
+      out.push(JSON.stringify(req.body || { model: dom.model, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] }, null, 2));
+      out.push('');
+      out.push('RESPONSE');
+      if (result.ok) out.push(`HTTP ${result.status} OK`);
+      else if (result.kind === 'http') out.push(`HTTP ${result.status} (reachable, but errored)`);
+      else if (result.kind === 'unreachable') out.push(`Network error — ${result.detail || 'fetch failed (CORS blocked or server down)'}`);
+      else if (result.kind === 'config') out.push(`Not sent — ${result.detail || 'incomplete config'}`);
+      else out.push('(no response)');
+      const bodyText = result.responseText != null ? String(result.responseText) : '';
+      if (bodyText) {
+        out.push('');
+        const trunc = (App.Utils && App.Utils.truncate) ? App.Utils.truncate(bodyText, 4000) : bodyText.slice(0, 4000);
+        out.push(trunc + (bodyText.length > 4000 ? '\n…(truncated)' : ''));
+      }
+      debugEl.textContent = out.join('\n');
+      debugEl.style.display = '';
     }
     showToast(msg, !result.ok);
   }

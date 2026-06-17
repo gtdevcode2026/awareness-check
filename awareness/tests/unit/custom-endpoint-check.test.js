@@ -83,6 +83,39 @@ test("checkCustomEndpoint reports a config error when base URL or model is missi
   assert.equal(noModel.kind, "config");
 });
 
+test("checkCustomEndpoint returns a request preview (url, model, body) without the key", async () => {
+  const AIS = loadSummarizerWithFetch(async () => ({ ok: true, status: 200, text: async () => "{}" }));
+  const result = await AIS.checkCustomEndpoint({ ...CUSTOM_CFG, customKey: "sk-secret-value" });
+  assert.ok(result.request, "request preview present");
+  assert.match(result.request.url, /\/chat\/completions$/);
+  assert.equal(result.request.model, "llama3.1");
+  assert.equal(result.request.body.model, "llama3.1");
+  assert.equal(result.request.body.max_tokens, 1);
+  assert.equal(result.request.hasKey, true);
+  // The key value must never appear anywhere in the returned debug data.
+  assert.doesNotMatch(JSON.stringify(result), /sk-secret-value/);
+});
+
+test("checkCustomEndpoint captures the raw response body for debugging", async () => {
+  const AIS = loadSummarizerWithFetch(async () => ({
+    ok: false,
+    status: 404,
+    text: async () => '{"error":"model not found"}',
+  }));
+  const result = await AIS.checkCustomEndpoint(CUSTOM_CFG);
+  assert.equal(result.kind, "http");
+  assert.equal(result.status, 404);
+  assert.match(result.responseText, /model not found/);
+});
+
+test("checkCustomEndpoint config error still includes the request preview", async () => {
+  const AIS = loadSummarizerWithFetch(async () => ({ ok: true, status: 200, text: async () => "{}" }));
+  const result = await AIS.checkCustomEndpoint({ provider: "custom", customBaseUrl: "", customModel: "llama3.1" });
+  assert.equal(result.kind, "config");
+  assert.ok(result.request, "request preview present even when not sent");
+  assert.equal(result.request.hasKey, false);
+});
+
 test("describeCustomEndpointResult: unreachable message names the URL and OLLAMA_ORIGINS", () => {
   const AIS = loadSummarizerWithFetch(async () => ({ ok: false }));
   const msg = AIS.describeCustomEndpointResult({ ok: false, kind: "unreachable" }, "http://localhost:11434/v1/chat/completions");

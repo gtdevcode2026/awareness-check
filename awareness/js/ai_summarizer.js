@@ -117,19 +117,28 @@ App.AISummarizer = (() => {
   //   { ok: false, kind: 'http', status }          — reachable but errored (model/key)
   async function checkCustomEndpoint(cfg = config) {
     const target = resolveOpenAITarget(cfg);
-    if (!target.url) return { ok: false, kind: 'config', detail: 'No base URL set' };
-    if (!target.model) return { ok: false, kind: 'config', detail: 'No model set' };
+    const body = { model: target.model, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] };
+    // `request` is debug metadata for the Test-connection UI. It carries only the
+    // URL, model, and the request body — never the API key (just whether one is
+    // attached), per the Safety note in CLAUDE.md.
+    const request = { url: target.url, method: 'POST', model: target.model, hasKey: !!target.key, body };
+    if (!target.url) return { ok: false, kind: 'config', detail: 'No base URL set', request };
+    if (!target.model) return { ok: false, kind: 'config', detail: 'No model set', request };
     try {
       const resp = await fetch(target.url, {
         method: 'POST',
         cache: 'no-store',
         headers: openAICompatHeaders(target.key),
-        body: JSON.stringify({ model: target.model, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] })
+        body: JSON.stringify(body)
       });
-      if (resp.ok) return { ok: true, status: resp.status };
-      return { ok: false, kind: 'http', status: resp.status };
+      // Read the raw body so the UI can surface the server's actual reply. Guard
+      // resp.text so test fakes (which omit it) don't throw.
+      let responseText = '';
+      try { if (typeof resp.text === 'function') responseText = await resp.text(); } catch (e) {}
+      if (resp.ok) return { ok: true, status: resp.status, request, responseText };
+      return { ok: false, kind: 'http', status: resp.status, request, responseText };
     } catch (err) {
-      return { ok: false, kind: 'unreachable', detail: String((err && err.message) || err || 'network error') };
+      return { ok: false, kind: 'unreachable', detail: String((err && err.message) || err || 'network error'), request };
     }
   }
 
