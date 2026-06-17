@@ -491,10 +491,10 @@
         <div class="field"><label>AI API Key</label><input type="password" id="ai-key" placeholder="sk-... (leave blank for keyless local servers)" autocomplete="new-password" spellcheck="false"></div>
         <div class="save-actions compact">
           <button class="btn" onclick="App.UI.saveAISettings()">Save AI Settings</button>
-          <button type="button" class="btn" id="ai-custom-test-btn" style="display:none" onclick="App.UI.testCustomAIConnection()">Test connection</button>
+          <button type="button" class="btn" id="ai-custom-test-btn" onclick="App.UI.testCustomAIConnection()">Test connection</button>
           <button class="btn primary" onclick="saveAllConfig()">Save All</button>
         </div>
-        <div id="ai-custom-test-field" style="display:none;margin-top:.6rem">
+        <div id="ai-custom-test-field" style="margin-top:.6rem">
           <p class="title-sub" id="ai-custom-test-status" style="margin:0" aria-live="polite"></p>
           <pre id="ai-custom-test-debug" style="display:none;margin:.5rem 0 0;padding:.6rem .7rem;background:#0c0c0c;border:1px solid #333;border-radius:6px;font:12px/1.45 'JetBrains Mono',ui-monospace,monospace;color:#d4d4d4;white-space:pre-wrap;word-break:break-word;max-height:340px;overflow:auto" aria-live="polite"></pre>
         </div>

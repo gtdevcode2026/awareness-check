@@ -142,21 +142,67 @@ App.AISummarizer = (() => {
     }
   }
 
-  // Turn a checkCustomEndpoint() result into a clear, user-facing sentence.
-  function describeCustomEndpointResult(result, url) {
+  // Probe the Anthropic Messages API with a minimal request. Returns the same
+  // result shape as checkCustomEndpoint so the Test-connection UI can treat every
+  // provider uniformly. The API key is never returned — only whether one is set.
+  async function checkClaudeEndpoint(cfg = config) {
+    const url = 'https://api.anthropic.com/v1/messages';
+    const model = (cfg && cfg.claudeModel) || config.claudeModel;
+    const key = (cfg && cfg.claudeKey) || '';
+    const body = { model, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] };
+    const request = {
+      url, method: 'POST', model, hasKey: !!key, body,
+      headers: { 'x-api-key': key ? '*****' : '(none)', 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' }
+    };
+    if (!key) return { ok: false, kind: 'config', detail: 'No API key set', request };
+    if (!model) return { ok: false, kind: 'config', detail: 'No model set', request };
+    try {
+      const resp = await fetch(url, {
+        method: 'POST',
+        cache: 'no-store',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+        body: JSON.stringify(body)
+      });
+      let responseText = '';
+      try { if (typeof resp.text === 'function') responseText = await resp.text(); } catch (e) {}
+      if (resp.ok) return { ok: true, status: resp.status, request, responseText };
+      return { ok: false, kind: 'http', status: resp.status, request, responseText };
+    } catch (err) {
+      return { ok: false, kind: 'unreachable', detail: String((err && err.message) || err || 'network error'), request };
+    }
+  }
+
+  // Provider-agnostic connection probe used by the Config "Test connection"
+  // button. Routes Claude to the Messages API and openai/custom to the
+  // OpenAI-compatible chat-completions endpoint (filling the OpenAI default model
+  // when the UI didn't supply one).
+  async function checkAIEndpoint(cfg = config) {
+    const provider = (cfg && cfg.provider) || 'claude';
+    if (provider === 'claude') return checkClaudeEndpoint(cfg);
+    const merged = (provider === 'openai') ? { ...cfg, openaiModel: (cfg && cfg.openaiModel) || config.openaiModel } : cfg;
+    return checkCustomEndpoint(merged);
+  }
+
+  // Turn a connection-probe result into a clear, user-facing sentence. `opts`
+  // adapts the wording per provider: `label` names the target (defaults to the
+  // custom-server wording for back-compat) and `corsHint` is the trailing CORS
+  // tip (the OLLAMA_ORIGINS note by default; pass '' for hosted APIs).
+  function describeCustomEndpointResult(result, url, opts = {}) {
+    const label = opts.label || 'custom AI server';
     const where = url ? ` at ${url}` : '';
-    if (result && result.ok) return `Connected to the custom AI server${where}.`;
+    if (result && result.ok) return `Connected to the ${label}${where}.`;
     const kind = result && result.kind;
-    if (kind === 'config') return result.detail || 'The custom AI server is not fully configured (set a Base URL and Model).';
+    if (kind === 'config') return result.detail || `The ${label} is not fully configured.`;
     if (kind === 'http') {
       const s = result.status;
       let hint = '';
-      if (s === 404) hint = ' — check the Custom Model name exists on the server';
+      if (s === 404) hint = ' — check the model name exists / is enabled for this key';
       else if (s === 401 || s === 403) hint = ' — check the API key';
-      return `The custom AI server${where} responded with HTTP ${s}${hint}.`;
+      return `The ${label}${where} responded with HTTP ${s}${hint}.`;
     }
     // unreachable
-    return `Couldn't reach the custom AI server${where}. Make sure it is running and that it allows this site — for Ollama, start it with OLLAMA_ORIGINS set to this page's origin.`;
+    const corsHint = opts.corsHint != null ? opts.corsHint : ' — for Ollama, start it with OLLAMA_ORIGINS set to this page\'s origin';
+    return `Couldn't reach the ${label}${where}. Make sure it is running and that it allows this site${corsHint}.`;
   }
 
 
@@ -3635,6 +3681,8 @@ Output: JSON only, no markdown. Key allowed: watchouts (array of exactly 3 strin
     hasUsableTarget,
     openAICompatHeaders,
     checkCustomEndpoint,
+    checkClaudeEndpoint,
+    checkAIEndpoint,
     describeCustomEndpointResult,
     summarizeArticle,
     summarizeAll,

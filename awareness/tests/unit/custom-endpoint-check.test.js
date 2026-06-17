@@ -116,6 +116,51 @@ test("checkCustomEndpoint config error still includes the request preview", asyn
   assert.equal(result.request.hasKey, false);
 });
 
+test("checkAIEndpoint routes claude to the Anthropic Messages API, key redacted", async () => {
+  let seenUrl = "", seenHeaders = null;
+  const AIS = loadSummarizerWithFetch(async (url, opts) => {
+    seenUrl = url;
+    seenHeaders = opts.headers;
+    return { ok: true, status: 200, text: async () => '{"content":[{"text":"pong"}]}' };
+  });
+  const result = await AIS.checkAIEndpoint({ provider: "claude", claudeKey: "sk-ant-secret", claudeModel: "claude-x" });
+  assert.equal(result.ok, true);
+  assert.match(seenUrl, /api\.anthropic\.com\/v1\/messages/);
+  assert.equal(seenHeaders["x-api-key"], "sk-ant-secret", "real key is sent on the wire");
+  assert.equal(seenHeaders["anthropic-dangerous-direct-browser-access"], "true");
+  // The returned debug data must redact the key (preview shows ***** not the key).
+  assert.equal(result.request.headers["x-api-key"], "*****");
+  assert.doesNotMatch(JSON.stringify(result), /sk-ant-secret/);
+  assert.match(result.responseText, /pong/);
+});
+
+test("checkClaudeEndpoint reports a config error (with request preview) when no key", async () => {
+  const AIS = loadSummarizerWithFetch(async () => ({ ok: true, status: 200, text: async () => "{}" }));
+  const result = await AIS.checkClaudeEndpoint({ provider: "claude", claudeKey: "", claudeModel: "claude-x" });
+  assert.equal(result.kind, "config");
+  assert.ok(result.request);
+  assert.equal(result.request.hasKey, false);
+});
+
+test("checkAIEndpoint routes openai to api.openai.com and fills the default model", async () => {
+  let seenUrl = "";
+  const AIS = loadSummarizerWithFetch(async (url) => {
+    seenUrl = url;
+    return { ok: true, status: 200, text: async () => "{}" };
+  });
+  const result = await AIS.checkAIEndpoint({ provider: "openai", openaiKey: "sk-openai" });
+  assert.equal(result.ok, true);
+  assert.match(seenUrl, /api\.openai\.com\/v1\/chat\/completions/);
+  assert.ok(result.request.model, "an OpenAI default model is filled in");
+});
+
+test("describeCustomEndpointResult honors a provider label and empty corsHint", () => {
+  const AIS = loadSummarizerWithFetch(async () => ({ ok: false }));
+  const msg = AIS.describeCustomEndpointResult({ ok: false, kind: "unreachable" }, "https://api.openai.com/v1/chat/completions", { label: "OpenAI API", corsHint: "" });
+  assert.match(msg, /OpenAI API/);
+  assert.doesNotMatch(msg, /OLLAMA_ORIGINS/);
+});
+
 test("describeCustomEndpointResult: unreachable message names the URL and OLLAMA_ORIGINS", () => {
   const AIS = loadSummarizerWithFetch(async () => ({ ok: false }));
   const msg = AIS.describeCustomEndpointResult({ ok: false, kind: "unreachable" }, "http://localhost:11434/v1/chat/completions");

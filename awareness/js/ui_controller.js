@@ -1322,7 +1322,7 @@ App.UI = (() => {
   // selected (no-op on pages where the fields are hidden inputs without wrappers).
   function syncCustomProviderFields() {
     const isCustom = (document.getElementById('ai-provider')?.value || 'claude') === 'custom';
-    for (const id of ['ai-custom-base-field', 'ai-custom-model-field', 'ai-custom-test-field', 'ai-custom-test-btn']) {
+    for (const id of ['ai-custom-base-field', 'ai-custom-model-field']) {
       const el = document.getElementById(id);
       if (el) el.style.display = isCustom ? '' : 'none';
     }
@@ -1386,28 +1386,44 @@ App.UI = (() => {
     const statusEl = document.getElementById('ai-custom-test-status');
     const debugEl = document.getElementById('ai-custom-test-debug');
     const dom = readAISettingsDom();
-    if (dom.provider !== 'custom') {
-      showToast('Select the Custom (OpenAI-compatible) provider first.', true);
-      return;
-    }
-    const url = App.AISummarizer.normalizeChatCompletionsUrl(dom.baseUrl);
+    // Works for every provider so a client's hosted key can be verified too:
+    // Claude → Messages API, OpenAI/Custom → chat-completions.
+    const provider = dom.provider || 'claude';
+    const labels = { claude: 'Claude API', openai: 'OpenAI API', custom: 'custom AI server' };
+    const label = labels[provider] || 'AI endpoint';
+    let url;
+    if (provider === 'claude') url = 'https://api.anthropic.com/v1/messages';
+    else if (provider === 'openai') url = 'https://api.openai.com/v1/chat/completions';
+    else url = App.AISummarizer.normalizeChatCompletionsUrl(dom.baseUrl);
+
     if (statusEl) { statusEl.textContent = 'Testing connection…'; statusEl.style.color = ''; }
     if (debugEl) { debugEl.style.display = 'none'; debugEl.textContent = ''; }
-    const result = await App.AISummarizer.checkCustomEndpoint(aiSummarizerConfigFromDom(dom));
-    const msg = App.AISummarizer.describeCustomEndpointResult(result, url);
+
+    const result = await App.AISummarizer.checkAIEndpoint(aiSummarizerConfigFromDom(dom));
+    const msg = App.AISummarizer.describeCustomEndpointResult(result, url, {
+      label,
+      corsHint: provider === 'custom' ? undefined : ''
+    });
     if (statusEl) {
       statusEl.textContent = msg;
       statusEl.style.color = result.ok ? '#1a7f37' : '#b3261e';
     }
     // Show the exact request sent and the raw response received, so a failing
-    // endpoint is easy to debug. The API key is never printed (only whether one
-    // was attached) — see the Safety note in CLAUDE.md.
+    // key/endpoint is easy to debug. The API key is never printed (only whether
+    // one was attached) — see the Safety note in CLAUDE.md.
     if (debugEl) {
       const req = result.request || {};
       const out = [];
+      out.push(`PROVIDER: ${provider}`);
+      out.push('');
       out.push('REQUEST');
       out.push(`POST ${req.url || url || '(no URL resolved)'}`);
-      out.push(`Authorization: ${req.hasKey ? 'Bearer ***** (key attached)' : '(none — keyless)'}`);
+      if (req.headers) {
+        // Claude path carries its own (already-redacted) header preview.
+        for (const [k, v] of Object.entries(req.headers)) out.push(`${k}: ${v}`);
+      } else {
+        out.push(`Authorization: ${req.hasKey ? 'Bearer ***** (key attached)' : '(none — keyless)'}`);
+      }
       out.push('Content-Type: application/json');
       out.push('');
       out.push(JSON.stringify(req.body || { model: dom.model, max_tokens: 1, messages: [{ role: 'user', content: 'ping' }] }, null, 2));
