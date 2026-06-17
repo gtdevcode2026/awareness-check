@@ -59,5 +59,37 @@ App.ProjectStore = (() => {
     return App.DB.deleteProject(projectId);
   }
 
-  return { ensureMigrated, buildProjectFromWorkspace, saveFromWorkspace, list, get, remove };
+  // Poster template ids/format prefixes (mirrors the 'poster'/'poster-first'
+  // tags in newsletter_builder.js CATALOG). Kept self-contained so the Projects
+  // page can classify without loading the whole template catalog.
+  const POSTER_IDS = new Set([
+    'poster', 'poster1', 'poster2', 'poster3', 'poster4', 'poster5',
+    'infographic', 'quicktips', 'redflags', 'stoplook'
+  ]);
+
+  // The template format of a project's most recent snapshot.
+  function latestSnapshotFormat(record) {
+    const snaps = Array.isArray(record && record.snapshots) ? record.snapshots : [];
+    let best = null;
+    for (const s of snaps) {
+      if (!best || Number(s && s.version) > Number(best.version)) best = s;
+    }
+    return String((best && best.workspace && best.workspace.format) || '').trim();
+  }
+
+  // Pure: classify a record into 'advisory' | 'poster' | 'newsletter'. An explicit
+  // `kind` (set on advisory records and any future stamped project) wins; otherwise
+  // it is derived from the latest snapshot's template format.
+  function classifyKind(record) {
+    if (record && record.kind) return String(record.kind);
+    const fmt = latestSnapshotFormat(record);
+    if (fmt === 'advisory') return 'advisory';
+    if (POSTER_IDS.has(fmt) || /^gen_/.test(fmt) || /^poster/.test(fmt)) return 'poster';
+    return 'newsletter';
+  }
+
+  return {
+    ensureMigrated, buildProjectFromWorkspace, saveFromWorkspace, list, get, remove,
+    classifyKind, latestSnapshotFormat
+  };
 })();

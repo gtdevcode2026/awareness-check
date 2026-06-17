@@ -78,3 +78,56 @@ test("with no articles it falls back to a calm default advisory", async () => {
   assert.ok(slots.nlStrongPwAdvisory && slots.nlStrongPwAdvisory.length > 0, "must still produce a default advisory");
   assert.match(slots.nlStrongPwAdvisory, /safe|secure/i, "default reads as a generic safety advisory");
 });
+
+// tipThemeClause is the additive steer appended to poster tip prompts when the
+// user enters a theme via the poster flip form. It must be a no-op without a
+// theme (so the original generation is byte-identical) and carry the theme when set.
+test.describe("tipThemeClause (poster tip-theme steer)", () => {
+  test("is empty for missing / blank themes (original prompts unchanged)", () => {
+    const AIS = loadAISummarizer(aiContext());
+    assert.equal(AIS.tipThemeClause(""), "");
+    assert.equal(AIS.tipThemeClause("   "), "");
+    assert.equal(AIS.tipThemeClause(undefined), "");
+    assert.equal(AIS.tipThemeClause(null), "");
+  });
+
+  test("appends an instruction carrying the theme when provided", () => {
+    const AIS = loadAISummarizer(aiContext());
+    const clause = AIS.tipThemeClause("how to spot");
+    assert.match(clause, /how to spot/, "theme text present");
+    assert.match(clause, /theme/i, "framed as a theme instruction");
+    assert.match(clause, /grounded in the article/i, "preserves the article-driven rule");
+    assert.ok(clause.startsWith("\n"), "appended as a trailing clause, not inline");
+  });
+
+  test("caps an overly long theme at 120 chars", () => {
+    const AIS = loadAISummarizer(aiContext());
+    const clause = AIS.tipThemeClause("x".repeat(500));
+    assert.ok(clause.includes("x".repeat(120)), "keeps up to 120 theme chars");
+    assert.ok(!clause.includes("x".repeat(121)), "drops anything beyond 120");
+  });
+});
+
+// gen_vishing carries a visible "How to Spot" heading above its four tip cards.
+// When the user picks a theme on the poster flip form, that heading must become
+// the picked text verbatim; with no theme it must stay unset so the template
+// keeps its hardcoded "How to Spot" default (build output byte-identical).
+test.describe("vishing tips heading (poster flip-form theme → 'How to Spot' label)", () => {
+  test("no theme leaves the heading slot unset (template default preserved)", async () => {
+    const AIS = loadAISummarizer(aiContext());
+    const slots = await AIS.fillNewsletterTextSlots("gen_vishing", PHISHING_ARTS, { forceLocal: true });
+    assert.equal(slots.nlVishingTipsHeading, undefined, "no theme must not override the heading");
+  });
+
+  test("a picked theme becomes the heading verbatim", async () => {
+    const AIS = loadAISummarizer(aiContext());
+    const slots = await AIS.fillNewsletterTextSlots("gen_vishing", PHISHING_ARTS, { forceLocal: true, tipTheme: "Impact" });
+    assert.equal(slots.nlVishingTipsHeading, "Impact", "heading must equal the picked theme exactly");
+  });
+
+  test("a custom typed theme is carried verbatim (trimmed)", async () => {
+    const AIS = loadAISummarizer(aiContext());
+    const slots = await AIS.fillNewsletterTextSlots("gen_vishing", PHISHING_ARTS, { forceLocal: true, tipTheme: "  Why it matters here  " });
+    assert.equal(slots.nlVishingTipsHeading, "Why it matters here", "surrounding whitespace is trimmed, text otherwise verbatim");
+  });
+});

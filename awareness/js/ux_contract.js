@@ -159,6 +159,30 @@ App.UXContract = (() => {
     document.body.insertBefore(shell, document.body.firstChild);
   }
 
+  // Publish the sticky shell's real height as --ux-shell-h so sticky layouts
+  // (e.g. the builder sidebar) can offset themselves below it and size to the
+  // remaining viewport, instead of hard-coding a magic number that drifts when
+  // the menu wraps or padding changes. Re-measured on resize.
+  let shellHeightBound = false;
+  function publishShellHeight() {
+    const shell = document.getElementById('ux-shell');
+    if (!shell) return;
+    const set = () => {
+      const h = shell.offsetHeight || 0;
+      if (h) document.documentElement.style.setProperty('--ux-shell-h', `${h}px`);
+    };
+    set();
+    requestAnimationFrame(set); // re-measure after fonts/layout settle
+    if (!shellHeightBound) {
+      shellHeightBound = true;
+      let t = null;
+      window.addEventListener('resize', () => {
+        clearTimeout(t);
+        t = setTimeout(set, 120);
+      }, { passive: true });
+    }
+  }
+
   const HOME_BUILDER_HREF = 'index.html#section-home';
 
   function attachHomeNavBehavior() {
@@ -244,6 +268,7 @@ App.UXContract = (() => {
     const guard = options.guard || null;
     injectStyles();
     renderShell(pageId, flowStepId);
+    publishShellHeight();
     attachHomeNavBehavior();
     enforceGuard(guard);
   }

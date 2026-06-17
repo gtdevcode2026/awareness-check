@@ -62,6 +62,11 @@
         <button class="btn" onclick="window.location.href='config.html'">Open Config</button>
         <button class="btn" onclick="App.UI.sendTestEmail()">Send Test</button>
         <button class="btn primary" onclick="App.UI.sendNewsletter()">Send Newsletter</button>
+        <button class="btn" onclick="void App.UI.buildAdvisorySenderScript()" title="Advisories only: builds send_advisories.py — runs like the nessus tool (no relay), one email per advisory">Build Advisory Sender (.py)</button>
+        <button class="btn" onclick="void App.UI.downloadAdvisoryEml()" title="Advisories only: one combined Outlook-ready .eml (X-Unsent draft, images inline) — no relay, no app password; Outlook sends as you">Advisory → EML (Outlook)</button>
+      </div>
+      <div style="font-size:.72rem;color:#8a8a8a;line-height:1.5;margin-top:.5rem">
+        <strong>Advisories</strong> (Home → Advisory) — two no-relay options. <strong>Build Advisory Sender (.py)</strong>: nessus-style script; run <code>python send_advisories.py</code>, enter sender + recipients, sends one email per advisory. <strong>Advisory → EML (Outlook)</strong>: downloads one combined <code>.eml</code> — double-click to open it in Outlook as a draft (images inline), confirm recipients, then Send (no app password — Outlook sends as you).
       </div>
       <div style="font-size:.72rem;color:#8a8a8a;line-height:1.5;margin-top:.85rem">
         Prefer to send from Outlook? Download a send-ready file, double-click to open it (images inline), add recipients, then Send — no relay needed.
@@ -123,6 +128,7 @@
   <script src="js/newsletter/static_replicas.js"></script>
   <script src="js/translation_metrics.js"></script>
   <script src="js/delivery_helpers.js"></script>
+  <script src="js/advisory_send_script.js"></script>
   <script src="js/msg_writer.js"></script>
   <script src="js/ui_controller.js"></script>
   <script src="js/ui/translation.js"></script>

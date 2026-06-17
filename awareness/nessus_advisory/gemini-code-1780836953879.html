@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cyber Security Advisory</title>
+    <style>
+        body {
+            background-color: #292929;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, Arial, sans-serif;
+            margin: 0;
+            padding: 40px;
+            display: flex;
+            justify-content: center;
+        }
+        
+        .container {
+            width: 950px;
+            background-color: #292929;
+            box-sizing: border-box;
+        }
+
+        /* Header Styles */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+        }
+
+        .logo-box {
+            background-color: #ffffff;
+            width: 240px;
+            height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            box-sizing: border-box;
+        }
+
+        .logo-text {
+            color: #000000;
+            font-family: 'Arial Black', Impact, sans-serif;
+            font-size: 38px;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            margin-left: 5px;
+        }
+
+        .main-title {
+            font-size: 30px;
+            font-weight: bold;
+            margin-top: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-data {
+            display: grid;
+            grid-template-columns: 80px 100px;
+            row-gap: 20px;
+            column-gap: 30px;
+            font-size: 13px;
+            font-weight: bold;
+            align-items: end;
+            margin-top: 5px;
+        }
+
+        .meta-label {
+            line-height: 1.2;
+        }
+
+        /* Subtitle Styles */
+        .subtitle-wrapper {
+            display: flex;
+            margin-bottom: 25px;
+        }
+
+        .subtitle-spacer {
+            width: 25%;
+        }
+
+        .subtitle {
+            width: 75%;
+            font-size: 22px;
+            font-weight: bold;
+            line-height: 1.3;
+        }
+
+        .text-high {
+            color: #ff4d00;
+        }
+
+        /* Table Styles */
+        .advisory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        .advisory-table tr {
+            border-bottom: 1px solid #eab308;
+        }
+
+        .advisory-table tr:first-child {
+            border-top: 1px solid #eab308;
+        }
+
+        .advisory-table td {
+            padding: 22px 0;
+            vertical-align: top;
+            line-height: 1.6;
+        }
+
+        .col-label {
+            width: 25%;
+            font-weight: bold;
+            padding-right: 20px;
+        }
+
+        .col-content {
+            width: 75%;
+        }
+
+        /* Typography & Links */
+        .link-cve {
+            color: #ff4d00;
+            text-decoration: underline;
+        }
+
+        .link-ref {
+            color: #d482ee;
+            text-decoration: underline;
+            display: inline-block;
+            margin-bottom: 4px;
+        }
+
+        ul {
+            list-style-type: circle;
+            padding-left: 20px;
+            margin-top: 12px;
+            margin-bottom: 0;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        .indent-text {
+            padding-left: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        
+        <!-- Header Section -->
+        <div class="header">
+            <div class="logo-box">
+                <svg width="45" height="45" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="45" fill="#facc15" opacity="0.6"/>
+                    <path d="M 50 15 L 85 50 L 50 85 L 15 50 Z" fill="#facc15"/>
+                    <path d="M 50 15 L 85 50 L 50 50 Z" fill="#eab308"/>
+                </svg>
+                <span class="logo-text">ABInBev</span>
+            </div>
+            
+            <div class="main-title">
+                Cyber Security Advisory
+            </div>
+            
+            <div class="meta-data">
+                <div class="meta-label">Advisory<br>Number</div>
+                <div>ABSOC03066</div>
+                <div class="meta-label" style="margin-bottom: 2px;">Date issued</div>
+                <div style="margin-bottom: 2px;">30-APR-26</div>
+            </div>
+        </div>
+
+        <!-- Subtitle Section -->
+        <div class="subtitle-wrapper">
+            <div class="subtitle-spacer"></div>
+            <div class="subtitle">
+                <span class="text-high">High</span> Linux Vulnerability Leads to Root<br>Privilege
+            </div>
+        </div>
+
+        <!-- Content Table Section -->
+        <table class="advisory-table">
+            <tr>
+                <td class="col-label">Overview</td>
+                <td class="col-content">
+                    Researchers have disclosed details of a Linux local privilege escalation (LPE) flaw that could allow an<br>
+                    unprivileged local<br>
+                    user to obtain root privileges and it has been codenamed as Copy-Fail.
+                </td>
+            </tr>
+            <tr>
+                <td class="col-label">Summary</td>
+                <td class="col-content">
+                    <a href="#" class="link-cve">CVE-2026-31431 (CVSS: 7.8):</a> A high severity Linux kernel cryptographic subsystem<br>
+                    flaw (algif_aead) caused by improper<br>
+                    in-place memory handling, which can lead to memory corruption or unsafe behavior. It<br>
+                    can be exploited by a local user to modify cached file data and escalate privileges to<br>
+                    root, affecting many Linux distributions since 2017.
+                </td>
+            </tr>
+            <tr>
+                <td class="col-label">Potential<br>Impact</td>
+                <td class="col-content">
+                    All Linux distributions running an unpatched kernel with algif_aead support enabled
+                </td>
+            </tr>
+            <tr>
+                <td class="col-label">Recommendations</td>
+                <td class="col-content">
+                    ABI Global Security team recommends the following:
+                    <ul>
+                        <li>Please update the Linux kernel to a patched version where the algif_aead in-place memory handling<br>bug is corrected.</li>
+                        <li>Restrict access to the AF_ALG crypto interface (used by algif_aead) to trusted users only</li>
+                        <li>Limit or disable unprivileged user namespaces (often used in local privilege escalation chains).</li>
+                        <li>Apply hardening controls (e.g., SELinux/AppArmor policies) to reduce attack surface</li>
+                        <li>The scan reports will be shared with the zones shortly and we request all zones to prioritize their<br>
+                        remediation efforts<br>
+                        <span class="indent-text">effectively. Should you have any questions or concerns, reach out to <b>@SOC-VMS</b></span></li>
+                    </ul>
+                </td>
+            </tr>
+            <tr>
+                <td class="col-label" style="text-decoration: underline;">References</td>
+                <td class="col-content">
+                    <a href="https://access.redhat.com/security/cve/cve-2026-31431" class="link-ref">https://access.redhat.com/security/cve/cve-2026-31431</a><br>
+                    <a href="https://thehackernews.com/2026/04/new-linux-copy-fail-vulnerability.html" class="link-ref">https://thehackernews.com/2026/04/new-linux-copy-fail-vulnerability.html</a>
+                </td>
+            </tr>
+        </table>
+        
+    </div>
+
+</body>
+</html>

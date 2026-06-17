@@ -401,6 +401,19 @@ App.Utils = (() => {
     return ascii ? str : '=?utf-8?B?' + _toBase64Utf8(str) + '?=';
   }
 
+  // Encode an address header value. "Naïve Name <a@b.com>" → the display name is
+  // RFC 2047-encoded but the <addr@domain> is left literal so Outlook still parses
+  // the address; a bare address or bare name passes through _encodeMimeHeader.
+  function _encodeMimeAddress(s) {
+    const str = String(s).trim();
+    const m = str.match(/^(.*?)\s*<([^>]+)>\s*$/);
+    if (m) {
+      const name = m[1].replace(/^"|"$/g, '').trim();
+      return (name ? _encodeMimeHeader(name) + ' ' : '') + '<' + m[2].trim() + '>';
+    }
+    return _encodeMimeHeader(str);
+  }
+
   /**
    * Build a complete RFC 822 .eml message (multipart/related) from already
    * cid-rewritten HTML + its inline attachments. The `X-Unsent: 1` header makes
@@ -411,12 +424,14 @@ App.Utils = (() => {
    *
    * @param {string} html — HTML whose <img src> already reference cid:<id>
    * @param {Array<{contentId,contentType,base64,filename}>} attachments
-   * @param {{subject?:string}} [opts]
+   * @param {{subject?:string, to?:string, from?:string}} [opts]
    * @returns {string} the .eml message text
    */
   function buildEmlMime(html, attachments, opts) {
     const o = opts || {};
     const subject = String(o.subject || 'Security Awareness Newsletter');
+    const from = o.from == null ? '' : String(o.from).trim();
+    const to = o.to == null ? '' : String(o.to).trim();
     const atts = Array.isArray(attachments) ? attachments.filter(a => a && a.contentId && a.base64) : [];
     const boundary = '=_aw_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 10);
     const lines = [
@@ -424,6 +439,11 @@ App.Utils = (() => {
       'X-Unsent: 1',
       'Subject: ' + _encodeMimeHeader(subject)
     ];
+    // Optional From/To — emitted only when provided so the subject-only newsletter
+    // caller is byte-for-byte unchanged. Outlook honors To: as a prefilled
+    // recipient on the X-Unsent draft.
+    if (from) lines.push('From: ' + _encodeMimeAddress(from));
+    if (to) lines.push('To: ' + _encodeMimeAddress(to));
     if (atts.length) {
       lines.push('Content-Type: multipart/related; type="text/html"; boundary="' + boundary + '"');
       lines.push('');
@@ -452,6 +472,55 @@ App.Utils = (() => {
       lines.push('');
     }
     return lines.join('\r\n');
+  }
+
+  /**
+   * Stack several standalone advisory HTML documents into ONE combined standalone
+   * document (so a cluster of advisories becomes a single Outlook draft). Combines
+   * BEFORE image inlining, so the caller can run image→cid once over the whole doc
+   * and CIDs stay globally unique/deduped.
+   *
+   * Each input is a full <!DOCTYPE html>… document. We lift each <body> inner, keep
+   * the first doc's <body> attributes + any <head> <style> blocks, and join with an
+   * invisible email-safe spacer carrying an `advisory-break` marker.
+   *
+   * @param {string[]} docs — full standalone HTML documents (advisory template output)
+   * @param {{lang?:string}} [opts]
+   * @returns {string} one combined standalone HTML document
+   */
+  function combineHtmlBodies(docs, opts) {
+    const list = (Array.isArray(docs) ? docs : []).map(d => String(d || '')).filter(Boolean);
+    if (!list.length) return '';
+    const lang = (opts && opts.lang) ? String(opts.lang) : 'en';
+    const bodyInner = (doc) => {
+      const m = doc.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+      return m ? m[1] : doc;
+    };
+    const firstBodyAttrs = (() => {
+      const m = list[0].match(/<body([^>]*)>/i);
+      return m ? m[1] : '';
+    })();
+    const headStyles = (() => {
+      const head = (list[0].match(/<head[^>]*>([\s\S]*?)<\/head>/i) || ['', ''])[1];
+      return (head.match(/<style[\s\S]*?<\/style>/gi) || []).join('\n');
+    })();
+    const SEP = '\n<div style="height:28px;line-height:28px;font-size:0;mso-line-height-rule:exactly">&nbsp;</div>\n<!--advisory-break-->\n';
+    const bodies = list.map(bodyInner).join(SEP);
+    return '<!DOCTYPE html><html lang="' + lang + '"><head>' +
+      '<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">' +
+      headStyles +
+      '</head><body' + firstBodyAttrs + '>' + bodies + '</body></html>';
+  }
+
+  /**
+   * Stable, filesystem-safe per-advisory .eml filename: prefers the CVE id (or the
+   * ABSOC ticket), falls back to advisory-<index>. Returns `advisory-<sanitized>.eml`.
+   */
+  function emlFileName(cveOrTicket, fallbackIndex) {
+    const base = String(cveOrTicket || '').trim() || ('advisory-' + (fallbackIndex || 1));
+    const safe = base.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) ||
+      ('advisory-' + (fallbackIndex || 1));
+    return 'advisory-' + safe + '.eml';
   }
 
   /**
@@ -1008,7 +1077,7 @@ App.Utils = (() => {
     log, clearLog, fmtDate, daysAgo, isWithinDays,
     copyHTML, plainTextFromClipboardHtml, svgsToBase64, inlineCSSVars, buildEmailSafeHTMLFromElement, downloadHTML,
     htmlToSvgExport, downloadSVG, downloadBlob, injectNlQrImageIntoHtml, inlineCidAttachments,
-    inlineDataUriAttachments, buildEmlMime, compositeRgbaOverHex, flattenEmailColors, enforceEmailFont,
+    inlineDataUriAttachments, buildEmlMime, combineHtmlBodies, emlFileName, compositeRgbaOverHex, flattenEmailColors, enforceEmailFont,
     showToast, skeleton, debounce, wait,
     esc, stripTags, truncate, uid, normalizeWebUrl, stripLegacyFooterClassification,
     removeNewsletterNodeByBodyChildPath, removeNewsletterNodeByTemplateChildPath, removeNewsletterNodeByMirrorPath,

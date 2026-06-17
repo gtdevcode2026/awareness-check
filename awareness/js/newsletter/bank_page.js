@@ -303,6 +303,10 @@
                 </td>
               </tr>
             </table>
+            <!-- AI-credit line — final element of the bank-page footer -->
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+              <tr><td align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;font-family:Arial,Helvetica,sans-serif;">Disclaimer: The above content is curated and created with AI</td></tr>
+            </table>
           </td>
         </tr>
 
@@ -723,6 +727,10 @@
                 </td>
               </tr>
             </table>
+            <!-- AI-credit line — final element of the bank-page footer -->
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+              <tr><td align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;font-family:Arial,Helvetica,sans-serif;">Disclaimer: The above content is curated and created with AI</td></tr>
+            </table>
           </td>
         </tr>
 
@@ -1129,6 +1137,10 @@
                   </table>
                 </td>
               </tr>
+            </table>
+            <!-- AI-credit line — final element of the bank-page footer -->
+            <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+              <tr><td align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;font-family:Arial,Helvetica,sans-serif;">Disclaimer: The above content is curated and created with AI</td></tr>
             </table>
           </td>
         </tr>

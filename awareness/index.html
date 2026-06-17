@@ -76,7 +76,12 @@ body {
   width: 290px; flex-shrink: 0; background: var(--blk2);
   border-right: 1px solid var(--bw);
   display: flex; flex-direction: column;
-  position: sticky; top: 0; height: 100vh; overflow-y: auto;
+  /* Stick just below the sticky #ux-shell top bar and fill the rest of the
+     viewport, so the Generate buttons in .sb-foot stay fully visible at every
+     scroll position (incl. the very top). --ux-shell-h is published by
+     ux_contract.js; 48px is a safe fallback before its JS runs. */
+  position: sticky; top: var(--ux-shell-h, 48px);
+  height: calc(100vh - var(--ux-shell-h, 48px)); overflow-y: auto;
   overflow-x: hidden;
 }
 
@@ -104,7 +109,7 @@ body {
 }
 
 /* ── Sidebar collapsible sections ── */
-.sb-sections { flex: 1; overflow-y: auto; position: relative; z-index: 2 }
+.sb-sections { flex: 1; min-height: 0; overflow-y: auto; position: relative; z-index: 2 }
 .sb-sec-block { border-bottom: 1px solid var(--bw) }
 .sb-sec-hd {
   display: flex; align-items: center; justify-content: space-between;
@@ -211,6 +216,38 @@ input:checked + .tslider::before { transform: translateX(19px) }
 
 /* ── Format picker (compact) ── */
 .fmt-slider-mount { margin-bottom: 1rem; }
+/* Centered picker header with a sliding segmented control beside the heading. */
+.sec-hd.fmt-picker-hd {
+  flex-direction: column; align-items: center; text-align: center; gap: .5rem;
+}
+.fmt-picker-headline {
+  display: flex; align-items: center; justify-content: center; gap: .9rem; flex-wrap: wrap;
+}
+/* Segmented "Type" control: one rounded track + a gold thumb that slides behind the active segment. */
+.fmt-typeseg {
+  position: relative; display: inline-flex; align-items: center; padding: 3px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(212,164,32,.28); border-radius: 999px;
+}
+.fmt-typeseg-thumb {
+  position: absolute; top: 3px; bottom: 3px; left: 0; width: 0; z-index: 0;
+  background: linear-gradient(135deg, var(--gold-hi), var(--gold-bar)); border-radius: 999px;
+  box-shadow: 0 1px 4px rgba(0,0,0,.3); transition: transform var(--transition), width var(--transition);
+}
+.fmt-typeseg-thumb.no-anim { transition: none; }
+.fmt-typeseg-opt {
+  position: relative; z-index: 1; border: 0; background: transparent; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; font-weight: 600; font-size: .72rem; letter-spacing: .01em;
+  color: var(--gray2); padding: .34rem .9rem; border-radius: 999px; white-space: nowrap;
+  transition: color var(--transition);
+}
+.fmt-typeseg-opt:hover { color: var(--wh); }
+.fmt-typeseg-opt.is-active { color: var(--blk); }
+.fmt-typeseg-opt[disabled] { opacity: .4; cursor: not-allowed; }
+.fmt-typeseg-n { margin-left: .25rem; font-weight: 700; opacity: .7; font-variant-numeric: tabular-nums; }
+.fmt-typeseg-opt.is-active .fmt-typeseg-n { opacity: .85; }
+@media (prefers-reduced-motion: reduce) { .fmt-typeseg-thumb { transition: none; } }
+.fmt-ready-single { margin-top: .2rem; }
+.fmt-cat-mount[hidden] { display: none; }
 .fmt-tier-label {
   font-size: .62rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase;
   color: var(--gold-hi); margin: 0 0 .4rem 0; padding-bottom: .25rem;
@@ -323,6 +360,24 @@ input:checked + .tslider::before { transform: translateX(19px) }
 .tpl-slider .slide--image__wrapper { position: relative; width: 100%; height: 100%; overflow: hidden; background: #0c0c0c; }
 .tpl-slider .slide--placeholder { position: absolute; inset: 0; display: grid; place-items: center; color: var(--gray); font-size: .6rem; letter-spacing: .1em; }
 .tpl-slider .slide--poster { position: absolute; top: 50%; left: 50%; border: 0; transform-origin: center center; background: #0c0c0c; pointer-events: none; }
+/* ── Opt-in 3D flip: reveals a tip-theme form on the poster card back ── */
+.tpl-slider--flip .slide[data-current] { perspective: 1200px; }
+.tpl-slider--flip .slide__inner { overflow: visible; background: transparent; border: 0; box-shadow: none; transform-style: preserve-3d; transition: transform .6s cubic-bezier(.2,.7,.2,1), border-color var(--transition), box-shadow var(--transition); }
+.tpl-slider--flip .slide.is-flipped .slide__inner { transform: rotateY(180deg); }
+.tpl-slider--flip .slide__face { position: absolute; inset: 0; border-radius: 8px; overflow: hidden; background: #0c0c0c; border: 1px solid rgba(255,255,255,.1); box-shadow: 0 10px 30px rgba(0,0,0,.45); -webkit-backface-visibility: hidden; backface-visibility: hidden; }
+.tpl-slider--flip .slide[data-current] .slide__face { border-color: rgba(212,164,32,.45); }
+.tpl-slider--flip .slide__back { transform: rotateY(180deg); display: flex; flex-direction: column; }
+.poster-tip-form { display: flex; flex-direction: column; gap: .5rem; padding: .85rem; width: 100%; box-sizing: border-box; justify-content: center; text-align: left; }
+.poster-tip-form h4 { margin: 0; font-size: .82rem; color: var(--gold-hi, #e8c879); letter-spacing: .02em; }
+.poster-tip-form .ptf-hint { margin: 0; font-size: .6rem; color: var(--gray, #9a9a9a); line-height: 1.35; }
+/* Scrollable list of preset tip angles (the bank-page dynamic section headers). */
+.poster-tip-form .ptf-options { display: flex; flex-direction: column; gap: .4rem; max-height: 150px; overflow-y: auto; padding-right: .25rem; }
+.poster-tip-form .ptf-opt { width: 100%; box-sizing: border-box; text-align: center; padding: .5rem .55rem; border-radius: 6px; font-size: .78rem; line-height: 1.2; cursor: pointer; background: #b9881a; border: 1px solid #8c6712; color: #fff; }
+.poster-tip-form .ptf-opt:hover { background: #cf9b1f; }
+.poster-tip-form .ptf-opt.is-sel { background: #e8c879; border-color: #fff; color: #1a1a1a; font-weight: 700; }
+.poster-tip-form .ptf-custom { width: 100%; box-sizing: border-box; background: rgba(255,255,255,.06); border: 1px solid var(--bw, rgba(255,255,255,.18)); color: var(--wh, #eee); padding: .5rem .6rem; border-radius: 6px; font: inherit; font-size: .78rem; }
+.poster-tip-form .ptf-actions { display: flex; gap: .5rem; margin-top: .15rem; }
+.poster-tip-form .ptf-actions button { flex: 1; padding: .5rem; border-radius: 6px; font-size: .78rem; cursor: pointer; }
 .tpl-slider .slide:not([data-current]) .slide--image__wrapper::after {
   content: ''; position: absolute; inset: 0; background: rgba(0,0,0,.4);
   transition: background var(--slide-transition-duration) var(--slide-transition-easing);
@@ -369,6 +424,26 @@ input:checked + .tslider::before { transform: translateX(19px) }
   overflow-y: auto; padding: 0;
 }
 #tpl-preview-modal.active { display: block; }
+
+/* ── Advisory generator modals (hand-rolled .active toggle) ── */
+.adv-modal { display:none; position:fixed; inset:0; z-index:240; background:rgba(0,0,0,.82); backdrop-filter:blur(6px); overflow-y:auto; padding:3rem 1rem; }
+.adv-modal.active { display:block; }
+.adv-card { max-width:560px; margin:0 auto; background:var(--blk,#0c0c0c); border:1px solid var(--bw,rgba(255,255,255,.14)); border-radius:12px; box-shadow:0 18px 60px rgba(0,0,0,.6); overflow:hidden; }
+.adv-card-hd { padding:1rem 1.3rem; border-bottom:1px solid var(--bw,rgba(255,255,255,.12)); display:flex; align-items:center; gap:.6rem; }
+.adv-card-hd h3 { margin:0; font-size:1rem; color:var(--gold-hi,#e8c879); letter-spacing:.02em; }
+.adv-card-hd .adv-x { margin-left:auto; background:none; border:none; color:var(--gray,#9a9a9a); font-size:1.1rem; cursor:pointer; line-height:1; }
+.adv-card-bd { padding:1.1rem 1.3rem; max-height:62vh; overflow-y:auto; }
+.adv-card-ft { padding:.9rem 1.3rem; border-top:1px solid var(--bw,rgba(255,255,255,.12)); display:flex; gap:.6rem; justify-content:flex-end; flex-wrap:wrap; }
+.adv-field { margin-bottom:1rem; }
+.adv-field label.adv-lbl { display:block; font-size:.62rem; text-transform:uppercase; letter-spacing:.08em; color:var(--gray,#9a9a9a); margin-bottom:.45rem; }
+.adv-opts { display:flex; flex-wrap:wrap; gap:.5rem .9rem; }
+.adv-opts label { display:flex; align-items:center; gap:.35rem; font-size:.82rem; color:var(--wh,#eee); cursor:pointer; }
+.adv-input { width:100%; box-sizing:border-box; background:rgba(255,255,255,.04); border:1px solid var(--bw,rgba(255,255,255,.14)); color:var(--wh,#eee); padding:.5rem .6rem; border-radius:6px; font-size:.82rem; }
+.adv-pick { display:block; padding:.55rem .65rem; border:1px solid var(--bw,rgba(255,255,255,.1)); border-radius:7px; margin-bottom:.5rem; font-size:.8rem; color:var(--wh,#eee); cursor:pointer; line-height:1.45; }
+.adv-pick.dupe { border-color:rgba(214,164,32,.55); background:rgba(214,164,32,.05); }
+.adv-pick .adv-sev { font-weight:700; color:var(--gold-hi,#e8c879); }
+.adv-note { font-size:.68rem; color:var(--gray,#9a9a9a); margin:.2rem 0 0; }
+.adv-status { font-size:.72rem; color:var(--gold-hi,#e8c879); min-height:1em; }
 .tpl-preview-bar {
   position: sticky; top: 0; z-index: 10; background: var(--blk);
   border-bottom: 1px solid var(--bw); padding: .5rem 1.5rem;
@@ -1071,41 +1146,37 @@ label {
   <div class="sb-foot">
     <button class="gen-btn" onclick="App.UI.buildAndPreview()">Generate Newsletter →</button>
     <button class="gen-btn" style="margin-top:.5rem" onclick="App.UI.buildAndPreviewEnglishOnly()">Generate (English only) →</button>
+    <!-- One-shot tip theme captured from a poster card's flip form; read + cleared by the build pipeline. -->
+    <input type="hidden" id="poster-tip-theme">
+
     <div id="translation-pipeline-state" class="translation-pipeline-state" aria-live="polite" style="margin-top:.5rem"></div>
   </div>
 </aside>
 
 <!-- ═══ MAIN — Single page workflow ═══ -->
 <main id="main">
-  <div class="fetch-bar" style="margin-bottom:1rem;padding:.5rem .65rem">
-    <div class="crumb-bar">
-      <button class="crumb-btn home" onclick="App.UI.goHome()">Home</button>
-      <span class="crumb-sep">/</span>
-      <button class="crumb-btn" onclick="App.UI.navigateTo('section-home')">Compose</button>
-      <button class="crumb-btn" onclick="App.UI.navigateTo('section-projects')">Projects</button>
-      <button class="crumb-btn" onclick="window.location.href='config.html'">Config</button>
-      <button class="crumb-btn" onclick="window.location.href='keywords.html'">Keywords</button>
-      <button class="crumb-btn" onclick="App.UI.goToProjectsPage()">Projects</button>
-    </div>
-  </div>
   <div id="section-home"></div>
 
   <!-- ── SECTION 1: Template Picker ── -->
-  <div class="sec-hd">
-    <h2>Choose <em>Template</em></h2>
+  <div class="sec-hd fmt-picker-hd">
+    <div class="fmt-picker-headline">
+      <h2>Choose <em>Template</em></h2>
+      <div class="fmt-typeseg" id="fmt-type-seg" role="tablist" aria-label="Template type">
+        <span class="fmt-typeseg-thumb no-anim" aria-hidden="true"></span>
+        <button type="button" class="fmt-typeseg-opt is-active" role="tab" aria-selected="true"  data-cat="newsletter">Newsletter <span class="fmt-typeseg-n" data-cat-count="newsletter"></span></button>
+        <button type="button" class="fmt-typeseg-opt"           role="tab" aria-selected="false" data-cat="poster">Poster <span class="fmt-typeseg-n" data-cat-count="poster"></span></button>
+        <button type="button" class="fmt-typeseg-opt"           role="tab" aria-selected="false" data-cat="advisory">Advisory <span class="fmt-typeseg-n" data-cat-count="advisory"></span></button>
+      </div>
+    </div>
     <p>14 layouts inspired by JPMorgan, Goldman Sachs, Microsoft, Deloitte &amp; more</p>
   </div>
-  <div class="fmt-tier-label">Ready <span class="fmt-tier-count" id="fmt-ready-count"></span></div>
 
-  <details class="fmt-ready-subgroup" id="fmt-newsletter-group" open>
-    <summary>Newsletter Templates<span class="fmt-subgroup-note">2 articles</span><span class="fmt-tier-count" id="fmt-newsletter-count"></span></summary>
-    <div class="fmt-slider-mount" id="fmt-grid-newsletter"><!-- slider injected by JS --></div>
-  </details>
-
-  <details class="fmt-ready-subgroup" id="fmt-poster-group" open>
-    <summary>Poster Templates<span class="fmt-subgroup-note">1 article</span><span class="fmt-tier-count" id="fmt-poster-count"></span></summary>
-    <div class="fmt-slider-mount" id="fmt-grid-poster"><!-- slider injected by JS --></div>
-  </details>
+  <!-- One Ready slider visible at a time; the Type dropdown above swaps category. -->
+  <div class="fmt-ready-single">
+    <div class="fmt-slider-mount fmt-cat-mount" id="fmt-grid-newsletter" data-cat="newsletter"><!-- slider injected by JS --></div>
+    <div class="fmt-slider-mount fmt-cat-mount" id="fmt-grid-poster" data-cat="poster" hidden><!-- slider injected by JS --></div>
+    <div class="fmt-slider-mount fmt-cat-mount" id="fmt-grid-advisory" data-cat="advisory" hidden><!-- slider injected by JS --></div>
+  </div>
 
   <details class="fmt-beta-group" id="fmt-beta-group">
     <summary>Beta · In Development<span class="fmt-tier-count" id="fmt-beta-count"></span></summary>
@@ -1195,6 +1266,72 @@ label {
   </div>
 </div>
 
+<!-- ═══ ADVISORY: GENERATOR MODAL ═══ -->
+<div class="adv-modal" id="adv-gen-modal" role="dialog" aria-modal="true" aria-labelledby="adv-gen-title">
+  <div class="adv-card">
+    <div class="adv-card-hd"><h3 id="adv-gen-title">Generate Advisory</h3><button class="adv-x" onclick="App.AdvisoryUI.close()" aria-label="Close">✕</button></div>
+    <div class="adv-card-bd">
+      <div class="adv-field">
+        <label class="adv-lbl">Source</label>
+        <div class="adv-opts" id="adv-source-opts">
+          <label><input type="radio" name="adv-source" value="nvd" checked> NVD</label>
+          <label><input type="radio" name="adv-source" value="qualys"> Qualys</label>
+          <label><input type="radio" name="adv-source" value="tenable"> Tenable</label>
+        </div>
+      </div>
+      <div class="adv-field">
+        <label class="adv-lbl">Severity</label>
+        <div class="adv-opts" id="adv-sev-opts">
+          <label><input type="checkbox" name="adv-sev" value="Critical" checked> Critical</label>
+          <label><input type="checkbox" name="adv-sev" value="High" checked> High</label>
+          <label><input type="checkbox" name="adv-sev" value="Medium" checked> Medium</label>
+          <label><input type="checkbox" name="adv-sev" value="Low" checked> Low</label>
+        </div>
+      </div>
+      <div class="adv-field">
+        <label class="adv-lbl" for="adv-cve-code">Specific CVE (optional)</label>
+        <input class="adv-input" type="text" id="adv-cve-code" placeholder="e.g. CVE-2026-31431" autocomplete="off">
+        <p class="adv-note">Leave blank to pull the latest matching advisories (max 25). One alert per CVE.</p>
+      </div>
+      <div class="adv-status" id="adv-gen-status"></div>
+    </div>
+    <div class="adv-card-ft">
+      <button class="btn" onclick="App.AdvisoryUI.close()">Cancel</button>
+      <button class="btn btn-a" id="adv-fetch-btn" onclick="App.AdvisoryUI.fetch()">Fetch Advisories</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADVISORY: SELECTION MODAL ═══ -->
+<div class="adv-modal" id="adv-select-modal" role="dialog" aria-modal="true" aria-labelledby="adv-select-title">
+  <div class="adv-card">
+    <div class="adv-card-hd"><h3 id="adv-select-title">Select advisories to generate</h3><button class="adv-x" onclick="App.AdvisoryUI.close()" aria-label="Close">✕</button></div>
+    <div class="adv-card-bd">
+      <p class="adv-note" id="adv-select-note" style="margin-bottom:.7rem">Tick the CVEs you want. One advisory is generated per CVE.</p>
+      <div id="adv-select-list"></div>
+    </div>
+    <div class="adv-card-ft">
+      <button class="btn" onclick="App.AdvisoryUI.backToGenerator()">← Back</button>
+      <button class="btn btn-a" onclick="App.AdvisoryUI.generateSelected()">Generate Selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ ADVISORY: DUPLICATE MODAL ═══ -->
+<div class="adv-modal" id="adv-dup-modal" role="dialog" aria-modal="true" aria-labelledby="adv-dup-title">
+  <div class="adv-card">
+    <div class="adv-card-hd"><h3 id="adv-dup-title">Already generated before</h3><button class="adv-x" onclick="App.AdvisoryUI.cancelDuplicates()" aria-label="Close">✕</button></div>
+    <div class="adv-card-bd">
+      <p class="adv-note" style="margin-bottom:.7rem">These CVEs were generated before. Regenerate them, or cancel to skip the duplicates and generate only the new ones.</p>
+      <div id="adv-dup-list"></div>
+    </div>
+    <div class="adv-card-ft">
+      <button class="btn" onclick="App.AdvisoryUI.cancelDuplicates()">Cancel (skip dupes)</button>
+      <button class="btn btn-a" onclick="App.AdvisoryUI.confirmRegenerate()">Regenerate</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ PREVIEW PANEL ═══ -->
 <div id="preview-panel">
   <button class="tpl-close-float" onclick="App.UI.closePreview()" title="Close preview" aria-label="Close preview">✕</button>
@@ -1258,6 +1395,9 @@ label {
 <script src="js/project_store.js"></script>
 <script src="js/responsive_layout.js"></script>
 <script src="js/rss_fetcher.js"></script>
+<script src="js/advisory_history.js"></script>
+<script src="js/advisory_sources.js"></script>
+<script src="js/advisory_db.js"></script>
 <script src="js/ai/prompts.js"></script>
 <script src="js/ai/local_fallbacks.js"></script>
 <script src="js/ai/logger.js"></script>
@@ -1281,6 +1421,7 @@ label {
 <script src="js/editor/iframe_script.js"></script>
 <script src="js/editor.js"></script>
 <script src="js/slider.js"></script>
+<script src="js/advisory_ui.js"></script>
 
 <!-- ═══ INIT ═══ -->
 <script>
@@ -1290,6 +1431,7 @@ label {
 
   const newsletterMount = document.getElementById('fmt-grid-newsletter');
   const posterMount = document.getElementById('fmt-grid-poster');
+  const advisoryMount = document.getElementById('fmt-grid-advisory');
   const betaMount = document.getElementById('fmt-grid-beta');
   if (newsletterMount && App.NewsletterBuilder?.getTemplateCatalog && App.Slider?.create) {
     const catalog = App.NewsletterBuilder.getTemplateCatalog().map((t) => ({
@@ -1300,14 +1442,101 @@ label {
       description: t.recommended || '',
       status: t.status || 'beta',
       // Poster templates are built from a single article; newsletters use two.
-      isPoster: Array.isArray(t.tags) && t.tags.includes('poster')
+      isPoster: Array.isArray(t.tags) && t.tags.includes('poster'),
+      // Advisory is its own template TYPE — its own section, its own generator flow.
+      isAdvisory: Array.isArray(t.tags) && t.tags.includes('advisory'),
+      // Number of AI tip/point boxes a poster exposes. Present only on posters
+      // that consume the flip-form tip theme at build time, so its presence is
+      // the single source of truth for "this card flips". Onboard a new poster
+      // by adding tipSlots:N to its catalog entry — the flip works automatically.
+      tipSlots: t.tipSlots
     }));
 
     // Testing-tier templates are no longer surfaced in the picker.
     const ready = catalog.filter(f => f.status === 'ready');
     const beta  = catalog.filter(f => f.status !== 'ready' && f.status !== 'testing');
-    const readyNewsletter = ready.filter(f => !f.isPoster);
-    const readyPoster     = ready.filter(f => f.isPoster);
+    const readyNewsletter = ready.filter(f => !f.isPoster && !f.isAdvisory);
+    const readyPoster     = ready.filter(f => f.isPoster && !f.isAdvisory);
+    const readyAdvisory   = ready.filter(f => f.isAdvisory);
+
+    // Posters with AI-written tip slots: clicking the card flips it to a small
+    // form where the user types a THEME. The form only CAPTURES the theme and
+    // selects the poster — generation stays on the main "Generate Newsletter →"
+    // button, so the user keeps their normal build flow. The theme is read
+    // one-shot at build time (generate_pipeline.js), so it survives until then.
+    // Which cards flip is driven by the catalog's `tipSlots` (count of tip boxes),
+    // so every poster onboarded with tipSlots flips with no edit here. Static
+    // design replicas render as-is and ignore the theme, so they carry no tipSlots
+    // and correctly select instead of flipping.
+
+    // Builds the flip-back tip-theme form. Returns false for non-tip cards so the
+    // slider falls back to a normal select. DOM-built (textContent) — no innerHTML
+    // injection of catalog/user strings.
+    function renderPosterTipForm(backEl, item, api) {
+      const n = item && item.tipSlots;
+      if (!n) return false;
+      backEl.addEventListener('click', (e) => e.stopPropagation());
+      const form = document.createElement('div');
+      form.className = 'poster-tip-form';
+      const h = document.createElement('h4');
+      h.textContent = 'Tips theme';
+      const hint = document.createElement('p');
+      hint.className = 'ptf-hint';
+      hint.textContent = `Pick the angle for the ${n} tip${n === 1 ? '' : 's'} — or type your own below. Tips stay drawn from the selected article. Then press “Generate Newsletter →”.`;
+
+      // Custom "Any other" box. Declared before the options so their click
+      // handlers can clear it when a preset is chosen.
+      const custom = document.createElement('input');
+      custom.type = 'text';
+      custom.className = 'ptf-custom';
+      custom.placeholder = 'Any other…';
+
+      // Scrollable list of preset angles — the bank-page dynamic section headers.
+      const TIP_THEME_OPTIONS = ['How to spot', 'Impact on our organisation', 'Next steps (if affected)', 'Impact', 'What you should remember', 'Stay safe'];
+      const list = document.createElement('div');
+      list.className = 'ptf-options';
+      let selected = '';
+      const optBtns = [];
+      TIP_THEME_OPTIONS.forEach((label) => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'ptf-opt';
+        b.textContent = label;
+        b.addEventListener('click', () => {
+          selected = (selected === label) ? '' : label;        // click again to deselect
+          optBtns.forEach((btn) => btn.classList.toggle('is-sel', btn.textContent === selected));
+          if (selected) custom.value = '';                     // a preset wins over custom text
+        });
+        optBtns.push(b);
+        list.appendChild(b);
+      });
+      // Typing a custom angle clears any preset selection.
+      custom.addEventListener('input', () => {
+        if (custom.value.trim()) { selected = ''; optBtns.forEach((btn) => btn.classList.remove('is-sel')); }
+      });
+
+      const actions = document.createElement('div');
+      actions.className = 'ptf-actions';
+      const back = document.createElement('button');
+      back.type = 'button'; back.className = 'btn'; back.textContent = '↩ Back';
+      back.addEventListener('click', () => api.close());
+      // Captures the chosen angle (custom text wins, else the selected preset) and
+      // selects the poster — it does NOT build. The user generates from the main
+      // "Generate Newsletter →" button, which reads this theme one-shot.
+      const gen = document.createElement('button');
+      gen.type = 'button'; gen.className = 'btn btn-a'; gen.textContent = 'Use this theme →';
+      gen.addEventListener('click', () => {
+        const theme = (custom.value || '').trim() || selected || '';
+        const themeEl = document.getElementById('poster-tip-theme');
+        if (themeEl) themeEl.value = theme;
+        api.close();
+        if (App.UI) App.UI.selectTemplate(item.id);
+      });
+      actions.append(back, gen);
+      form.append(h, hint, list, custom, actions);
+      backEl.appendChild(form);
+      return true;
+    }
 
     const sliderOpts = (items, startId, fit) => ({
       items, startId,
@@ -1316,12 +1545,83 @@ label {
       // and the long tail is cropped. The Preview button shows the whole poster.
       renderSlide: (wrap, item) => App.UI.renderPosterInto(wrap, item, fit),
       onSelect:    (item) => App.UI.selectTemplate(item.id),
+      onPreview:   (item) => App.UI.previewTemplate(item.id, item.title),
+      // Tip-slot posters flip to the theme form; every other card returns false
+      // from renderBack and selects normally.
+      flipOnSelect: true,
+      renderBack:  (backEl, item, api) => renderPosterTipForm(backEl, item, api)
+    });
+
+    // Advisory cards open the generator popup instead of selecting a format.
+    const advisorySliderOpts = (items) => ({
+      items,
+      renderSlide: (wrap, item) => App.UI.renderPosterInto(wrap, item, 'cover'),
+      onSelect:    (item) => (App.AdvisoryUI ? App.AdvisoryUI.openGenerator(item.id) : App.UI.selectTemplate(item.id)),
       onPreview:   (item) => App.UI.previewTemplate(item.id, item.title)
     });
 
-    if (readyNewsletter.length) App.Slider.create(newsletterMount, sliderOpts(readyNewsletter, 'poster', 'cover'));
-    if (posterMount && readyPoster.length) App.Slider.create(posterMount, sliderOpts(readyPoster, undefined, 'cover'));
+    const nlInst  = readyNewsletter.length ? App.Slider.create(newsletterMount, sliderOpts(readyNewsletter, 'poster', 'cover')) : null;
+    const psInst  = (posterMount && readyPoster.length) ? App.Slider.create(posterMount, sliderOpts(readyPoster, undefined, 'cover')) : null;
+    const advInst = (advisoryMount && readyAdvisory.length) ? App.Slider.create(advisoryMount, advisorySliderOpts(readyAdvisory)) : null;
     if (betaMount && beta.length) App.Slider.create(betaMount, sliderOpts(beta, undefined, 'cover'));
+
+    // One Ready slider visible at a time, chosen by the Type dropdown beside the
+    // heading. The other category sliders stay built but hidden; revealing one
+    // refits it (slides measure 0×0 while hidden), mirroring the Beta details.
+    const CATS = {
+      newsletter: { mount: newsletterMount, inst: nlInst },
+      poster:     { mount: posterMount,     inst: psInst },
+      advisory:   { mount: advisoryMount,   inst: advInst },
+    };
+    function showCategory(cat) {
+      Object.entries(CATS).forEach(([key, c]) => { if (c.mount) c.mount.hidden = (key !== cat); });
+      const c = CATS[cat];
+      if (c && c.inst && c.inst.refit) c.inst.refit();
+    }
+    // Sliding segmented control beside the heading: a gold thumb slides behind the
+    // active segment. Each segment shows its template count; empty categories are
+    // disabled. Selecting a segment delegates to showCategory() (same as before).
+    const seg = document.getElementById('fmt-type-seg');
+    if (seg) {
+      const thumb = seg.querySelector('.fmt-typeseg-thumb');
+      const opts = Array.from(seg.querySelectorAll('.fmt-typeseg-opt'));
+      const COUNTS = { newsletter: readyNewsletter.length, poster: readyPoster.length, advisory: readyAdvisory.length };
+      opts.forEach((btn) => {
+        const n = COUNTS[btn.dataset.cat] || 0;
+        const nEl = btn.querySelector('.fmt-typeseg-n');
+        if (nEl) nEl.textContent = n;
+        if (!n) btn.disabled = true;
+      });
+
+      const moveThumb = (btn) => {
+        if (!thumb || !btn) return;
+        thumb.style.width = btn.offsetWidth + 'px';
+        thumb.style.transform = `translateX(${btn.offsetLeft - seg.clientLeft}px)`;
+      };
+      const activeBtn = () => seg.querySelector('.fmt-typeseg-opt.is-active') || opts[0];
+      const selectSeg = (cat) => {
+        const btn = opts.find((b) => b.dataset.cat === cat) || activeBtn();
+        if (!btn || btn.disabled) return;
+        opts.forEach((b) => {
+          const on = b === btn;
+          b.classList.toggle('is-active', on);
+          b.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        moveThumb(btn);
+        showCategory(btn.dataset.cat);
+      };
+
+      opts.forEach((btn) => btn.addEventListener('click', () => selectSeg(btn.dataset.cat)));
+
+      // Place the thumb under the default segment WITHOUT a slide-in, then enable
+      // animation. Re-measure when fonts load and on resize (segment widths shift).
+      moveThumb(activeBtn());
+      requestAnimationFrame(() => { if (thumb) thumb.classList.remove('no-anim'); });
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => moveThumb(activeBtn()));
+      window.addEventListener('resize', () => moveThumb(activeBtn()));
+
+      showCategory(activeBtn().dataset.cat || 'newsletter');
+    }
 
     // Reflect the default selection (state.selectedFormat starts at 'poster').
     const sel = App.UI?._state?.selectedFormat;
@@ -1330,9 +1630,6 @@ label {
     });
 
     const setCount = (id, n) => { const e = document.getElementById(id); if (e) e.textContent = `(${n})`; };
-    setCount('fmt-ready-count', ready.length);
-    setCount('fmt-newsletter-count', readyNewsletter.length);
-    setCount('fmt-poster-count', readyPoster.length);
     setCount('fmt-beta-count', beta.length);
 
     // The Beta slider lives in a collapsed <details>; nudge a refit when it opens

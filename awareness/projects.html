@@ -50,6 +50,12 @@
         <option value="sent">Sent</option>
         <option value="archived">Archived</option>
       </select>
+      <select id="type-filter">
+        <option value="all">All types</option>
+        <option value="newsletter">Newsletters</option>
+        <option value="poster">Posters</option>
+        <option value="advisory">Advisories</option>
+      </select>
       <select id="date-filter">
         <option value="all">Any date</option>
         <option value="7">Updated in 7 days</option>
@@ -73,6 +79,7 @@
   </div>
 
   <script src="js/db.js"></script>
+  <script src="js/advisory_db.js"></script>
   <script src="js/router_nav.js"></script>
   <script src="js/ux_contract.js"></script>
   <script src="js/project_store.js"></script>
@@ -86,48 +93,43 @@
       return (Date.now() - new Date(ts || 0).getTime()) <= ms;
     }
 
-    function sortProjects(items, sortBy) {
+    function sortItems(items, sortBy) {
       const [field, dir] = (sortBy || 'updatedAt-desc').split('-');
       const sign = dir === 'asc' ? 1 : -1;
       return [...items].sort((a, b) => {
-        if (field === 'title') return ((a.title || '').localeCompare(b.title || '')) * sign;
-        return ((new Date(a[field] || 0).getTime()) - (new Date(b[field] || 0).getTime())) * sign;
+        const ra = a.record, rb = b.record;
+        if (field === 'title') return ((ra.title || '').localeCompare(rb.title || '')) * sign;
+        return ((new Date(ra[field] || 0).getTime()) - (new Date(rb[field] || 0).getTime())) * sign;
       });
     }
 
-    async function render() {
-      await App.ProjectStore.ensureMigrated();
-      const list = await App.ProjectStore.list();
-      const q = (document.getElementById('search').value || '').trim().toLowerCase();
-      const status = document.getElementById('status-filter').value;
-      const dateRange = document.getElementById('date-filter').value;
-      const sortBy = document.getElementById('sort-by').value;
-      const filtered = list.filter(p => {
-        const okText = !q || (p.title || '').toLowerCase().includes(q) || (p.owner || '').toLowerCase().includes(q);
-        const okStatus = status === 'all' || (p.status || 'draft') === status;
-        const okDate = withinDays(p.updatedAt, dateRange);
-        return okText && okStatus && okDate;
-      });
-      const ordered = sortProjects(filtered, sortBy);
-      document.getElementById('stats').textContent = `${ordered.length} project(s) · ${viewMode} view`;
-      const projectsEl = document.getElementById('projects');
-      projectsEl.className = viewMode === 'list' ? 'list' : 'grid';
-      projectsEl.innerHTML = ordered.map(p => {
-        const snaps = Array.isArray(p.snapshots) ? [...p.snapshots].sort((a, b) => Number(b.version) - Number(a.version)) : [];
-        let versionOpts = `<option value="">Current (v${p.version || 1})</option>`;
-        for (const s of snaps) {
-          const label = `v${s.version} — ${s.capturedAt ? new Date(s.capturedAt).toLocaleString() : ''}`;
-          versionOpts += `<option value="${s.version}">${label.replace(/</g, '')}</option>`;
-        }
-        const pid = String(p.projectId || '').replace(/"/g, '');
-        return `
+    function esc(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    function kindBadge(kind) {
+      const label = kind === 'advisory' ? 'Advisory' : kind === 'poster' ? 'Poster' : 'Newsletter';
+      const color = kind === 'advisory' ? '#e8c879' : kind === 'poster' ? '#7fd1b9' : '#9ab4ff';
+      return `<span class="meta" style="border:1px solid ${color};color:${color};border-radius:999px;padding:.05rem .55rem;font-size:.62rem;text-transform:uppercase;letter-spacing:.05em">${label}</span>`;
+    }
+
+    function projectCardHtml(p, kind) {
+      const snaps = Array.isArray(p.snapshots) ? [...p.snapshots].sort((a, b) => Number(b.version) - Number(a.version)) : [];
+      let versionOpts = `<option value="">Current (v${p.version || 1})</option>`;
+      for (const s of snaps) {
+        const label = `v${s.version} — ${s.capturedAt ? new Date(s.capturedAt).toLocaleString() : ''}`;
+        versionOpts += `<option value="${s.version}">${label.replace(/</g, '')}</option>`;
+      }
+      const pid = String(p.projectId || '').replace(/"/g, '');
+      return `
         <div class="card" data-project-id="${pid}">
           <div style="display:flex;justify-content:space-between;gap:.6rem;align-items:flex-start;flex-wrap:wrap">
-            <strong>${p.title || 'Untitled Project'}</strong>
-            <span class="meta">${p.status || 'draft'}</span>
+            <strong>${esc(p.title || 'Untitled Project')}</strong>
+            <span class="rowline" style="gap:.35rem">${kindBadge(kind)}<span class="meta">${esc(p.status || 'draft')}</span></span>
           </div>
           <div class="meta" style="margin:.35rem 0">
-            Owner: ${p.owner || 'Unassigned'} · Created: ${new Date(p.createdAt || Date.now()).toLocaleDateString()} · Updated: ${new Date(p.updatedAt || Date.now()).toLocaleString()}
+            Owner: ${esc(p.owner || 'Unassigned')} · Created: ${new Date(p.createdAt || Date.now()).toLocaleDateString()} · Updated: ${new Date(p.updatedAt || Date.now()).toLocaleString()}
           </div>
           <label class="meta" style="display:flex;flex-direction:column;gap:.25rem;margin:.35rem 0;width:100%;min-width:0">
             <span>Version to open</span>
@@ -135,16 +137,78 @@
           </label>
           <div style="display:flex;gap:.4rem;flex-wrap:wrap">
             <button class="btn primary" type="button" onclick="openProjectFromCard(this)">Open</button>
-            <button class="btn" onclick="renameProject('${p.projectId}')">Rename</button>
-            <button class="btn" onclick="duplicateProject('${p.projectId}')">Duplicate</button>
-            <button class="btn" onclick="archiveProject('${p.projectId}')">Archive</button>
-            <button class="btn" onclick="setProjectStatus('${p.projectId}','review')">To Review</button>
-            <button class="btn" onclick="setProjectStatus('${p.projectId}','approved')">Approve</button>
-            <button class="btn" onclick="deleteProject('${p.projectId}')">Delete</button>
-            <button class="btn" onclick="App.RouterNav.goto('send.html',{ projectId: '${p.projectId}' })">Quick Send</button>
+            <button class="btn" onclick="renameProject('${pid}')">Rename</button>
+            <button class="btn" onclick="duplicateProject('${pid}')">Duplicate</button>
+            <button class="btn" onclick="archiveProject('${pid}')">Archive</button>
+            <button class="btn" onclick="setProjectStatus('${pid}','review')">To Review</button>
+            <button class="btn" onclick="setProjectStatus('${pid}','approved')">Approve</button>
+            <button class="btn" onclick="deleteProject('${pid}')">Delete</button>
+            <button class="btn" onclick="App.RouterNav.goto('send.html',{ projectId: '${pid}' })">Quick Send</button>
           </div>
         </div>`;
-      }).join('') || '<div class="meta">No projects yet.</div>';
+    }
+
+    function advisoryCardHtml(adv) {
+      const id = String(adv.id || '').replace(/"/g, '');
+      const cves = (adv.cveIds || []).join(', ');
+      const sevs = (adv.severities || []).join(' · ');
+      const srcs = (adv.sources || []).join(', ');
+      const when = new Date(adv.createdAt || adv.updatedAt || Date.now()).toLocaleString();
+      return `
+        <div class="card" data-advisory-id="${id}">
+          <div style="display:flex;justify-content:space-between;gap:.6rem;align-items:flex-start;flex-wrap:wrap">
+            <strong>${esc(adv.title || 'Advisory')}</strong>
+            ${kindBadge('advisory')}
+          </div>
+          <div class="meta" style="margin:.35rem 0">${esc(cves || '—')}${sevs ? ' · ' + esc(sevs) : ''}${srcs ? ' · ' + esc(srcs) : ''}</div>
+          <div class="meta" style="margin:.35rem 0">Saved: ${esc(when)}</div>
+          <div style="display:flex;gap:.4rem;flex-wrap:wrap">
+            <button class="btn primary" type="button" onclick="openAdvisoryFromCard(this)">Open</button>
+            <button class="btn" type="button" onclick="deleteAdvisoryFromCard(this)">Delete</button>
+          </div>
+        </div>`;
+    }
+
+    async function render() {
+      await App.ProjectStore.ensureMigrated();
+      const projects = await App.ProjectStore.list();
+      let advisories = [];
+      try {
+        if (App.AdvisoryDB && App.AdvisoryDB.getAllAdvisories) advisories = await App.AdvisoryDB.getAllAdvisories();
+      } catch (e) { advisories = []; }
+
+      const q = (document.getElementById('search').value || '').trim().toLowerCase();
+      const status = document.getElementById('status-filter').value;
+      const dateRange = document.getElementById('date-filter').value;
+      const typeFilter = document.getElementById('type-filter').value;
+      const sortBy = document.getElementById('sort-by').value;
+
+      // Read-merge: posters/newsletters from the projects store, advisories from
+      // their own DB. Each item carries a `kind` for the Type filter + badge.
+      const items = [];
+      for (const p of projects) items.push({ kind: App.ProjectStore.classifyKind(p), record: p, isAdvisory: false });
+      for (const a of advisories) items.push({ kind: 'advisory', record: a, isAdvisory: true });
+
+      const filtered = items.filter(({ kind, record }) => {
+        const cveText = Array.isArray(record.cveIds) ? record.cveIds.join(' ') : '';
+        const okText = !q
+          || (record.title || '').toLowerCase().includes(q)
+          || (record.owner || '').toLowerCase().includes(q)
+          || cveText.toLowerCase().includes(q);
+        const recStatus = record.status || (kind === 'advisory' ? 'advisory' : 'draft');
+        const okStatus = status === 'all' || recStatus === status;
+        const okDate = withinDays(record.updatedAt || record.createdAt, dateRange);
+        const okType = typeFilter === 'all' || kind === typeFilter;
+        return okText && okStatus && okDate && okType;
+      });
+
+      const ordered = sortItems(filtered, sortBy);
+      document.getElementById('stats').textContent = `${ordered.length} item(s) · ${viewMode} view`;
+      const projectsEl = document.getElementById('projects');
+      projectsEl.className = viewMode === 'list' ? 'list' : 'grid';
+      projectsEl.innerHTML = ordered
+        .map(it => it.isAdvisory ? advisoryCardHtml(it.record) : projectCardHtml(it.record, it.kind))
+        .join('') || '<div class="meta">No items yet.</div>';
     }
 
     function openProjectFromCard(btn) {
@@ -156,6 +220,27 @@
       const payload = { projectId, source: 'projects' };
       if (!Number.isNaN(raw) && raw > 0) payload.projectSnapshotVersion = raw;
       App.RouterNav.goto('preview.html', payload);
+    }
+
+    async function openAdvisoryFromCard(btn) {
+      const card = btn.closest('[data-advisory-id]');
+      if (!card) return;
+      const id = card.getAttribute('data-advisory-id');
+      const adv = await App.AdvisoryDB.getAdvisoryById(id);
+      if (!adv || !adv.workspace) { alert('This advisory has no saved content to open.'); return; }
+      // Seed the live workspace and open the preview with no project context so
+      // ui_controller.loadWorkspace() hydrates straight from this advisory.
+      try { localStorage.setItem('awareness_newsletter_workspace_v1', JSON.stringify(adv.workspace)); } catch (e) {}
+      App.RouterNav.goto('preview.html', { source: 'projects', clearProjectContext: true });
+    }
+
+    async function deleteAdvisoryFromCard(btn) {
+      const card = btn.closest('[data-advisory-id]');
+      if (!card) return;
+      const id = card.getAttribute('data-advisory-id');
+      if (!confirm('Delete this saved advisory?')) return;
+      await App.AdvisoryDB.deleteAdvisory(id);
+      await render();
     }
 
     async function renameProject(projectId) {
@@ -188,6 +273,7 @@
 
     document.getElementById('search').addEventListener('input', render);
     document.getElementById('status-filter').addEventListener('change', render);
+    document.getElementById('type-filter').addEventListener('change', render);
     document.getElementById('date-filter').addEventListener('change', render);
     document.getElementById('sort-by').addEventListener('change', render);
     document.getElementById('view-grid').addEventListener('click', () => { viewMode = 'grid'; render(); });

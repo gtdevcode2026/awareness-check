@@ -165,6 +165,14 @@
           nlChrome = App.AISummarizer.localNewsletterChrome(arts);
         }
       }
+      // One-shot poster tip theme from the card flip form. Read then cleared so a
+      // later build never silently reuses a stale theme. Only the poster tip-slot
+      // branches in fillNewsletterTextSlots consult it; all other formats ignore it.
+      let tipTheme = '';
+      try {
+        const themeEl = document.getElementById('poster-tip-theme');
+        if (themeEl) { tipTheme = String(themeEl.value || '').trim(); themeEl.value = ''; }
+      } catch {}
       let textSlots = {};
       try {
         if (typeof App.AISummarizer.fillNewsletterTextSlots === 'function') {
@@ -173,7 +181,8 @@
             forceLocal: !(featAi && aiUsable),
             // User explicitly chose these articles — don't let the coherence
             // gate silently filter them out before the section prompts run.
-            skipCoherenceCheck: hadExplicitSelection
+            skipCoherenceCheck: hadExplicitSelection,
+            tipTheme
           });
         }
       } catch (slotErr) {

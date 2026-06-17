@@ -154,17 +154,24 @@ App.NewsletterBuilder = (() => {
     { id: 'poster4',   name: 'Impact Poster: Command',  tags: ['poster-first', 'incident'],       channels: ['print-safe', 'screen-safe', 'email-safe'], visualProfile: 'poster-command',  recommended: 'High-urgency incident command poster.' },
     { id: 'poster5',   name: 'Impact Poster: Minimal',  tags: ['poster-first', 'minimal'],        channels: ['print-safe', 'screen-safe', 'email-safe'], visualProfile: 'poster-minimal',  recommended: 'Minimal stat poster. Apple/Google-style.' },
     { id: 'gen_chase_email', name: 'Action Required Bulletin', tags: ['awareness', 'bulletin', 'action-required'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Branded monthly bulletin with hero call-to-action, two article cards, and a scam-alert block.' },
-    { id: 'gen_strong_passwords', name: 'Poster Tips', tags: ['generated', 'awareness', 'poster'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Single-panel awareness poster: ABInBev masthead, AI headline + precaution, hero illustration, and a portal/QR footer. Selects one article.' },
-    { id: 'gen_vishing', name: 'How to Spot Shield', tags: ['generated', 'awareness', 'poster'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Article-driven security poster: Dynamic article-type heading, AI-generated threat description, hero image, and four article-derived detection tips with mascot icons. Selects one article.' },
+    { id: 'gen_strong_passwords', name: 'Poster Tips', tags: ['generated', 'awareness', 'poster'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', tipSlots: 3, recommended: 'Single-panel awareness poster: ABInBev masthead, AI headline + precaution, hero illustration, and a portal/QR footer. Selects one article.' },
+    { id: 'gen_vishing', name: 'How to Spot Shield', tags: ['generated', 'awareness', 'poster'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', tipSlots: 4, recommended: 'Article-driven security poster: Dynamic article-type heading, AI-generated threat description, hero image, and four article-derived detection tips with mascot icons. Selects one article.' },
     // Static design replicas — full standalone HTML posters rendered as-is (no tokens, no AI).
     // No status:'testing', so the readiness loop below classifies them as Beta.
     { id: 'gen_phonescam', name: 'Phone Scam', tags: ['generated', 'awareness', 'poster', 'static'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Static phone-scam awareness poster (design replica, rendered as-is).' },
     { id: 'gen_right_message', name: 'Right Message, Wrong Person', tags: ['generated', 'awareness', 'poster', 'static'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Static misdirected-message awareness poster (design replica, rendered as-is).' },
-    { id: 'gen_social_engineering', name: 'Social Engineering', tags: ['generated', 'awareness', 'poster'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Article-driven social-engineering poster: attack-type headline, AI threat intro, line-art hero, and three AI red flags of the selected attack. Selects one article.' },
+    { id: 'gen_social_engineering', name: 'Social Engineering', tags: ['generated', 'awareness', 'poster'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', tipSlots: 3, recommended: 'Article-driven social-engineering poster: attack-type headline, AI threat intro, line-art hero, and three AI red flags of the selected attack. Selects one article.' },
     { id: 'gen_spear_phishing', name: 'Spear Phishing', tags: ['generated', 'awareness', 'poster', 'static'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Static spear-phishing awareness poster (design replica, rendered as-is).' },
     { id: 'gen_weakest_link', name: 'The Weakest Link', tags: ['generated', 'awareness', 'poster', 'static'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Static "weakest link" awareness poster (design replica, rendered as-is).' },
-    { id: 'gen_wifi_safety', name: 'Wi-Fi Safety', tags: ['generated', 'awareness', 'poster', 'static'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Static Wi-Fi safety awareness poster (design replica, rendered as-is).' },
-    { id: 'gen_cybershield', name: 'Phishing Maestro', tags: ['awareness', 'bulletin', 'generated'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Dark/gold security awareness bulletin with threat-alert hero, red-flag list, two article cards, and three stat tiles.' }
+    { id: 'gen_wifi_safety', name: 'Wi-Fi Safety', tags: ['generated', 'awareness', 'poster'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', tipSlots: 5, recommended: 'AI-wired Wi-Fi / security-topic poster: the heading names the topic the article relates to, an intro paragraph, then five points following the how-to-spot / impact / next-steps / remember / stay-safe angles. Article-driven; design preserved.' },
+    { id: 'gen_horizontal_brief', name: 'Horizontal Brief', tags: ['generated', 'awareness', 'poster'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', tipSlots: 4, recommended: 'AI-wired landscape awareness poster: the heading is the selected article\'s own headline, an AI intro paragraph, then four tip cards (how to spot it / impact / what to do / how to report it) flanking a central illustration. ABInBev masthead, Report-to-SOC CTA, source attribution, and a portal/QR footer. Article-driven; email-safe table layout.' },
+    { id: 'gen_security_digest', name: 'Security Digest', tags: ['generated', 'awareness', 'poster'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', tipSlots: 4, recommended: 'AI-wired security poster (gold + informative-blue palette): the heading names the topic, an intro paragraph, then four key points beside a phishing illustration. ABInBev masthead, Report-to-SOC CTA, and a portal/QR footer. Selects one article; authored design preserved when AI is off.' },
+    { id: 'gen_cybershield', name: 'Phishing Maestro', tags: ['awareness', 'bulletin', 'generated'], channels: ['email-safe', 'screen-safe'], visualProfile: 'generated', recommended: 'Dark/gold security awareness bulletin with threat-alert hero, red-flag list, two article cards, and three stat tiles.' },
+    { id: 'gen_microlearning', name: 'Microlearning Benefits', tags: ['generated', 'awareness', 'poster'], channels: ['email-safe', 'screen-safe', 'print-safe'], visualProfile: 'generated', recommended: 'Microlearning benefits poster (ABI recolour of the reference infographic): masthead, AI-tailored title and five benefit bubbles around a central figure, hardcoded Report-to-SOC CTA, and a portal/QR footer. Email-safe table grid. Beta.' },
+    { id: 'mfa_extra_step', name: 'MFA: The Extra Step', tags: ['generated', 'awareness', 'poster', 'mfa'], channels: ['email-safe', 'screen-safe', 'print-safe'], visualProfile: 'generated', recommended: 'Multi-factor authentication awareness poster (ABI light + gold): headline, a masked-intruder + stolen-password threat row, a side-by-side login card and phone one-time-code card showing the stolen password is not enough, caption, Report-to-SOC CTA, and a portal/QR footer. Email-safe table layout. Beta.' },
+    // Advisory template TYPE — its own home-page section (below Posters). Per-CVE
+    // security advisories from NVD/Tenable/Qualys, one alert per vulnerability.
+    { id: 'advisory', name: 'Cyber Security Advisory', tags: ['advisory'], channels: ['email-safe', 'screen-safe'], visualProfile: 'advisory', recommended: 'Per-CVE advisory from NVD / Tenable / Qualys — one alert per vulnerability. Pick source + severity (default Critical + High). Deterministic placeholder fill (no AI for content); the date is the feed\'s exact publish time.' }
   ];
 
   // Tag each template with a readiness tier so the picker can group Ready vs Beta.
@@ -180,6 +187,14 @@ App.NewsletterBuilder = (() => {
     // Onboarded generated bulletins — Outlook-hardened and ship-quality.
     'gen_chase_email', 'gen_cybershield', 'gen_strong_passwords', 'gen_vishing',
     'gen_social_engineering',
+    // AI-wired Wi-Fi / security-topic poster (topic heading + intro + 5 angle-led points).
+    'gen_wifi_safety',
+    // AI-wired landscape "Horizontal Brief" poster (topic heading + intro + 4 tip cards).
+    'gen_horizontal_brief',
+    // AI-wired security digest (topic heading + intro + 4 points; gold/blue palette).
+    'gen_security_digest',
+    // Advisory template type — shown in its own Advisory home-page section.
+    'advisory',
   ]);
   for (const t of TEMPLATE_CATALOG) {
     if (t.status === 'testing') continue;
@@ -239,6 +254,10 @@ App.NewsletterBuilder = (() => {
         'style="padding:0;margin:0"'
       )}${tbc(
         `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-top:14px;margin-top:8px;border-top:1px solid #333333;font-size:10px;color:#999999;letter-spacing:0.06em;${NLFF}">${orgLine} · Security Awareness · <a href="mailto:${socAttr}" style="color:#BBBBBB;text-decoration:none;">${socEsc}</a></td></tr></table>`,
+        'style="padding:0;margin:0"'
+      )}${tbc(
+        // Subtle AI-credit line — the final element of every shared footer.
+        `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-top:10px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;${NLFF}">Disclaimer: The above content is curated and created with AI</td></tr></table>`,
         'style="padding:0;margin:0"'
       )}${tblx()}`,
       'bgcolor="#0A0A0A" style="padding:24px 28px;margin:0;background-color:#0A0A0A;border-top:1px solid #5C4A10;"'

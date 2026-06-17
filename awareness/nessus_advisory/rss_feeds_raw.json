@@ -1,0 +1,82 @@
+[
+  {
+    "title": "[R1] Sensor Proxy Version 1.4.0 Fixes Multiple Vulnerabilities",
+    "link": "https://www.tenable.com/security/tns-2026-15",
+    "description": "<span>[R1] Sensor Proxy Version 1.4.0 Fixes Multiple Vulnerabilities</span>\n\n<span><a title=\"View user profile.\" href=\"https://www.tenable.com/profile/jason-schavel\">Jason Schavel</a></span>\n\n<span><time datetime=\"2026-05-21T16:00:00-04:00\" title=\"Thursday, May 21, 2026 - 16:00\">Thu, 05/21/2026 - 16:00</time>\n</span>\n\n            <div><p style=\"-webkit-text-stroke-width:0px;box-sizing:border-box;color:rgb(4, 30, 66);font-family:&quot;aeonik pro&quot;, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans&quot;, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans&quot;, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, -apple-system, roboto, &quot;segoe ui&quot;, sans-serif;font-size:16px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;margin:0px 0px 1em;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;\">Sensor Proxy leverages third-party software to help provide underlying functionality. Several of the third-party components (openresty, openresty - nginx) were found to contain vulnerabilities, and updated versions have been made available by the providers.</p><p style=\"-webkit-text-stroke-width:0px;box-sizing:border-box;color:rgb(4, 30, 66);font-family:&quot;aeonik pro&quot;, system-ui, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans&quot;, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, -apple-system, BlinkMacSystemFont, &quot;Segoe UI&quot;, Roboto, &quot;Noto Sans&quot;, Ubuntu, Cantarell, &quot;Helvetica Neue&quot;, -apple-system, roboto, &quot;segoe ui&quot;, sans-serif;font-size:16px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;margin:0px 0px 1em;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;\">Out of caution and in line with best practice, Tenable has opted to upgrade these components to address the potential impact of the issues. Sensor Proxy 1.4.0 updates openresty to version 1.27.1.2 and openresty - nginx to version 1.27.1 to address the identified vulnerabilities.</p></div>",
+    "pubdate": "Thu, 21 May 2026 20:00:00 +0000",
+    "categories": [],
+    "guid": "210931 at https://www.tenable.com"
+  },
+  {
+    "title": "[R2] Tenable Network Monitor 6.5.4 Fixes Multiple Vulnerabilities",
+    "link": "https://www.tenable.com/security/tns-2026-14",
+    "description": "<span>[R2] Tenable Network Monitor 6.5.4 Fixes Multiple Vulnerabilities</span>\n\n<span><a title=\"View user profile.\" href=\"https://www.tenable.com/profile/jason-schavel\">Jason Schavel</a></span>\n\n<span><time datetime=\"2026-05-14T13:00:00-04:00\" title=\"Thursday, May 14, 2026 - 13:00\">Thu, 05/14/2026 - 13:00</time>\n</span>\n\n            <div><p>Tenable Network Monitor leverages third-party software to help provide underlying functionality. Several of the third-party components (OpenSSL, curl, sqlite3, handlebars, expat, and dpdk)&nbsp;were found to contain vulnerabilities, and updated versions have been made available by the providers.</p><p>Out of caution and in line with best practice, Tenable has opted to upgrade these components to address the potential impact of the issues. Tenable Network Monitor 6.5.4 updates OpenSSL to version 3.0.20, curl to version 8.18.0, sqlite3 to 3.49.1, handlebars to 4.7.9, expat to 2.7.5, and dpdk to 25.07 to address the identified vulnerabilities.</p></div>",
+    "pubdate": "Thu, 14 May 2026 17:00:00 +0000",
+    "categories": [],
+    "guid": "210910 at https://www.tenable.com"
+  },
+  {
+    "title": "[R1] Nessus Versions 10.11.4 and 10.12.0 Fixes Arbitrary File Deletion",
+    "link": "https://www.tenable.com/security/tns-2026-13",
+    "description": "<span>[R1] Nessus Versions 10.11.4 and 10.12.0 Fixes Arbitrary File Deletion</span>\n\n<span><a title=\"View user profile.\" href=\"https://www.tenable.com/profile/jason-schavel\">Jason Schavel</a></span>\n\n<span><time datetime=\"2026-04-23T14:30:00-04:00\" title=\"Thursday, April 23, 2026 - 14:30\">Thu, 04/23/2026 - 14:30</time>\n</span>\n\n            <div><p>A vulnerability has been identified in Nessus on Windows where an attacker to create a junction, enabling the deletion of arbitrary files with SYSTEM privileges. As a result, this condition potentially facilitates arbitrary code execution, whereby an attacker may exploit the vulnerability to execute malicious code with elevated SYSTEM privileges.</p></div>",
+    "pubdate": "Thu, 23 Apr 2026 18:30:00 +0000",
+    "categories": [],
+    "guid": "210808 at https://www.tenable.com"
+  },
+  {
+    "title": "[R1] Nessus Agent Version 11.1.3 Fixes Arbitrary File Deletion",
+    "link": "https://www.tenable.com/security/tns-2026-12",
+    "description": "<span>[R1] Nessus Agent Version 11.1.3 Fixes Arbitrary File Deletion</span>\n\n<span><a title=\"View user profile.\" href=\"https://www.tenable.com/profile/jason-schavel\">Jason Schavel</a></span>\n\n<span><time datetime=\"2026-04-23T14:10:00-04:00\" title=\"Thursday, April 23, 2026 - 14:10\">Thu, 04/23/2026 - 14:10</time>\n</span>\n\n            <div><p>A vulnerability has been identified in Nessus Agent on Windows where an attacker to create a junction, enabling the deletion of arbitrary files with SYSTEM privileges. As a result, this condition potentially facilitates arbitrary code execution, whereby an attacker may exploit the vulnerability to execute malicious code with elevated SYSTEM privileges.</p></div>",
+    "pubdate": "Thu, 23 Apr 2026 18:10:00 +0000",
+    "categories": [],
+    "guid": "210809 at https://www.tenable.com"
+  },
+  {
+    "title": "[R3] Tenable Identity Exposure Version 3.77.17 Fixes Multiple Vulnerabilities",
+    "link": "https://www.tenable.com/security/tns-2026-11",
+    "description": "<span>[R3] Tenable Identity Exposure Version 3.77.17 Fixes Multiple Vulnerabilities</span>\n\n<span><a title=\"View user profile.\" href=\"https://www.tenable.com/profile/aaron-roy\">Aaron Roy</a></span>\n\n<span><time datetime=\"2026-04-14T10:54:23-04:00\" title=\"Tuesday, April 14, 2026 - 10:54\">Tue, 04/14/2026 - 10:54</time>\n</span>\n\n            <div><p style=\"-webkit-text-stroke-width:0px;box-sizing:border-box;color:rgb(4, 30, 66);font-family:&quot;aeonik pro&quot;, Arial, sans-serif;font-size:18px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;margin-block:0px 1.25rem;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;\">Tenable Identity Exposure leverages third-party software to help provide underlying functionality. Several of the third-party components (.NET Windows Server Hosting, NodeJS, Erlang OTP, SQL Server, Curl) were found to contain vulnerabilities, and updated versions have been made available by the providers.</p><p style=\"-webkit-text-stroke-width:0px;box-sizing:border-box;color:rgb(4, 30, 66);font-family:&quot;aeonik pro&quot;, Arial, sans-serif;font-size:18px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;margin-block:0px 1.25rem;margin-bottom:0px;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;\">Out of caution and in line with best practice, Tenable has opted to upgrade these components to address the potential impact of the issues. Tenable Identity Exposure version 3.77.17 updates .NET Windows Server Hosting to version 8.0.25, NodeJS to version 20.20.2.0, Erlang OTP to version 26.2.5.18, SQL Server to version 15.0.4460.4, and Curl to version 8.19.0 to address the identified vulnerabilities.</p></div>",
+    "pubdate": "Tue, 14 Apr 2026 14:54:23 +0000",
+    "categories": [],
+    "guid": "210839 at https://www.tenable.com"
+  },
+  {
+    "title": "[R2] Stand-alone Security Patch Available for Tenable Security Center Versions 6.5.1, 6.6.0, 6.7.2 and 6.8.0: SC202604.1",
+    "link": "https://www.tenable.com/security/tns-2026-10",
+    "description": "<span>[R2] Stand-alone Security Patch Available for Tenable Security Center Versions 6.5.1, 6.6.0, 6.7.2 and 6.8.0: SC202604.1</span>\n\n<span><a title=\"View user profile.\" href=\"https://www.tenable.com/profile/aaron-roy\">Aaron Roy</a></span>\n\n<span><time datetime=\"2026-04-07T11:35:42-04:00\" title=\"Tuesday, April 7, 2026 - 11:35\">Tue, 04/07/2026 - 11:35</time>\n</span>\n\n            <div><p>Security Center leverages third-party software to help provide underlying functionality. A third-party component (PostgreSQL) was found to contain vulnerabilities, and an updated version has been made available by the provider.</p><p>Out of caution and in line with best practice, Tenable has opted to upgrade PostgreSQL to address the potential impact of the issues. Security Center Patch SC202604.1 updates PostgreSQL to version 16.13 to address the identified vulnerabilities.</p></div>",
+    "pubdate": "Tue, 07 Apr 2026 15:35:42 +0000",
+    "categories": [],
+    "guid": "210828 at https://www.tenable.com"
+  },
+  {
+    "title": "[R1] Stand-alone Security Patch Available for Tenable OT version 4.2.40: tenable-ot-platform-137",
+    "link": "https://www.tenable.com/security/tns-2026-9",
+    "description": "<span>[R1] Stand-alone Security Patch Available for Tenable OT version 4.2.40: tenable-ot-platform-137</span>\n\n<span><a title=\"View user profile.\" href=\"https://www.tenable.com/profile/jason-schavel\">Jason Schavel</a></span>\n\n<span><time datetime=\"2026-03-19T15:06:13-04:00\" title=\"Thursday, March 19, 2026 - 15:06\">Thu, 03/19/2026 - 15:06</time>\n</span>\n\n            <div><p>An SSH misconfigurations exists in Tenable OT that led to the potential exfiltration of socket, port, and service information via the ostunnel user and GatewayPorts. This could be used to potentially glean information about the underlying system and give an attacker information that could be used to attempt to compromise the host.</p><p>Out of caution and in line with best practice, Tenable has opted to address the potential impact of the issues. Tenable OT Patch tenable-ot-platform-137 fixes the issues around the misconfiguration to address the identified vulnerability.</p></div>",
+    "pubdate": "Thu, 19 Mar 2026 19:06:13 +0000",
+    "categories": [],
+    "guid": "210799 at https://www.tenable.com"
+  },
+  {
+    "title": "[R1] Nessus Manager Versions 10.10.3 and 10.11.3 Fix One Vulnerability",
+    "link": "https://www.tenable.com/security/tns-2026-08",
+    "description": "<span>[R1] Nessus Manager Versions 10.10.3 and 10.11.3 Fix One Vulnerability</span>\n\n<span><a title=\"View user profile.\" href=\"https://www.tenable.com/profile/arnie-cabral\">Arnie Cabral</a></span>\n\n<span><time datetime=\"2026-03-03T12:08:39-05:00\" title=\"Tuesday, March 3, 2026 - 12:08\">Tue, 03/03/2026 - 12:08</time>\n</span>\n\n            <div><p>A path traversal vulnerability exists in Nessus Manager where an authenticated, remote attacker could read arbitrary OS system files.&nbsp;</p></div>",
+    "pubdate": "Tue, 03 Mar 2026 17:08:39 +0000",
+    "categories": [],
+    "guid": "210740 at https://www.tenable.com"
+  },
+  {
+    "title": "[R2] Security Center Version 6.8.0 Fixes Multiple Vulnerabilities",
+    "link": "https://www.tenable.com/security/tns-2026-07",
+    "description": "<span>[R2] Security Center Version 6.8.0 Fixes Multiple Vulnerabilities</span>\n\n<span><a title=\"View user profile.\" href=\"https://www.tenable.com/profile/arnie-cabral\">Arnie Cabral</a></span>\n\n<span><time datetime=\"2026-02-18T08:32:22-05:00\" title=\"Wednesday, February 18, 2026 - 08:32\">Wed, 02/18/2026 - 08:32</time>\n</span>\n\n            <div><p style=\"-webkit-text-stroke-width:0px;box-sizing:border-box;color:rgb(4, 30, 66);font-family:&quot;aeonik pro&quot;, system-ui, -apple-system, roboto, &quot;segoe ui&quot;, sans-serif;font-size:16px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;margin-block:0px 1.25rem;margin:0px 0px 1em;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;\">Security Center leverages third-party software to help provide underlying functionality. Several of the third-party components (libssh, postgresql) were found to contain vulnerabilities, and updated versions have been made available by the providers.</p><p style=\"-webkit-text-stroke-width:0px;box-sizing:border-box;color:rgb(4, 30, 66);font-family:&quot;aeonik pro&quot;, system-ui, -apple-system, roboto, &quot;segoe ui&quot;, sans-serif;font-size:16px;font-style:normal;font-variant-caps:normal;font-variant-ligatures:normal;font-weight:400;letter-spacing:normal;margin-block:0px 1.25rem;margin:0px 0px 1em;orphans:2;text-align:start;text-decoration-color:initial;text-decoration-style:initial;text-decoration-thickness:initial;text-indent:0px;text-transform:none;white-space:normal;widows:2;word-spacing:0px;\">Out of caution and in line with best practice, Tenable has opted to upgrade these components to address the potential impact of the issues. Security Center 6.8.0 updates libssh to version 1.11.1 and postgresql to version 16.11 to address the identified vulnerabilities.</p><p>Additionally, several externally reported vulnerabilities were fixed:</p><ul><li>An Indirect Object Reference (IDOR) in Security Center allows an authenticated remote attacker to escalate privileges via the 'owner' parameter. (CVE-2026-2697)</li><li>An improper access control vulnerability exists where an authenticated user could access areas outside of their authorized scope. (CVE-2026-2698)</li></ul></div>",
+    "pubdate": "Wed, 18 Feb 2026 13:32:22 +0000",
+    "categories": [],
+    "guid": "210718 at https://www.tenable.com"
+  },
+  {
+    "title": "[R2] Stand-alone Security Patches Available for Tenable Security Center versions 6.5.1, 6.6.0 and 6.7.2: SC-202602.1 + SC-202602.2",
+    "link": "https://www.tenable.com/security/tns-2026-06",
+    "description": "<span>[R2] Stand-alone Security Patches Available for Tenable Security Center versions 6.5.1, 6.6.0 and 6.7.2: SC-202602.1 + SC-202602.2</span>\n\n<span><a title=\"View user profile.\" href=\"https://www.tenable.com/profile/arnie-cabral\">Arnie Cabral</a></span>\n\n<span><time datetime=\"2026-02-17T08:32:48-05:00\" title=\"Tuesday, February 17, 2026 - 08:32\">Tue, 02/17/2026 - 08:32</time>\n</span>\n\n            <div><p>Security Center leverages third-party software to help provide underlying functionality. Several of the third-party components (Apache, PHP, libcurl) were found to contain vulnerabilities, and updated versions have been made available by the providers.</p><p>Out of caution and in line with best practice, Tenable has opted to upgrade these components to address the potential impact of the issues. Security Center Patch SC-202602.1 updates Apache to version 2.4.66, PHP to version 8.2.30, and libcurl to version 8.18.0 to address the identified vulnerabilities.</p><p>Additionally, an externally reported vulnerability was fixed and a separate patch has been made available, Patch SC-202602.2.</p><ul><li>A Command Injection vulnerability exists where an authenticated, remote attacker could execute arbitrary code on the underlying server where Tenable Security Center is hosted.</li></ul></div>",
+    "pubdate": "Tue, 17 Feb 2026 13:32:48 +0000",
+    "categories": [],
+    "guid": "210717 at https://www.tenable.com"
+  }
+]

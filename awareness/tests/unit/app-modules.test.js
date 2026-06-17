@@ -229,7 +229,7 @@ test("NewsletterBuilder catalog exposes the 25 accessible template definitions",
   loadScript(context, "js/newsletter/core_templates.js");
 
   const catalog = context.App.NewsletterBuilder.getTemplateCatalog();
-  assert.equal(catalog.length, 33);
+  assert.equal(catalog.length, 38);
   assert.ok(catalog.every((template) => template.id && template.name));
   assert.ok(catalog.every((template) => template.accessibility.contrastSafe));
   assert.ok(catalog.every((template) => template.a11yScore >= 2));
@@ -312,13 +312,38 @@ test("NewsletterBuilder.build dispatches every catalog id to its own builder (no
   const cfg = { org: "ACME", soc: "soc@acme.test", freq: "Weekly", portal: "https://p", pname: "P" };
 
   const catalog = context.App.NewsletterBuilder.getTemplateCatalog();
-  assert.equal(catalog.length, 33);
+  assert.equal(catalog.length, 38);
 
   for (const t of catalog) {
     const html = context.App.NewsletterBuilder.build(t.id, cfg, arts, { useLinks: false, usePoster: false, useQR: false, useIllus: false });
     assert.ok(typeof html === "string" && html.length > 0, `build('${t.id}') returned empty`);
     assert.ok(html.includes(`data-template-id="${t.id}"`), `build('${t.id}') did not stamp data-template-id="${t.id}" — likely fell back to poster (template not registered)`);
   }
+});
+
+test("gen_vishing 'How to Spot' heading follows the picked flip-form theme (default preserved)", () => {
+  const context = createContext();
+  context.App.Graphics = {
+    phishEmailCompact: () => "<svg/>", shieldLockCompact: () => "<svg/>", smishingCompact: () => "<svg/>",
+    vishingCompact: () => "<svg/>", dataLeakCompact: () => "<svg/>", mfaCompact: () => "<svg/>",
+    peopleCompact: () => "<svg/>", warningCompact: () => "<svg/>", fakeSiteCompact: () => "<svg/>"
+  };
+  loadScript(context, "js/feed_scoring.js");
+  loadScript(context, "js/rss_fetcher.js");
+  loadScript(context, "js/newsletter_builder.js");
+  loadScript(context, "js/newsletter/bank_page.js");
+  loadScript(context, "js/newsletter/core_templates.js");
+
+  const arts = [{ type: "Vishing", title: "Fake bank call harvests OTPs", summary: "Caller poses as the bank and asks for a one-time code.", source: "X", url: "https://x.com/s", pubDate: "2026-05-23", threatLevel: 3 }];
+  const base = { org: "ACME", soc: "soc@acme.test", freq: "Weekly", portal: "https://p", pname: "P" };
+  const opts = { useLinks: false, usePoster: false, useQR: false, useIllus: false };
+
+  const def = context.App.NewsletterBuilder.build("gen_vishing", base, arts, opts);
+  assert.match(def, />\s*How to Spot\s*</, "default heading stays 'How to Spot' when no theme is picked");
+
+  const themed = context.App.NewsletterBuilder.build("gen_vishing", { ...base, nlVishingTipsHeading: "Impact" }, arts, opts);
+  assert.match(themed, />\s*Impact\s*</, "heading becomes the picked theme verbatim");
+  assert.ok(!/>\s*How to Spot\s*</.test(themed), "the default heading is replaced, not duplicated, when a theme is picked");
 });
 
 test("TranslationMetrics reports translatable text, coverage, and meaningful changes", () => {
@@ -426,13 +451,13 @@ test("normalizeTranslatedTextSegment strips echoed <source>/<target> wrappers + 
   assert.equal(m.normalizeTranslatedTextSegment("Find the source of the alert", "Find the source of the alert"), "Find the source of the alert");
 });
 
-test("NewsletterBuilder catalog exposes 25 accessible template definitions", () => {
+test("NewsletterBuilder catalog exposes 38 accessible template definitions", () => {
   const context = createContext();
   loadScript(context, "js/newsletter_builder.js");
   loadScript(context, "js/newsletter/bank_page.js");
   loadScript(context, "js/newsletter/core_templates.js");
   const catalog = context.App.NewsletterBuilder.getTemplateCatalog();
-  assert.equal(catalog.length, 33);
+  assert.equal(catalog.length, 38);
   assert.ok(catalog.every((t) => t.id && t.name));
   assert.ok(catalog.every((t) => t.accessibility.contrastSafe));
 });

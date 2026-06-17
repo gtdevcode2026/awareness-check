@@ -2524,6 +2524,113 @@ App.UI = (() => {
     }
   }
 
+  // Build a standalone Python sender for the CURRENT advisory workspace and
+  // download it — the "nessus advisory zip" method. No relay, no server: the
+  // user runs `python send_advisories.py`, enters sender + recipients when
+  // prompted, and it sends ONE EMAIL PER ADVISORY straight over SMTP, exactly
+  // like nessus_advisory.py / cve_alert.py. Each selected CVE is rebuilt on its
+  // own, its images inlined as cid: parts, with subject
+  // "[TICKET] Security Advisory — <Severity>: <title>" (subject == body ticket).
+  // Only acts when the active workspace is an advisory (App.AdvisoryUI seeds it).
+  async function buildAdvisorySenderScript() {
+    const ws = state.newsletterWorkspace;
+    const items = (ws && ws.format === 'advisory' && Array.isArray(ws.articles)) ? ws.articles.filter(Boolean) : [];
+    if (!items.length) return showToast('Generate advisories first (Home → Advisory), then build the sender here.', true);
+    if (!App.AdvisorySendScript || typeof App.AdvisorySendScript.render !== 'function') {
+      return showToast('Advisory sender helper unavailable. Refresh and try again.', true);
+    }
+    try {
+      const buildCfg = { ...getConfig(), ...getMetadata() };
+      const opts = (typeof getOptions === 'function') ? getOptions() : {};
+      const advisories = [];
+      for (const item of items) {
+        const sev = String(item.severity || 'Advisory').trim();
+        const title = String(item.title || item.cveId || 'Security Advisory').trim();
+        // Rebuild THIS advisory on its own so each email is a single alert.
+        const unitHtml = App.NewsletterBuilder.build('advisory', buildCfg, [item], opts);
+        const standalone = toStandaloneHtml({ html: unitHtml, css: '' }, 'en');
+        // Reuse the ticket the builder embedded so the subject and the body's
+        // "Advisory Number" agree (nessus subject format).
+        const ticket = (standalone.match(/ABSOC\d{3,}/) || [''])[0];
+        const subject = `${ticket ? `[${ticket}] ` : ''}Security Advisory — ${sev}: ${title.slice(0, 70)}`;
+        // Inline images as cid: parts so the email renders without a relay.
+        const { html: cidHtml, attachments } = await prepareImagesForRelay(standalone, null);
+        advisories.push({ subject, html: cidHtml, attachments: attachments || [] });
+      }
+      // Pre-fill the script's prompts from whatever delivery defaults the app
+      // already knows. The password is NEVER embedded — the script asks for it at
+      // runtime (like the nessus tools); host/port/from/recipients are suggestions.
+      const cfg = state.smtpProfile || getSMTPConfigFromUI();
+      const defaults = {
+        senderName: (cfg.fromName || '').trim(),
+        senderEmail: (cfg.fromAddress || cfg.username || '').trim(),
+        host: (cfg.host || 'smtp.gmail.com').trim(),
+        port: Number(cfg.port) || 587,
+        username: (cfg.username || '').trim(),
+        recipients: (document.getElementById('smtp-send-to')?.value || '').trim()
+      };
+      const py = App.AdvisorySendScript.render(advisories, defaults);
+      downloadBlob('send_advisories.py', new Blob([py], { type: 'text/x-python;charset=utf-8' }));
+      showToast(`Built send_advisories.py for ${advisories.length} advisor${advisories.length === 1 ? 'y' : 'ies'}. Run: python send_advisories.py`);
+    } catch (e) {
+      showToast(`Could not build advisory sender: ${e.message}`, true);
+    }
+  }
+
+  // Export the CURRENT advisory workspace as ONE combined Outlook-ready `.eml`
+  // (X-Unsent draft). No relay, no Python, no app password: double-click the file
+  // and Outlook opens an editable draft (images inline) that sends as the logged-in
+  // user. A single selected advisory yields a one-advisory .eml; a cluster is
+  // stacked into one draft (combined chosen as the corporate-safest packaging —
+  // no zip-of-.eml AV flag, no Mark-of-the-Web-on-extract). Mirrors the per-advisory
+  // build loop in buildAdvisorySenderScript(); only acts on an advisory workspace.
+  async function downloadAdvisoryEml() {
+    const ws = state.newsletterWorkspace;
+    const items = (ws && ws.format === 'advisory' && Array.isArray(ws.articles)) ? ws.articles.filter(Boolean) : [];
+    if (!items.length) return showToast('Generate advisories first (Home → Advisory), then export EML here.', true);
+    if (!App.Utils || typeof App.Utils.buildEmlMime !== 'function' || typeof App.Utils.combineHtmlBodies !== 'function') {
+      return showToast('EML export helper unavailable. Refresh and try again.', true);
+    }
+    try {
+      const buildCfg = { ...getConfig(), ...getMetadata() };
+      const opts = (typeof getOptions === 'function') ? getOptions() : {};
+      const docs = [];
+      let firstSubject = '';
+      let firstName = '';
+      for (const item of items) {
+        const sev = String(item.severity || 'Advisory').trim();
+        const title = String(item.title || item.cveId || 'Security Advisory').trim();
+        // Rebuild THIS advisory on its own (same as the .py sender path).
+        const unitHtml = App.NewsletterBuilder.build('advisory', buildCfg, [item], opts);
+        const standalone = toStandaloneHtml({ html: unitHtml, css: '' }, 'en');
+        if (!docs.length) {
+          const ticket = (standalone.match(/ABSOC\d{3,}/) || [''])[0];
+          firstSubject = `${ticket ? `[${ticket}] ` : ''}Security Advisory — ${sev}: ${title.slice(0, 70)}`;
+          firstName = App.Utils.emlFileName(item.cveId || ticket, 1);
+        }
+        docs.push(standalone);
+      }
+      // Combine BEFORE image inlining so image→cid runs once over the whole doc and
+      // CIDs stay globally unique/deduped.
+      const combined = docs.length === 1 ? docs[0] : App.Utils.combineHtmlBodies(docs, { lang: 'en' });
+      const { html: cidHtml, attachments } = await prepareImagesForRelay(combined, null);
+      // To/From prefill — both optional (Outlook lets the user fill recipients).
+      const cfg = state.smtpProfile || getSMTPConfigFromUI();
+      const to = (document.getElementById('smtp-send-to')?.value || '').trim();
+      const fromAddr = (cfg.fromAddress || cfg.username || '').trim();
+      const fromName = (cfg.fromName || '').trim();
+      const from = fromAddr ? (fromName ? `${fromName} <${fromAddr}>` : fromAddr) : '';
+      const stamp = new Date().toISOString().slice(0, 10);
+      const subject = docs.length === 1 ? firstSubject : `Security Advisories — ${docs.length} alerts (${stamp})`;
+      const name = docs.length === 1 ? firstName : `advisories-${stamp}.eml`;
+      const eml = App.Utils.buildEmlMime(cidHtml, attachments || [], { subject, to, from });
+      downloadBlob(name, new Blob([eml], { type: 'message/rfc822' }));
+      showToast(`Downloaded ${name} — double-click to open in Outlook (images inline), confirm recipients, then Send.`);
+    } catch (e) {
+      showToast(`Could not build advisory EML: ${e.message}`, true);
+    }
+  }
+
   async function translatePlainTextWithAI(text, sourceLangId, targetLangId, provider, apiKey) {
     // Custom (OpenAI-compatible) endpoints read their base URL/model from the
     // shared DOM inputs and only need a key when the server requires one.
@@ -3185,7 +3292,7 @@ Now translate the content inside <source> into ${targetLanguageName} following a
     transitionWorkflow, openWorkflowHistory,
     saveDraft, saveCopy, saveProjectVersion, loadSelectedDraft, pickDraftToLoad,
     editorLoadSelectedProjectVersion, editorRestoreSelectedVersionAsLatest,
-    saveSMTPConfig, sendTestEmail, sendNewsletter,
+    saveSMTPConfig, sendTestEmail, sendNewsletter, buildAdvisorySenderScript, downloadAdvisoryEml,
     saveAISettings, testCustomAIConnection, saveAIExperimentControl, triggerAIRollback, exportAIExperimentEvidence, saveCentralConfig,
     addSidebarCriticalKeyword, addSidebarContextKeyword, addSidebarNoiseKeyword,
     removeSidebarCriticalKeyword, removeSidebarContextKeyword, removeSidebarNoiseKeyword,

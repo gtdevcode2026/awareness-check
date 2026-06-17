@@ -32,3 +32,9 @@ AGENTS.md
 skills-lock.json
 .impeccable/
 # === end managed block ===
+
+# === local hygiene ===
+__pycache__/
+*.pyc
+*.pyo
+

@@ -1817,7 +1817,17 @@ Stay in the calm, factual, employee-facing voice — no emojis, no exclamation m
     return finalizeAdvisoryLine(pick) || STRONGPW_ADVISORY_FALLBACK;
   }
 
-  function buildStrongPwAdvisoryUserPrompt(articles = [], mode = 'balanced') {
+  // Pure: an additive instruction appended to a poster's tip / red-flag prompts so
+  // the generated tips are oriented around a user-supplied theme. Returns '' when
+  // no theme is given, so the original prompts — and therefore the original
+  // content generation — are byte-identical whenever the feature is unused.
+  function tipThemeClause(theme) {
+    const t = String(theme == null ? '' : theme).trim();
+    if (!t) return '';
+    return `\n\nUser-requested tip angle: orient each tip around the theme "${t.slice(0, 120)}". Keep every tip grounded in the article above — do not invent facts — but choose and phrase each one so it speaks to that theme.`;
+  }
+
+  function buildStrongPwAdvisoryUserPrompt(articles = [], mode = 'balanced', theme = '') {
     const modeCfg = CURATION_MODES[mode] || CURATION_MODES.balanced;
     const compact = (Array.isArray(articles) ? articles : []).slice(0, 4).map((a) => ({
       title: a.title,
@@ -1834,15 +1844,15 @@ Style: a memorable closing safety slogan in the spirit of "Keep Yourself Safe an
 Mode: ${modeCfg.label}
 
 Story (JSON):
-${JSON.stringify(compact)}`;
+${JSON.stringify(compact)}${tipThemeClause(theme)}`;
   }
 
-  async function aiFillStrongPwAdvisory(articles, mode, retries = 0) {
+  async function aiFillStrongPwAdvisory(articles, mode, retries = 0, theme = '') {
     const localA = localStrongPwAdvisory(articles);
     const out = { nlStrongPwAdvisory: localA };
     try {
       const p = await callTemplateSlotsAI(
-        buildStrongPwAdvisoryUserPrompt(articles, mode),
+        buildStrongPwAdvisoryUserPrompt(articles, mode, theme),
         { maxTokens: 120, logName: 'strong_passwords_advisory.txt' }
       );
       const cleaned = finalizeAdvisoryLine(p && p.nlStrongPwAdvisory != null ? p.nlStrongPwAdvisory : '');
@@ -1851,7 +1861,7 @@ ${JSON.stringify(compact)}`;
     } catch {
       if (retries < config.retryAttempts) {
         await App.Utils.wait(config.retryDelayMs * (retries + 1));
-        return aiFillStrongPwAdvisory(articles, mode, retries + 1);
+        return aiFillStrongPwAdvisory(articles, mode, retries + 1, theme);
       }
       return out;
     }
@@ -1979,7 +1989,7 @@ Output: JSON only, exactly { "nlVishingTip": "string (max 130 chars)" } — no m
     return t;
   }
 
-  function buildVishingUserPrompt(articles = [], mode = 'balanced') {
+  function buildVishingUserPrompt(articles = [], mode = 'balanced', theme = '') {
     const modeCfg = CURATION_MODES[mode] || CURATION_MODES.balanced;
     const a = (Array.isArray(articles) ? articles : [])[0] || {};
     const story = { title: a.title, type: a.type, summary: truncate(a.summary || a.description || '', modeCfg.maxContentChars) };
@@ -2005,7 +2015,7 @@ Return valid JSON (no markdown):
   ]
 }
 
-Keep each tip to max ${VISHING_TIP_MAX_CHARS} chars. Focus on specific detection signals, not generic advice.`;
+Keep each tip to max ${VISHING_TIP_MAX_CHARS} chars. Focus on specific detection signals, not generic advice.${tipThemeClause(theme)}`;
   }
 
   function buildVishingIntroPrompt(articles = [], mode = 'balanced') {
@@ -2019,7 +2029,7 @@ Article Summary: ${story.summary}
 Write a 1-2 sentence description of what this threat IS based on the article above. Max 230 chars.`;
   }
 
-  function buildVishingTipPrompt(articles = [], tipIndex = 0, mode = 'balanced') {
+  function buildVishingTipPrompt(articles = [], tipIndex = 0, mode = 'balanced', theme = '') {
     const modeCfg = CURATION_MODES[mode] || CURATION_MODES.balanced;
     const a = (Array.isArray(articles) ? articles : [])[0] || {};
     const story = { title: a.title, type: a.type, summary: truncate(a.summary || a.description || '', modeCfg.maxContentChars) };
@@ -2033,7 +2043,7 @@ Write a 1-2 sentence description of what this threat IS based on the article abo
 Article Type: ${story.type}
 Article Summary: ${story.summary}
 
-Generate ONE detection-signal tip for tip ${tipIndex + 1}: the ${tipLabels[tipIndex] || 'detection signal'} for THIS specific threat. Max ${VISHING_TIP_MAX_CHARS} chars. Base it on the article.`;
+Generate ONE detection-signal tip for tip ${tipIndex + 1}: the ${tipLabels[tipIndex] || 'detection signal'} for THIS specific threat. Max ${VISHING_TIP_MAX_CHARS} chars. Base it on the article.${tipThemeClause(theme)}`;
   }
 
   function scoreVishingIntro(intro) {
@@ -2065,27 +2075,27 @@ Generate ONE detection-signal tip for tip ${tipIndex + 1}: the ${tipLabels[tipIn
     return { score: Math.max(0, score), count: tipsArray.length, duplicates };
   }
 
-  async function aiFillVishingTipsEnsemble(articles, mode = 'balanced', retries = 0) {
+  async function aiFillVishingTipsEnsemble(articles, mode = 'balanced', retries = 0, theme = '') {
     const local = localVishingSlots(articles);
     if (!isAIAvailable()) return local;
     try {
       const tasks = [
-        callTemplateSlotsAI(buildVishingUserPrompt(articles, mode), { systemPrompt: VISHING_COMBINED_SYSTEM, maxTokens: 360 })
+        callTemplateSlotsAI(buildVishingUserPrompt(articles, mode, theme), { systemPrompt: VISHING_COMBINED_SYSTEM, maxTokens: 360 })
           .then(parsed => ({ ok: true, parsed }))
           .catch(err => ({ ok: false, parsed: null, error: String(err && err.message || err) })),
         callTemplateSlotsAI(buildVishingIntroPrompt(articles, mode), { systemPrompt: VISHING_INTRO_SYSTEM, maxTokens: 200 })
           .then(parsed => ({ ok: true, parsed }))
           .catch(err => ({ ok: false, parsed: null, error: String(err && err.message || err) })),
-        callTemplateSlotsAI(buildVishingTipPrompt(articles, 0, mode), { systemPrompt: VISHING_TIP_SYSTEM, maxTokens: 120 })
+        callTemplateSlotsAI(buildVishingTipPrompt(articles, 0, mode, theme), { systemPrompt: VISHING_TIP_SYSTEM, maxTokens: 120 })
           .then(parsed => ({ ok: true, parsed }))
           .catch(err => ({ ok: false, parsed: null, error: String(err && err.message || err) })),
-        callTemplateSlotsAI(buildVishingTipPrompt(articles, 1, mode), { systemPrompt: VISHING_TIP_SYSTEM, maxTokens: 120 })
+        callTemplateSlotsAI(buildVishingTipPrompt(articles, 1, mode, theme), { systemPrompt: VISHING_TIP_SYSTEM, maxTokens: 120 })
           .then(parsed => ({ ok: true, parsed }))
           .catch(err => ({ ok: false, parsed: null, error: String(err && err.message || err) })),
-        callTemplateSlotsAI(buildVishingTipPrompt(articles, 2, mode), { systemPrompt: VISHING_TIP_SYSTEM, maxTokens: 120 })
+        callTemplateSlotsAI(buildVishingTipPrompt(articles, 2, mode, theme), { systemPrompt: VISHING_TIP_SYSTEM, maxTokens: 120 })
           .then(parsed => ({ ok: true, parsed }))
           .catch(err => ({ ok: false, parsed: null, error: String(err && err.message || err) })),
-        callTemplateSlotsAI(buildVishingTipPrompt(articles, 3, mode), { systemPrompt: VISHING_TIP_SYSTEM, maxTokens: 120 })
+        callTemplateSlotsAI(buildVishingTipPrompt(articles, 3, mode, theme), { systemPrompt: VISHING_TIP_SYSTEM, maxTokens: 120 })
           .then(parsed => ({ ok: true, parsed }))
           .catch(err => ({ ok: false, parsed: null, error: String(err && err.message || err) }))
       ];
@@ -2118,15 +2128,15 @@ Generate ONE detection-signal tip for tip ${tipIndex + 1}: the ${tipLabels[tipIn
     } catch {
       if (retries < config.retryAttempts) {
         await App.Utils.wait(config.retryDelayMs * (retries + 1));
-        return aiFillVishingTipsEnsemble(articles, mode, retries + 1);
+        return aiFillVishingTipsEnsemble(articles, mode, retries + 1, theme);
       }
       return local;
     }
   }
 
-  async function aiFillVishingTips(articles, mode, retries = 0) {
+  async function aiFillVishingTips(articles, mode, retries = 0, theme = '') {
     if (isAIAvailable()) {
-      return aiFillVishingTipsEnsemble(articles, mode, retries);
+      return aiFillVishingTipsEnsemble(articles, mode, retries, theme);
     }
     return localVishingSlots(articles);
   }
@@ -2215,7 +2225,7 @@ Output: JSON only, exactly { "nlSocEngRedFlag": "string (max 150 chars)" } — n
     };
   }
 
-  function buildSocEngUserPrompt(articles = [], mode = 'balanced') {
+  function buildSocEngUserPrompt(articles = [], mode = 'balanced', theme = '') {
     const modeCfg = CURATION_MODES[mode] || CURATION_MODES.balanced;
     const a = (Array.isArray(articles) ? articles : [])[0] || {};
     const story = { title: a.title, type: a.type, summary: truncate(a.summary || a.description || '', modeCfg.maxContentChars) };
@@ -2240,7 +2250,7 @@ Return valid JSON (no markdown):
   ]
 }
 
-Keep each red flag to max ${SOCENG_REDFLAG_MAX_CHARS} chars. Focus on recognisable warning signs, not generic advice.`;
+Keep each red flag to max ${SOCENG_REDFLAG_MAX_CHARS} chars. Focus on recognisable warning signs, not generic advice.${tipThemeClause(theme)}`;
   }
 
   function buildSocEngIntroPrompt(articles = [], mode = 'balanced') {
@@ -2254,7 +2264,7 @@ Article Summary: ${story.summary}
 Write a 1-2 sentence description of what this attack IS based on the article above. Max 230 chars.`;
   }
 
-  function buildSocEngRedFlagPrompt(articles = [], flagIndex = 0, mode = 'balanced') {
+  function buildSocEngRedFlagPrompt(articles = [], flagIndex = 0, mode = 'balanced', theme = '') {
     const modeCfg = CURATION_MODES[mode] || CURATION_MODES.balanced;
     const a = (Array.isArray(articles) ? articles : [])[0] || {};
     const story = { title: a.title, type: a.type, summary: truncate(a.summary || a.description || '', modeCfg.maxContentChars) };
@@ -2267,7 +2277,7 @@ Write a 1-2 sentence description of what this attack IS based on the article abo
 Article Type: ${story.type}
 Article Summary: ${story.summary}
 
-Generate ONE red flag for slot ${flagIndex + 1}: ${labels[flagIndex] || 'a warning sign'} for THIS specific attack. Max ${SOCENG_REDFLAG_MAX_CHARS} chars. Base it on the article.`;
+Generate ONE red flag for slot ${flagIndex + 1}: ${labels[flagIndex] || 'a warning sign'} for THIS specific attack. Max ${SOCENG_REDFLAG_MAX_CHARS} chars. Base it on the article.${tipThemeClause(theme)}`;
   }
 
   function scoreSocEngRedFlags(flags) {
@@ -2288,17 +2298,17 @@ Generate ONE red flag for slot ${flagIndex + 1}: ${labels[flagIndex] || 'a warni
     return { score: Math.max(0, score), count: arr.length, duplicates };
   }
 
-  async function aiFillSocEngEnsemble(articles, mode = 'balanced', retries = 0) {
+  async function aiFillSocEngEnsemble(articles, mode = 'balanced', retries = 0, theme = '') {
     const local = localSocEngSlots(articles);
     if (!isAIAvailable()) return local;
     try {
       const wrap = (pr) => pr.then((parsed) => ({ ok: true, parsed })).catch((err) => ({ ok: false, parsed: null, error: String(err && err.message || err) }));
       const tasks = [
-        wrap(callTemplateSlotsAI(buildSocEngUserPrompt(articles, mode), { systemPrompt: SOCENG_COMBINED_SYSTEM, maxTokens: 360, logName: 'soceng_combined.txt' })),
+        wrap(callTemplateSlotsAI(buildSocEngUserPrompt(articles, mode, theme), { systemPrompt: SOCENG_COMBINED_SYSTEM, maxTokens: 360, logName: 'soceng_combined.txt' })),
         wrap(callTemplateSlotsAI(buildSocEngIntroPrompt(articles, mode), { systemPrompt: SOCENG_INTRO_SYSTEM, maxTokens: 200, logName: 'soceng_intro.txt' })),
-        wrap(callTemplateSlotsAI(buildSocEngRedFlagPrompt(articles, 0, mode), { systemPrompt: SOCENG_REDFLAG_SYSTEM, maxTokens: 120, logName: 'soceng_redflag1.txt' })),
-        wrap(callTemplateSlotsAI(buildSocEngRedFlagPrompt(articles, 1, mode), { systemPrompt: SOCENG_REDFLAG_SYSTEM, maxTokens: 120, logName: 'soceng_redflag2.txt' })),
-        wrap(callTemplateSlotsAI(buildSocEngRedFlagPrompt(articles, 2, mode), { systemPrompt: SOCENG_REDFLAG_SYSTEM, maxTokens: 120, logName: 'soceng_redflag3.txt' }))
+        wrap(callTemplateSlotsAI(buildSocEngRedFlagPrompt(articles, 0, mode, theme), { systemPrompt: SOCENG_REDFLAG_SYSTEM, maxTokens: 120, logName: 'soceng_redflag1.txt' })),
+        wrap(callTemplateSlotsAI(buildSocEngRedFlagPrompt(articles, 1, mode, theme), { systemPrompt: SOCENG_REDFLAG_SYSTEM, maxTokens: 120, logName: 'soceng_redflag2.txt' })),
+        wrap(callTemplateSlotsAI(buildSocEngRedFlagPrompt(articles, 2, mode, theme), { systemPrompt: SOCENG_REDFLAG_SYSTEM, maxTokens: 120, logName: 'soceng_redflag3.txt' }))
       ];
       const [combined, introOnly, f0, f1, f2] = await Promise.all(tasks);
       if (!combined.ok && !introOnly.ok) return local;
@@ -2325,7 +2335,7 @@ Generate ONE red flag for slot ${flagIndex + 1}: ${labels[flagIndex] || 'a warni
     } catch {
       if (retries < config.retryAttempts) {
         await App.Utils.wait(config.retryDelayMs * (retries + 1));
-        return aiFillSocEngEnsemble(articles, mode, retries + 1);
+        return aiFillSocEngEnsemble(articles, mode, retries + 1, theme);
       }
       return local;
     }
@@ -2391,8 +2401,359 @@ Return ONLY valid JSON, no markdown:
     }
   }
 
+  // ── Microlearning Benefits poster (gen_microlearning) ─────────────────────
+  // Title + five short benefit cards for the ABI microlearning poster. AI tailors
+  // the wording (optionally reflecting current threat themes); the defaults below
+  // are the safe local fallback and mirror buildGenMicrolearning's own defaults.
+  // Order matches the builder's bubble positions (top-centre, two upper sides,
+  // two lower sides) so the local fallback lays out like the reference.
+  const MICRO_FALLBACK_TITLE = 'Benefits of Microlearning';
+  const MICRO_FALLBACK_BENEFITS = [
+    { heading: 'Continuous learning', body: 'Keeps security knowledge present by re-engaging you on a regular basis.' },
+    { heading: 'Better retention', body: 'Short, condensed lessons help you remember and apply what you learn.' },
+    { heading: 'Time-flexible', body: 'Fit a quick lesson into your workday — no long meeting to plan around.' },
+    { heading: 'More engaging', body: 'Bite-size content replaces long, boring slide decks and stays memorable.' },
+    { heading: 'Better outcomes', body: 'Learning in short bursts boosts engagement, knowledge and retention.' }
+  ];
+
+  function localMicrolearningSlots() {
+    return {
+      nlMicroTitle: MICRO_FALLBACK_TITLE,
+      nlMicroBenefits: MICRO_FALLBACK_BENEFITS.map((b) => ({ heading: b.heading, body: b.body }))
+    };
+  }
+
+  const MICRO_SYSTEM = `You write copy for an employee security-awareness poster titled around the benefits of microlearning (short, frequent, bite-size security lessons).
+Keep it positive, plain, and specific to why microlearning helps people stay secure. No exclamation marks, no hype, no links.
+Output JSON only, exactly { "nlMicroTitle": "string (max 48 chars)", "nlMicroBenefits": [ { "heading": "string (1-3 words)", "body": "string (max 120 chars)" } ] } with exactly 5 benefit objects — no markdown, no extra keys.`;
+
+  function buildMicrolearningUserPrompt(articles = [], mode = 'balanced') {
+    const modeCfg = CURATION_MODES[mode] || CURATION_MODES.balanced;
+    const list = (Array.isArray(articles) ? articles : []).slice(0, 3);
+    const lines = list
+      .map((a, i) => `${i + 1}. ${String((a && a.title) || '').trim()} — ${truncate((a && (a.summary || a.description)) || '', modeCfg.maxContentChars)}`)
+      .join('\n');
+    return `Write the copy for a "Benefits of microlearning" security-awareness poster aimed at employees.
+Microlearning = short, frequent, bite-size security lessons (a few minutes at a time).
+${lines ? 'Recent security themes you may gently reflect in the tone (optional):\n' + lines + '\n' : ''}
+Produce a short, punchy title and EXACTLY 5 benefit cards. Each card has a 1-3 word heading and a one-sentence body (max ~120 chars) explaining WHY microlearning helps people stay secure.
+
+Output JSON only: { "nlMicroTitle": "...", "nlMicroBenefits": [ {"heading":"...","body":"..."} ] } with exactly 5 cards.`;
+  }
+
+  async function aiFillMicrolearningSlots(articles, mode = 'balanced', retries = 0) {
+    const local = localMicrolearningSlots();
+    if (!isAIAvailable()) return local;
+    try {
+      const parsed = await callTemplateSlotsAI(buildMicrolearningUserPrompt(articles, mode), { systemPrompt: MICRO_SYSTEM, maxTokens: 500, logName: 'microlearning.txt' });
+      const title = trimToWords(parsed && parsed.nlMicroTitle, 56) || local.nlMicroTitle;
+      const rawBenefits = Array.isArray(parsed && parsed.nlMicroBenefits) ? parsed.nlMicroBenefits : [];
+      const benefits = [];
+      for (let i = 0; i < 5; i++) {
+        const b = rawBenefits[i] || {};
+        const heading = trimToWords(b && b.heading, 28) || local.nlMicroBenefits[i].heading;
+        const body = trimToWords(b && b.body, 140) || local.nlMicroBenefits[i].body;
+        benefits.push({ heading, body });
+      }
+      return { nlMicroTitle: title, nlMicroBenefits: benefits };
+    } catch {
+      if (retries < config.retryAttempts) {
+        await App.Utils.wait(config.retryDelayMs * (retries + 1));
+        return aiFillMicrolearningSlots(articles, mode, retries + 1);
+      }
+      return local;
+    }
+  }
+
+  // ─── Wi-Fi Safety poster (gen_wifi_safety) ─ topic heading + intro + 5 points ─
+  // The static replica keeps its design; only its body TEXT is AI-wired (injected
+  // into #nl-wifi-heading / #nl-wifi-intro / #nl-wifi-tip1..5 by static_replicas.js):
+  //   • HEADING  — the security TOPIC the selected article relates to.
+  //   • INTRO    — a short paragraph introducing that topic.
+  //   • 5 POINTS — each follows one of the poster-flip angles, in this order:
+  //       how to spot it · impact on our organisation · next steps if affected ·
+  //       what you should remember · how to stay safe.
+  // The constants below are the authored fallback, used per-slot when a given AI
+  // value is missing. With NO AI, fillNewsletterTextSlots returns {} so the authored
+  // HTML — heading, bold lead-ins and all — renders byte-identical.
+  const WIFI_FALLBACK_HEADING = "Wi-Fi Safety";
+  const WIFI_FALLBACK_INTRO = "Wi-Fi is convenient, but you should be careful when accessing it. Ensure you understand the dangers of Wi-Fi so you can reap the benefits without getting burnt.";
+  const WIFI_FALLBACK_TIPS = [
+    "Only use free Wi-Fi for publicly available services like music and video streaming, or internet browsing.",
+    "Never provide sensitive information over a public Wi-Fi network.",
+    "Change your home Wi-Fi modem passwords from the default modem password. Update this password regularly.",
+    "Don’t use online banking or shopping over public Wi-Fi.",
+    "Never access work information over public Wi-Fi."
+  ];
+  const WIFI_TIP_MAX_CHARS = 140;
+
+  const WIFI_SYSTEM = `${EMPLOYEE_VOICE_BLOCK}
+
+You write the body copy for a single-topic security awareness poster. From the article, identify the security TOPIC it relates to and teach staff about that topic.
+
+STYLE (mandatory):
+- Calm, factual, present tense. Plain employee English. No marketing voice, no rhetorical questions, no exclamation marks.
+- HEADING: 2-4 words naming the topic (e.g. "Public Wi-Fi Risks", "Phishing Emails", "Password Hygiene"). Max 24 chars.
+- Each point is ONE short sentence. No URLs, no vendor names, no invented statistics. Ground everything in the article.
+
+The FIVE points must follow these angles, in this exact order:
+1. How to spot it
+2. Its impact on our organisation
+3. Next steps if affected
+4. What you should remember
+5. How to stay safe
+
+Output: JSON only, exactly { "nlWifiHeading": "string (max 24 chars)", "nlWifiIntro": "string (max 220 chars)", "nlWifiTips": ["...","...","...","...","..."] } — exactly 5 points in the angle order above, no markdown, no extra keys.`;
+
+  function buildWifiUserPrompt(articles = [], mode = 'balanced', theme = '') {
+    const modeCfg = CURATION_MODES[mode] || CURATION_MODES.balanced;
+    const a = (Array.isArray(articles) ? articles : [])[0] || {};
+    const story = { title: a.title, type: a.type, summary: truncate(a.summary || a.description || '', modeCfg.maxContentChars) };
+    return `Write the body copy for a security awareness poster, based on this article:
+
+Article Title: ${story.title}
+Article Type: ${story.type}
+Article Summary: ${story.summary}
+
+Task:
+1. HEADING — name the security topic this article relates to (2-4 words, max 24 chars).
+2. INTRO — 1-2 sentences introducing that topic and why it matters (max 220 chars).
+3. FIVE points, each following ONE of these angles, in this order:
+   1) How to spot it
+   2) Its impact on our organisation
+   3) Next steps if affected
+   4) What you should remember
+   5) How to stay safe
+
+Return valid JSON (no markdown):
+{
+  "nlWifiHeading": "topic (max 24 chars)",
+  "nlWifiIntro": "1-2 sentence intro (max 220 chars)",
+  "nlWifiTips": ["how to spot it","impact on our organisation","next steps if affected","what to remember","how to stay safe"]
+}
+
+Keep each point to max ${WIFI_TIP_MAX_CHARS} chars.${tipThemeClause(theme)}`;
+  }
+
+  function localWifiSafetySlots() {
+    return { nlWifiHeading: WIFI_FALLBACK_HEADING, nlWifiIntro: WIFI_FALLBACK_INTRO, nlWifiTips: WIFI_FALLBACK_TIPS.slice() };
+  }
+
+  async function aiFillWifiSafety(articles, mode = 'balanced', retries = 0, theme = '') {
+    const local = localWifiSafetySlots();
+    if (!isAIAvailable()) return local;
+    try {
+      const parsed = await callTemplateSlotsAI(buildWifiUserPrompt(articles, mode, theme), { systemPrompt: WIFI_SYSTEM, maxTokens: 460 });
+      const p = parsed || {};
+      const rawTips = Array.isArray(p.nlWifiTips) ? p.nlWifiTips : [];
+      const tips = [];
+      for (let i = 0; i < 5; i++) tips[i] = trimToWords(rawTips[i], WIFI_TIP_MAX_CHARS) || local.nlWifiTips[i];
+      const heading = trimToWords(p.nlWifiHeading, 24) || local.nlWifiHeading;
+      const intro = trimToWords(p.nlWifiIntro, 220) || local.nlWifiIntro;
+      return { nlWifiHeading: heading, nlWifiIntro: intro, nlWifiTips: tips };
+    } catch {
+      if (retries < config.retryAttempts) {
+        await App.Utils.wait(config.retryDelayMs * (retries + 1));
+        return aiFillWifiSafety(articles, mode, retries + 1, theme);
+      }
+      return local;
+    }
+  }
+
+  // ─── Horizontal Brief poster (gen_horizontal_brief) ─ article headline + intro + 4 tips ─
+  // Same contract as the Wi-Fi poster, with ONE difference: the HEADING is the selected
+  // article's OWN headline (the user wants the real story title, not an AI-invented topic).
+  // Only the intro + four tips are AI-written, injected into #nl-hb-intro / #nl-hb-tip1..4
+  // by static_replicas.js. The four tips follow these angles, in order:
+  //   1) how to spot it · 2) its impact on our organisation · 3) what to do ·
+  //   4) how to report it / stay safe.
+  // With NO AI the heading is still the article headline; with no article at all,
+  // fillNewsletterTextSlots returns {} so the authored static poster renders byte-identical.
+  const HB_FALLBACK_HEADING = "Don’t Take the Bait";
+  const HB_FALLBACK_INTRO = "Phishing messages disguise themselves as the people and brands you trust to steal credentials and data. A few seconds of scrutiny stops most of them — here is what to watch for.";
+  const HB_FALLBACK_TIPS = [
+    "Check the sender — verify the real address behind the display name before you trust a message.",
+    "Hover before you click. Inspect links for look-alike or shortened URLs that don’t match the real site.",
+    "Never share your password or MFA codes. No genuine IT or bank request asks for them by email.",
+    "When in doubt, report it. Forward suspicious messages to the SOC instead of deleting them."
+  ];
+  const HB_TIP_MAX_CHARS = 130;
+
+  const HB_SYSTEM = `${EMPLOYEE_VOICE_BLOCK}
+
+You write the body copy for a security awareness poster (landscape "brief" format). The poster HEADING is the article's own headline (supplied separately) — your job is the intro and the four tips that teach staff about that story.
+
+STYLE (mandatory):
+- Calm, factual, present tense. Plain employee English. No marketing voice, no rhetorical questions, no exclamation marks.
+- Each tip is ONE short sentence. No URLs, no vendor names, no invented statistics. Ground everything in the article.
+
+The FOUR tips must follow these angles, in this exact order:
+1. How to spot it
+2. Its impact on our organisation
+3. What to do
+4. How to report it or stay safe
+
+Output: JSON only, exactly { "nlHbIntro": "string (max 220 chars)", "nlHbTips": ["...","...","...","..."] } — exactly 4 tips in the angle order above, no markdown, no extra keys.`;
+
+  function buildHbUserPrompt(articles = [], mode = 'balanced', theme = '') {
+    const modeCfg = CURATION_MODES[mode] || CURATION_MODES.balanced;
+    const a = (Array.isArray(articles) ? articles : [])[0] || {};
+    const story = { title: a.title, type: a.type, summary: truncate(a.summary || a.description || '', modeCfg.maxContentChars) };
+    return `Write the body copy for a security awareness poster, based on this article:
+
+Article Title: ${story.title}
+Article Type: ${story.type}
+Article Summary: ${story.summary}
+
+The poster heading will be the Article Title above — do not rewrite it.
+
+Task:
+1. INTRO — 1-2 sentences introducing this story and why it matters to staff (max 220 chars).
+2. FOUR tips, each following ONE of these angles, in this order:
+   1) How to spot it
+   2) Its impact on our organisation
+   3) What to do
+   4) How to report it or stay safe
+
+Return valid JSON (no markdown):
+{
+  "nlHbIntro": "1-2 sentence intro (max 220 chars)",
+  "nlHbTips": ["how to spot it","impact on our organisation","what to do","how to report it or stay safe"]
+}
+
+Keep each tip to max ${HB_TIP_MAX_CHARS} chars.${tipThemeClause(theme)}`;
+  }
+
+  function localHorizontalBriefSlots() {
+    return { nlHbHeading: HB_FALLBACK_HEADING, nlHbIntro: HB_FALLBACK_INTRO, nlHbTips: HB_FALLBACK_TIPS.slice() };
+  }
+
+  // The Horizontal Brief heading is the selected article's OWN headline. Light cleanup
+  // only: collapse whitespace, drop a trailing " - Source" suffix some feeds append, and
+  // cap the length so the injected heading still fits the band. '' when there is no title.
+  function headingFromArticle(a) {
+    const art = a || {};
+    let t = String(art.title || '').replace(/\s+/g, ' ').trim();
+    if (!t) return '';
+    const src = String(art.source || '').trim();
+    if (src) {
+      const esc = src.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      t = t.replace(new RegExp('\\s*[\\-|\\u2013\\u2014]\\s*' + esc + '\\s*$', 'i'), '').trim();
+    }
+    return trimToWords(t, 90) || t.slice(0, 90);
+  }
+
+  async function aiFillHorizontalBrief(articles, mode = 'balanced', retries = 0, theme = '') {
+    const local = localHorizontalBriefSlots();
+    const heading = headingFromArticle((Array.isArray(articles) ? articles : [])[0]) || local.nlHbHeading;
+    if (!isAIAvailable()) return { ...local, nlHbHeading: heading };
+    try {
+      const parsed = await callTemplateSlotsAI(buildHbUserPrompt(articles, mode, theme), { systemPrompt: HB_SYSTEM, maxTokens: 380 });
+      const p = parsed || {};
+      const rawTips = Array.isArray(p.nlHbTips) ? p.nlHbTips : [];
+      const tips = [];
+      for (let i = 0; i < 4; i++) tips[i] = trimToWords(rawTips[i], HB_TIP_MAX_CHARS) || local.nlHbTips[i];
+      const intro = trimToWords(p.nlHbIntro, 220) || local.nlHbIntro;
+      return { nlHbHeading: heading, nlHbIntro: intro, nlHbTips: tips };
+    } catch {
+      if (retries < config.retryAttempts) {
+        await App.Utils.wait(config.retryDelayMs * (retries + 1));
+        return aiFillHorizontalBrief(articles, mode, retries + 1, theme);
+      }
+      return { ...local, nlHbHeading: heading };
+    }
+  }
+
+  // ─── Security Digest (gen_security_digest) — AI topic heading + intro + 4 points ───
+  // Static design replica whose BODY copy is AI-wired. With AI on, the heading names the
+  // topic, the intro frames it, and four points teach the key things to know. With AI off,
+  // fillNewsletterTextSlots returns {} so the authored digest renders byte-identical.
+  const SD_FALLBACK_HEADING = "Phishing & Scams";
+  const SD_FALLBACK_INTRO = "Attackers are leaning on convincing lures this week — fake job offers, spoofed logins, and urgent requests built to make you act before you think. Here is what is making the rounds, and how to stay a step ahead.";
+  const SD_FALLBACK_POINTS = [
+    "GoldenEye ransomware targets HR departments with fake job applications",
+    "Critical zero-day flaws found in PHP 7: One remains unpatched",
+    "Critical PHPMailer flaw leaves millions of websites vulnerable to remote exploit",
+    "NIST guide provides a way to tackle cybersecurity incidents with a recovery plan and playbook"
+  ];
+  const SD_POINT_MAX_CHARS = 150;
+
+  const SD_SYSTEM = `${EMPLOYEE_VOICE_BLOCK}
+
+You write the body copy for a weekly security digest. From the article, name the security TOPIC and teach staff four key things about it.
+
+STYLE (mandatory):
+- Calm, factual, present tense. Plain employee English. No marketing voice, no rhetorical questions, no exclamation marks.
+- HEADING: 2-3 words naming the topic (e.g. "Phishing & Scams"). Max 24 chars.
+- Each point is ONE short sentence. No URLs, no vendor names, no invented statistics. Ground everything in the article.
+
+The FOUR points must follow these angles, in this exact order:
+1. What the threat is
+2. Who or what it targets
+3. How to spot or avoid it
+4. What to do or how to report it
+
+Output: JSON only, exactly { "nlSdHeading": "string (max 24 chars)", "nlSdIntro": "string (max 220 chars)", "nlSdPoints": ["...","...","...","..."] } — exactly 4 points in the angle order above, no markdown, no extra keys.`;
+
+  function buildSdUserPrompt(articles = [], mode = 'balanced', theme = '') {
+    const modeCfg = CURATION_MODES[mode] || CURATION_MODES.balanced;
+    const a = (Array.isArray(articles) ? articles : [])[0] || {};
+    const story = { title: a.title, type: a.type, summary: truncate(a.summary || a.description || '', modeCfg.maxContentChars) };
+    return `Write the body copy for a weekly security digest, based on this article:
+
+Article Title: ${story.title}
+Article Type: ${story.type}
+Article Summary: ${story.summary}
+
+Task:
+1. HEADING — name the security topic (2-3 words, max 24 chars).
+2. INTRO — 1-2 sentences introducing the topic and why it matters to staff (max 220 chars).
+3. FOUR points, each following ONE of these angles, in this order:
+   1) What the threat is
+   2) Who or what it targets
+   3) How to spot or avoid it
+   4) What to do or how to report it
+
+Return valid JSON (no markdown):
+{
+  "nlSdHeading": "topic (max 24 chars)",
+  "nlSdIntro": "1-2 sentence intro (max 220 chars)",
+  "nlSdPoints": ["what it is","who it targets","how to spot it","what to do"]
+}
+
+Keep each point to max ${SD_POINT_MAX_CHARS} chars.${tipThemeClause(theme)}`;
+  }
+
+  function localSecurityDigestSlots() {
+    return { nlSdHeading: SD_FALLBACK_HEADING, nlSdIntro: SD_FALLBACK_INTRO, nlSdPoints: SD_FALLBACK_POINTS.slice() };
+  }
+
+  async function aiFillSecurityDigest(articles, mode = 'balanced', retries = 0, theme = '') {
+    const local = localSecurityDigestSlots();
+    if (!isAIAvailable()) return local;
+    try {
+      const parsed = await callTemplateSlotsAI(buildSdUserPrompt(articles, mode, theme), { systemPrompt: SD_SYSTEM, maxTokens: 380 });
+      const p = parsed || {};
+      const heading = trimToWords(p.nlSdHeading, 24) || local.nlSdHeading;
+      const intro = trimToWords(p.nlSdIntro, 220) || local.nlSdIntro;
+      const rawPoints = Array.isArray(p.nlSdPoints) ? p.nlSdPoints : [];
+      const points = [];
+      for (let i = 0; i < 4; i++) points[i] = trimToWords(rawPoints[i], SD_POINT_MAX_CHARS) || local.nlSdPoints[i];
+      return { nlSdHeading: heading, nlSdIntro: intro, nlSdPoints: points };
+    } catch {
+      if (retries < config.retryAttempts) {
+        await App.Utils.wait(config.retryDelayMs * (retries + 1));
+        return aiFillSecurityDigest(articles, mode, retries + 1, theme);
+      }
+      return local;
+    }
+  }
+
   async function fillNewsletterTextSlots(formatId, articles = [], options = {}) {
     const mode = options.mode || 'balanced';
+    // Optional user-entered tip theme (poster flip form). Empty string = no
+    // steering, so the poster prompts are unchanged.
+    const tipTheme = String(options.tipTheme || '').trim();
     let list = (Array.isArray(articles) ? articles : []).filter(a => a && (a.title || a.description));
     const useAI = options.forceLocal ? false : isAIAvailable();
     if (useAI && list.length >= 2 && options.skipCoherenceCheck !== true) {
@@ -2459,20 +2820,48 @@ Return ONLY valid JSON, no markdown:
       };
     }
     if (formatId === 'gen_strong_passwords') {
-      if (useAI) return aiFillStrongPwAdvisory(list, mode);
+      if (useAI) return aiFillStrongPwAdvisory(list, mode, 0, tipTheme);
       return { nlStrongPwAdvisory: localStrongPwAdvisory(list) };
     }
     if (formatId === 'gen_vishing') {
-      if (useAI) return aiFillVishingTips(list, mode);
-      return localVishingSlots(list);
+      const slots = useAI ? (await aiFillVishingTips(list, mode, 0, tipTheme)) || {} : localVishingSlots(list);
+      // Poster flip-form theme drives the visible "How to Spot" tips heading verbatim
+      // (exact picked text). Absent when no theme is chosen, so the template keeps its
+      // hardcoded "How to Spot" default and the build stays byte-identical.
+      if (tipTheme) slots.nlVishingTipsHeading = tipTheme;
+      return slots;
     }
     if (formatId === 'gen_social_engineering') {
-      if (useAI) return aiFillSocEngEnsemble(list, mode);
+      if (useAI) return aiFillSocEngEnsemble(list, mode, 0, tipTheme);
       return localSocEngSlots(list);
     }
     if (formatId === 'newspaper') {
       if (useAI) return aiFillNewspaperSlots(list, mode);
       return localNewspaperSlots(list);
+    }
+    if (formatId === 'gen_microlearning') {
+      if (useAI) return aiFillMicrolearningSlots(list, mode);
+      return localMicrolearningSlots();
+    }
+    if (formatId === 'gen_wifi_safety') {
+      // AI on → article-driven Wi-Fi copy injected into the poster's text hooks.
+      // AI off → {} so the authored replica renders unchanged (design preserved).
+      if (useAI) return aiFillWifiSafety(list, mode, 0, tipTheme);
+      return {};
+    }
+    if (formatId === 'gen_horizontal_brief') {
+      // AI on → the article's own headline as the heading, plus AI intro + tips.
+      // AI off → just the article headline (no AI needed for that); {} when no article so the
+      // authored static poster renders byte-identical in the picker/preview.
+      if (useAI) return aiFillHorizontalBrief(list, mode, 0, tipTheme);
+      const heading = headingFromArticle(list[0]);
+      return heading ? { nlHbHeading: heading } : {};
+    }
+    if (formatId === 'gen_security_digest') {
+      // AI on → topic heading + intro + 4 points injected into the digest hooks.
+      // AI off → {} so the authored digest renders byte-identical.
+      if (useAI) return aiFillSecurityDigest(list, mode, 0, tipTheme);
+      return {};
     }
     return {};
   }
@@ -3248,6 +3637,7 @@ Output: JSON only, no markdown. Key allowed: watchouts (array of exactly 3 strin
     validateArticleCoherence,
     regenerateSelection,
     fillNewsletterTextSlots,
+    tipThemeClause,
     isAIAvailable,
     localNewsletterChrome,
     newsletterChrome,

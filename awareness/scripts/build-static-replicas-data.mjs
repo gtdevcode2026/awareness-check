@@ -30,6 +30,8 @@ const REPLICAS = {
   gen_spear_phishing:     'templates/reference/pipeline/spear_phishing_replica.html',
   gen_weakest_link:       'templates/reference/pipeline/weakest_link_replica_light.html',
   gen_wifi_safety:        'templates/reference/pipeline/wifi_safety_replica.html',
+  gen_horizontal_brief:   'templates/reference/pipeline/horizontal_brief_replica.html',
+  gen_security_digest:    'templates/reference/pipeline/weekly_security_report_replica.html',
 };
 
 const parts = [];

@@ -135,6 +135,23 @@ function loadWithBuilders(scenario) {
   return { ctx, window };
 }
 
+test("the 'Disclaimer: The above content is curated and created with AI' footer credit is translated, never shipped in English", async () => {
+  // Success returns an UPPERCASED rendering so a translated fragment can't accidentally
+  // contain its mixed-case English source as a substring.
+  const { ctx } = loadWithBuilders((source) => ({ content: "FR:" + source.toUpperCase() }));
+  const cfg = { org: "ACME", soc: "soc@acme.test", freq: "Weekly", portal: "https://p.example", pname: "Portal" };
+  const arts = [{ type: "Phishing", title: "Fake invoice scam", summary: "A forged invoice asks staff to wire payment.", source: "BleepingComputer", url: "https://x.test/a", pubDate: "2026-06-04", threatLevel: 3 }];
+  // "poster" exercises the shared foot(); the bank-page templates carry their own footer.
+  for (const id of ["poster", "bankpage1_dynamic", "bankpage1_static", "phishingbrief"]) {
+    const built = ctx.App.NewsletterBuilder.build(id, cfg, arts, { useLinks: false, usePoster: false, useQR: false, useIllus: false });
+    assert.ok(built.includes("Disclaimer: The above content is curated and created with AI"), `precondition: ${id} build carries the credit`);
+    const out = await ctx.App.UITranslation.translateHtmlWithAI(built, "fr", "openai", "key");
+    const visible = out.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ");
+    assert.ok(!visible.includes("Disclaimer: The above content is curated and created with AI"), `${id}: English credit must NOT survive translation`);
+    assert.ok(out.includes("FR:DISCLAIMER: THE ABOVE CONTENT IS CURATED AND CREATED WITH AI"), `${id}: credit must be translated`);
+  }
+});
+
 test("real bank-page build ships no English footer even when every fragment 429s on its first call", async () => {
   // Fail the first call for EVERY fragment (worst-case rate-limit storm); succeed on retry.
   // Success returns an UPPERCASED rendering so a recovered fragment cannot accidentally

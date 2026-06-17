@@ -98,4 +98,82 @@ test.describe("shared footer matches the bank-page portal footer", () => {
     const html = buildPosterFooter();
     assert.match(html, /Security Awareness · <a href="mailto:soc@acme\.test"/);
   });
+
+  test("ends with a 'Disclaimer: The above content is curated and created with AI' credit line below the org/contact line", () => {
+    const html = buildPosterFooter();
+    assert.ok(html.includes("Disclaimer: The above content is curated and created with AI"), "footer must carry the 'Disclaimer: The above content is curated and created with AI' credit");
+    // The credit sits AFTER the org/contact line — i.e. at the very end of the footer.
+    const orgIdx = html.indexOf('Security Awareness · <a href="mailto:soc@acme.test"');
+    const creditIdx = html.indexOf("Disclaimer: The above content is curated and created with AI");
+    assert.ok(orgIdx >= 0 && creditIdx > orgIdx, "credit must come after the org/contact line");
+  });
+});
+
+// The bank-page templates carry their own portal footer (not the shared foot()),
+// so the AI credit must be added there too. "Every newsletter" includes the
+// bank-page templates, which the picker classifies as newsletters.
+function buildTemplate(id) {
+  const context = createContext();
+  loadScript(context, "js/feed_scoring.js");
+  loadScript(context, "js/rss_fetcher.js");
+  loadScript(context, "js/newsletter_builder.js");
+  loadScript(context, "js/newsletter/bank_page.js");
+  loadScript(context, "js/newsletter/core_templates.js");
+  return context.App.NewsletterBuilder.build(
+    id,
+    { org: "ACME", soc: "soc@acme.test", freq: "Weekly", portal: "https://portal.example", pname: "Security & Compliance Awareness Portal" },
+    [{ type: "Phishing", title: "T", summary: "S", source: "X", url: "https://x/s", pubDate: "2026-05-23", threatLevel: 3 }],
+    { useLinks: false, usePoster: false, useQR: true, useIllus: false }
+  );
+}
+
+// Comprehensive guard: ANY template that renders a portal/QR footer must carry
+// the AI credit — the shared foot(), the bank-page footers, and the bespoke
+// gen_*/newspaper footers alike. Builds the whole catalog with a permissive
+// Graphics stub so no template silently throws and gets skipped.
+function buildEveryTemplate() {
+  const context = createContext();
+  // Permissive Graphics so every gen_* poster builds (some call helpers the
+  // fixed stub above doesn't list).
+  context.App.Graphics = new Proxy({}, { get: () => () => "<svg/>" });
+  loadScript(context, "js/feed_scoring.js");
+  loadScript(context, "js/rss_fetcher.js");
+  loadScript(context, "js/newsletter_builder.js");
+  loadScript(context, "js/newsletter/bank_page.js");
+  loadScript(context, "js/newsletter/core_templates.js");
+  const NB = context.App.NewsletterBuilder;
+  const cfg = { org: "ACME", soc: "soc@acme.test", freq: "Weekly", portal: "https://portal.example", pname: "Portal" };
+  const arts = [{ type: "Phishing", title: "T", summary: "S", source: "X", url: "https://x/s", pubDate: "2026-05-23", threatLevel: 3 }];
+  const opts = { useLinks: false, usePoster: false, useQR: true, useIllus: false };
+  return NB.getTemplateCatalog().map((t) => {
+    let html = "";
+    try { html = NB.build(t.id, cfg, arts, opts); } catch (e) { html = `BUILD_ERROR: ${e.message}`; }
+    return { id: t.id, html };
+  });
+}
+
+test.describe("every footer-bearing template carries the AI credit", () => {
+  const FOOTER_RE = /Visit Portal|Scan for Portal|id="nl-qr"/;
+  for (const { id, html } of buildEveryTemplate()) {
+    if (html.startsWith("BUILD_ERROR")) {
+      test(`${id} builds without error`, () => { assert.fail(`${id} failed to build: ${html}`); });
+      continue;
+    }
+    if (!FOOTER_RE.test(html)) continue; // no footer (advisory, poster1) — nothing to credit
+    test(`${id} footer carries 'Disclaimer: The above content is curated and created with AI'`, () => {
+      assert.ok(html.includes("Disclaimer: The above content is curated and created with AI"), `${id} renders a footer but is missing the AI credit`);
+    });
+  }
+});
+
+test.describe("bank-page footers carry the 'Disclaimer: The above content is curated and created with AI' credit", () => {
+  for (const id of ["bankpage1_static", "bankpage1_dynamic", "phishingbrief"]) {
+    test(`${id} footer ends with the AI credit, below the Visit Portal block`, () => {
+      const html = buildTemplate(id);
+      assert.ok(html.includes("Disclaimer: The above content is curated and created with AI"), `${id} must carry the AI credit`);
+      const portalIdx = html.lastIndexOf(">Visit Portal<");
+      const creditIdx = html.indexOf("Disclaimer: The above content is curated and created with AI");
+      assert.ok(portalIdx >= 0 && creditIdx > portalIdx, "credit must come after the Visit Portal button");
+    });
+  }
 });

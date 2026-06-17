@@ -27,12 +27,16 @@ function catalog() {
 }
 
 // The full onboarded Ready set: the 3 originals + the newly promoted bulletins
-// + the Cyber Gazette broadsheet.
+// + the Cyber Gazette broadsheet + the Advisory template type.
 const READY_IDS = [
   'poster', 'bankpage1_static', 'bankpage1_dynamic',
   'newspaper',
   'gen_chase_email', 'gen_cybershield', 'gen_strong_passwords', 'gen_vishing',
   'gen_social_engineering',
+  'gen_wifi_safety',
+  'gen_horizontal_brief',
+  'gen_security_digest',
+  'advisory',
 ];
 
 test('every onboarded template is marked status:"ready"', () => {

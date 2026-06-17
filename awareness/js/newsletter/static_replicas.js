@@ -30,7 +30,9 @@
     gen_right_message:      'templates/reference/pipeline/right_message_replica.html',
     gen_spear_phishing:     'templates/reference/pipeline/spear_phishing_replica.html',
     gen_weakest_link:       'templates/reference/pipeline/weakest_link_replica_light.html',
-    gen_wifi_safety:        'templates/reference/pipeline/wifi_safety_replica.html'
+    gen_wifi_safety:        'templates/reference/pipeline/wifi_safety_replica.html',
+    gen_horizontal_brief:   'templates/reference/pipeline/horizontal_brief_replica.html',
+    gen_security_digest:    'templates/reference/pipeline/weekly_security_report_replica.html'
   };
 
   const cache = {}; // id -> raw HTML string
@@ -137,6 +139,174 @@
     }
   }
 
+  // Fill the Wi-Fi Safety poster's AI text slots into the id hooks seeded in
+  // wifi_safety_replica.html (#nl-wifi-intro, #nl-wifi-tip1..5). The slots arrive
+  // on cfg from fillNewsletterTextSlots('gen_wifi_safety', …): present only when an
+  // AI key produced article-driven content. Same defensive contract as
+  // injectPortalDetails — a replica without the hooks (the other four posters) or a
+  // cfg without the slots (no AI) is left EXACTLY as authored, so the design and the
+  // default Wi-Fi copy stay byte-identical when AI is off. textContent (not
+  // innerHTML) keeps the injection safe; it replaces the authored <strong>+text.
+  function injectWifiText(fullHtml, cfg) {
+    if (typeof DOMParser === 'undefined') return fullHtml;
+    if (fullHtml.indexOf('nl-wifi-') === -1) return fullHtml;
+    const heading = cfg && typeof cfg.nlWifiHeading === 'string' ? cfg.nlWifiHeading.trim() : '';
+    const intro = cfg && typeof cfg.nlWifiIntro === 'string' ? cfg.nlWifiIntro.trim() : '';
+    const tips = cfg && Array.isArray(cfg.nlWifiTips) ? cfg.nlWifiTips : [];
+    if (!heading && !intro && !tips.some((t) => String(t || '').trim())) return fullHtml;
+    try {
+      const doc = new DOMParser().parseFromString(fullHtml, 'text/html');
+      if (heading) { const el = doc.querySelector('#nl-wifi-heading'); if (el) el.textContent = heading; }
+      if (intro) { const el = doc.querySelector('#nl-wifi-intro'); if (el) el.textContent = intro; }
+      for (let i = 0; i < 5; i++) {
+        const t = String(tips[i] || '').trim();
+        if (!t) continue;
+        const el = doc.querySelector('#nl-wifi-tip' + (i + 1));
+        if (el) el.textContent = t;
+      }
+      return (doc.doctype ? '<!DOCTYPE html>' : '') + doc.documentElement.outerHTML;
+    } catch {
+      return fullHtml;
+    }
+  }
+
+  // Attribute the source article on the Wi-Fi poster: fill #nl-wifi-source-name and
+  // the #nl-wifi-source-link href from the selected article (arts[0]). No article →
+  // the whole #nl-wifi-source-row is removed; a source but no usable web URL → just
+  // the link + separator are dropped. Same defensive contract as the other injectors:
+  // no hooks (the other replicas) → returned unchanged. textContent + an http(s)-only
+  // href keep it safe from injection.
+  function injectWifiSource(fullHtml, arts) {
+    if (typeof DOMParser === 'undefined') return fullHtml;
+    if (fullHtml.indexOf('nl-wifi-source-row') === -1) return fullHtml;
+    const a = (Array.isArray(arts) ? arts : [])[0] || {};
+    const source = String(a.source || '').trim();
+    const rawUrl = String(a.url || a.link || '').trim();
+    const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
+    try {
+      const doc = new DOMParser().parseFromString(fullHtml, 'text/html');
+      const row = doc.querySelector('#nl-wifi-source-row');
+      if (!row) return fullHtml;
+      if (!source && !url) {
+        if (row.parentNode) row.parentNode.removeChild(row);
+        return (doc.doctype ? '<!DOCTYPE html>' : '') + doc.documentElement.outerHTML;
+      }
+      const nameEl = doc.querySelector('#nl-wifi-source-name');
+      if (nameEl) nameEl.textContent = source ? ('Source: ' + source) : 'Source';
+      const linkEl = doc.querySelector('#nl-wifi-source-link');
+      const sepEl = doc.querySelector('#nl-wifi-source-sep');
+      if (url) {
+        if (linkEl) linkEl.setAttribute('href', url);
+      } else {
+        if (linkEl && linkEl.parentNode) linkEl.parentNode.removeChild(linkEl);
+        if (sepEl && sepEl.parentNode) sepEl.parentNode.removeChild(sepEl);
+      }
+      return (doc.doctype ? '<!DOCTYPE html>' : '') + doc.documentElement.outerHTML;
+    } catch {
+      return fullHtml;
+    }
+  }
+
+  // Fill the Horizontal Brief poster's AI text slots into the id hooks seeded in
+  // horizontal_brief_replica.html (#nl-hb-heading, #nl-hb-intro, #nl-hb-tip1..4).
+  // Same defensive contract as injectWifiText: a replica without the hooks, or a cfg
+  // without the slots (no AI), is left EXACTLY as authored, so the design and the
+  // authored phishing copy stay byte-identical when AI is off.
+  function injectHbText(fullHtml, cfg) {
+    if (typeof DOMParser === 'undefined') return fullHtml;
+    if (fullHtml.indexOf('nl-hb-') === -1) return fullHtml;
+    const heading = cfg && typeof cfg.nlHbHeading === 'string' ? cfg.nlHbHeading.trim() : '';
+    const intro = cfg && typeof cfg.nlHbIntro === 'string' ? cfg.nlHbIntro.trim() : '';
+    const tips = cfg && Array.isArray(cfg.nlHbTips) ? cfg.nlHbTips : [];
+    if (!heading && !intro && !tips.some((t) => String(t || '').trim())) return fullHtml;
+    try {
+      const doc = new DOMParser().parseFromString(fullHtml, 'text/html');
+      if (heading) {
+        const el = doc.querySelector('#nl-hb-heading');
+        if (el) {
+          el.textContent = heading;
+          // The authored slogan is short (big display type); real article headlines run
+          // longer — scale the heading down by length so it stays inside the black band.
+          const n = heading.length;
+          const fs = n <= 22 ? 38 : n <= 34 ? 32 : n <= 50 ? 26 : n <= 72 ? 22 : 19;
+          el.style.fontSize = fs + 'px';
+        }
+      }
+      if (intro) { const el = doc.querySelector('#nl-hb-intro'); if (el) el.textContent = intro; }
+      for (let i = 0; i < 4; i++) {
+        const t = String(tips[i] || '').trim();
+        if (!t) continue;
+        const el = doc.querySelector('#nl-hb-tip' + (i + 1));
+        if (el) el.textContent = t;
+      }
+      return (doc.doctype ? '<!DOCTYPE html>' : '') + doc.documentElement.outerHTML;
+    } catch {
+      return fullHtml;
+    }
+  }
+
+  // Attribute the source article on the Horizontal Brief poster, mirroring
+  // injectWifiSource: fill #nl-hb-source-name + #nl-hb-source-link from arts[0], remove
+  // the whole #nl-hb-source-row when there is no article, drop just the link + separator
+  // when there is a source but no usable web URL. textContent + an http(s)-only href.
+  function injectHbSource(fullHtml, arts) {
+    if (typeof DOMParser === 'undefined') return fullHtml;
+    if (fullHtml.indexOf('nl-hb-source-row') === -1) return fullHtml;
+    const a = (Array.isArray(arts) ? arts : [])[0] || {};
+    const source = String(a.source || '').trim();
+    const rawUrl = String(a.url || a.link || '').trim();
+    const url = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
+    try {
+      const doc = new DOMParser().parseFromString(fullHtml, 'text/html');
+      const row = doc.querySelector('#nl-hb-source-row');
+      if (!row) return fullHtml;
+      if (!source && !url) {
+        if (row.parentNode) row.parentNode.removeChild(row);
+        return (doc.doctype ? '<!DOCTYPE html>' : '') + doc.documentElement.outerHTML;
+      }
+      const nameEl = doc.querySelector('#nl-hb-source-name');
+      if (nameEl) nameEl.textContent = source ? ('Source: ' + source) : 'Source';
+      const linkEl = doc.querySelector('#nl-hb-source-link');
+      const sepEl = doc.querySelector('#nl-hb-source-sep');
+      if (url) {
+        if (linkEl) linkEl.setAttribute('href', url);
+      } else {
+        if (linkEl && linkEl.parentNode) linkEl.parentNode.removeChild(linkEl);
+        if (sepEl && sepEl.parentNode) sepEl.parentNode.removeChild(sepEl);
+      }
+      return (doc.doctype ? '<!DOCTYPE html>' : '') + doc.documentElement.outerHTML;
+    } catch {
+      return fullHtml;
+    }
+  }
+
+  // Inject AI copy into the gen_security_digest weekly-digest replica
+  // (#nl-sd-heading, #nl-sd-intro, #nl-sd-point1..4). Same defensive contract as
+  // injectHbText: a replica without the hooks, or a cfg without the slots (AI off),
+  // is returned EXACTLY as authored so the design + authored copy stay byte-identical.
+  function injectSdText(fullHtml, cfg) {
+    if (typeof DOMParser === 'undefined') return fullHtml;
+    if (fullHtml.indexOf('nl-sd-') === -1) return fullHtml;
+    const heading = cfg && typeof cfg.nlSdHeading === 'string' ? cfg.nlSdHeading.trim() : '';
+    const intro = cfg && typeof cfg.nlSdIntro === 'string' ? cfg.nlSdIntro.trim() : '';
+    const points = cfg && Array.isArray(cfg.nlSdPoints) ? cfg.nlSdPoints : [];
+    if (!heading && !intro && !points.some((p) => String(p || '').trim())) return fullHtml;
+    try {
+      const doc = new DOMParser().parseFromString(fullHtml, 'text/html');
+      if (heading) { const el = doc.querySelector('#nl-sd-heading'); if (el) el.textContent = heading; }
+      if (intro) { const el = doc.querySelector('#nl-sd-intro'); if (el) el.textContent = intro; }
+      for (let i = 0; i < 4; i++) {
+        const p = String(points[i] || '').trim();
+        if (!p) continue;
+        const el = doc.querySelector('#nl-sd-point' + (i + 1));
+        if (el) el.textContent = p;
+      }
+      return (doc.doctype ? '<!DOCTYPE html>' : '') + doc.documentElement.outerHTML;
+    } catch {
+      return fullHtml;
+    }
+  }
+
   // The QR encodes the portal URL the user enters in Config (cfg.portal) — never
   // a hardcoded link. If Config has no portal, returns '' so no QR is injected
   // and the file's placeholder is left as-is.
@@ -150,7 +320,7 @@
   // Returns a <td>-valid fragment (build() wraps it in <table><tr><td>…).
   // build() calls the builder as fn(cfg, arts, …), so cfg.portal drives the QR.
   function makeBuilder(id) {
-    return function staticReplicaBuilder(cfg) {
+    return function staticReplicaBuilder(cfg, arts) {
       let raw = cache[id];
       if (raw == null) {
         prefetch(id); // kick a (re)fetch; a rebuild in a moment will render it
@@ -164,6 +334,19 @@
       // Fill the portal name + "Visit Portal" link from Config (no-op for
       // replicas without the #nl-portal-* hooks, e.g. the other five posters).
       raw = injectPortalDetails(raw, cfg);
+      // Inject AI-generated Wi-Fi copy into the gen_wifi_safety hooks (no-op for
+      // the other replicas, and when no AI slots are present).
+      raw = injectWifiText(raw, cfg);
+      // Attribute the source article (name + link) below the points, from the
+      // selected article — removed when there is no article (e.g. the preview).
+      raw = injectWifiSource(raw, arts);
+      // Same wiring for the Horizontal Brief poster (no-op for every other replica
+      // and when no AI slots / no article are present).
+      raw = injectHbText(raw, cfg);
+      raw = injectHbSource(raw, arts);
+      // gen_security_digest: AI heading + intro + 4 points (no-op for every other
+      // replica and when no AI slots are present).
+      raw = injectSdText(raw, cfg);
       return '<iframe title="' + id + '" scrolling="no" '
         + 'style="width:100%;border:0;display:block;background:#FFFFFF;" '
         + 'srcdoc="' + escSrcdoc(raw) + '" '

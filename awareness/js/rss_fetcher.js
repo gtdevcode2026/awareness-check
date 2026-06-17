@@ -498,6 +498,9 @@ App.RSSFetcher = (() => {
   return {
     fetchAllFeeds, getFeeds, getCustomFeeds, addCustomFeed, removeCustomFeed, FEEDS, classify,
     isPrivacyAwarenessRelevant, isFutureDated,
-    isRelevantForEmployees: isPrivacyAwarenessRelevant
+    isRelevantForEmployees: isPrivacyAwarenessRelevant,
+    // Exposed for App.AdvisorySources (Tenable/Qualys RSS via the same CORS
+    // proxies, with rss2json as the same fallback the main fetcher uses).
+    fetchXmlViaProxies, fetchRss2Json
   };
 })();

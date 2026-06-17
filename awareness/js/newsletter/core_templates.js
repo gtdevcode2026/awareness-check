@@ -2098,6 +2098,9 @@ ${precautionsHtml}
             </td>
           </tr>
         </table>
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+          <tr><td align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;font-family:Arial,Helvetica,sans-serif;">Disclaimer: The above content is curated and created with AI</td></tr>
+        </table>
       </td>
     </tr>
     <tr>
@@ -2480,6 +2483,9 @@ ${redFlagsRowsHtml}
             </td>
           </tr>
         </table>
+        <table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation">
+          <tr><td align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;font-family:Arial,Helvetica,sans-serif;">Disclaimer: The above content is curated and created with AI</td></tr>
+        </table>
       </td>
     </tr>
     <tr>
@@ -2590,7 +2596,7 @@ ${redFlagsRowsHtml}
         + `<p style="margin:0 0 22px; font-family:Arial,Helvetica,sans-serif; font-size:14px; color:#909090; line-height:1.5;">Training modules, policies, and past bulletins.</p>`
         + `<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;"><tr><td align="center" style="border:1px solid #C09010; border-radius:4px; padding:10px 22px; line-height:1; font-family:Arial,Helvetica,sans-serif; font-size:14px; font-weight:700;"><a href="${portalHref}" style="color:#D4A420; text-decoration:none;">Visit Portal</a></td></tr></table></td>`
         + `<td width="200" valign="top" align="center" style="padding-left:24px;"><table cellpadding="0" cellspacing="0" border="0" style="border:4px solid #C09010;background-color:#FFFFFF;" bgcolor="#FFFFFF"><tr><td style="padding:8px;" id="nl-qr" data-qr-size="90"></td></tr></table><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-top:12px;font-size:9px;color:#909090;letter-spacing:0.08em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;font-weight:700;">Scan for Portal</td></tr></table></td>`
-      + `</tr></table></td></tr>`
+      + `</tr><tr><td colspan="2" align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;font-family:Arial,Helvetica,sans-serif;">Disclaimer: The above content is curated and created with AI</td></tr></table></td></tr>`
       + `<tr><td bgcolor="#D4A420" style="background:linear-gradient(135deg,#D4A420,#C09010);background-color:#D4A420;height:6px;line-height:6px;font-size:0;">&nbsp;</td></tr>`
       + `</table>${nlOuterClose()}`;
 
@@ -2626,6 +2632,9 @@ ${redFlagsRowsHtml}
     const heading = article && article.type ? String(article.type).trim() : "Threats";
     const tokens = {
       HEADING: heading,
+      // Tips-section label. Defaults to "How to Spot"; when the user picks a theme on
+      // the poster flip form it arrives as c.nlVishingTipsHeading and replaces it verbatim.
+      TIPS_HEADING: String((c && c.nlVishingTipsHeading) || '').trim() || 'How to Spot',
       INTRO: String((c && c.nlVishingIntro) || '').trim() || VISHING_DEFAULT_INTRO,
       TIP1: tip(0), TIP2: tip(1), TIP3: tip(2), TIP4: tip(3)
     };
@@ -2659,8 +2668,8 @@ ${redFlagsRowsHtml}
         + `</td>`
         + `<td valign="middle" align="center" width="35%" style="padding:0;text-align:center;"><img src="${assetSrc('image223.jpeg')}" alt="Person receiving a suspicious phone call" width="100%" style="display:block;max-width:220px;width:100%;height:auto;border:0;margin:0 auto;" /></td>`
       + `</tr></table></td></tr>`
-      // "How to Spot" section label
-      + `<tr><td align="center" style="padding:24px 16px 6px;background:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:22px;line-height:1.2;color:#0A0A0A;">How to Spot</td></tr>`
+      // Tips-section label ("How to Spot" by default; flip-form theme overrides it)
+      + `<tr><td align="center" style="padding:24px 16px 6px;background:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:22px;line-height:1.2;color:#0A0A0A;">{{TIPS_HEADING}}</td></tr>`
       // 4 fixed-symbol tip cards
       + `<tr><td style="padding:20px 16px 8px;background:#FFFFFF;"><table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr>`
         + card(VISHING_ICONS[0], '{{TIP1}}')
@@ -2677,7 +2686,7 @@ ${redFlagsRowsHtml}
         + `<p style="margin:0 0 22px; font-family:Arial,Helvetica,sans-serif; font-size:14px; color:#909090; line-height:1.5;">Training modules, policies, and past bulletins.</p>`
         + `<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;"><tr><td align="center" style="border:1px solid #C09010; border-radius:4px; padding:10px 22px; line-height:1; font-family:Arial,Helvetica,sans-serif; font-size:14px; font-weight:700;"><a href="${portalHref}" style="color:#D4A420; text-decoration:none;">Visit Portal</a></td></tr></table></td>`
         + `<td width="200" valign="top" align="center" style="padding-left:24px;"><table cellpadding="0" cellspacing="0" border="0" style="border:4px solid #C09010;background-color:#FFFFFF;" bgcolor="#FFFFFF"><tr><td style="padding:8px;" id="nl-qr" data-qr-size="90"></td></tr></table><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-top:12px;font-size:9px;color:#909090;letter-spacing:0.08em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;font-weight:700;">Scan for Portal</td></tr></table></td>`
-      + `</tr></table></td></tr>`
+      + `</tr><tr><td colspan="2" align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;font-family:Arial,Helvetica,sans-serif;">Disclaimer: The above content is curated and created with AI</td></tr></table></td></tr>`
       + `<tr><td bgcolor="#D4A420" style="background:linear-gradient(135deg,#D4A420,#C09010);background-color:#D4A420;height:6px;line-height:6px;font-size:0;">&nbsp;</td></tr>`
       + `</table>${nlOuterClose()}`;
 
@@ -2758,7 +2767,7 @@ ${redFlagsRowsHtml}
         + `<p style="margin:0 0 22px; font-family:Arial,Helvetica,sans-serif; font-size:14px; color:#909090; line-height:1.5;">Training modules, policies, and past bulletins.</p>`
         + `<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;"><tr><td align="center" style="border:1px solid #C09010; border-radius:4px; padding:10px 22px; line-height:1; font-family:Arial,Helvetica,sans-serif; font-size:14px; font-weight:700;"><a href="${portalHref}" style="color:#D4A420; text-decoration:none;">Visit Portal</a></td></tr></table></td>`
         + `<td width="200" valign="top" align="center" style="padding-left:24px;"><table cellpadding="0" cellspacing="0" border="0" style="border:4px solid #C09010;background-color:#FFFFFF;" bgcolor="#FFFFFF"><tr><td style="padding:8px;" id="nl-qr" data-qr-size="90"></td></tr></table><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-top:12px;font-size:9px;color:#909090;letter-spacing:0.08em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;font-weight:700;">Scan for Portal</td></tr></table></td>`
-      + `</tr></table></td></tr>`
+      + `</tr><tr><td colspan="2" align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;font-family:Arial,Helvetica,sans-serif;">Disclaimer: The above content is curated and created with AI</td></tr></table></td></tr>`
       + `<tr><td bgcolor="#D4A420" style="background:linear-gradient(135deg,#D4A420,#C09010);background-color:#D4A420;height:6px;line-height:6px;font-size:0;">&nbsp;</td></tr>`
       + `</table>${nlOuterClose()}`;
 
@@ -2980,13 +2989,374 @@ ${redFlagsRowsHtml}
       + `<p style="margin:0 0 22px;${NLFF};font-size:14px;color:#909090;line-height:1.5;">${portalBlurb}</p>`
       + `<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;"><tr><td align="center" style="border:1px solid #C09010;border-radius:4px;padding:10px 22px;line-height:1;${NLFF};font-size:14px;font-weight:700;"><a href="${portalHref}" style="color:#D4A420;text-decoration:none;" target="_blank" rel="noopener noreferrer">Visit Portal</a></td></tr></table></td>`
       + qrCell
-      + `</tr></table>`,
+      + `</tr><tr><td colspan="2" align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;${NLFF}">Disclaimer: The above content is curated and created with AI</td></tr></table>`,
       'bgcolor="#0A0A0A" style="background-color:#0A0A0A;padding:28px 36px 22px;"'
     )}${tblx()}` + goldLine;
 
     return `${nlOuterOpen()}${masthead}${leadStory}${secondaryStory}${checklist}${reportCta}${portalFooter}${nlOuterClose()}`;
   }
 
+  // ══════════════════════════════════════════════════
+  //  GENERATED: gen_microlearning — Microlearning Benefits poster
+  //  Faithful ABInBev recolour of a "Benefits of microlearning" infographic:
+  //  same layout (title + five "bubbles" floating around a central figure of a
+  //  person learning on a laptop), recoloured to ABI black/gold/white, CyberPilot
+  //  branding removed, ABI masthead + portal/QR footer added, hardcoded
+  //  Report-to-SOC CTA. Rendered inside an isolated <iframe srcdoc> (like the
+  //  static replicas) so the poster's own absolute layout shows exactly as
+  //  designed and can't leak into the app shell. AI-wired: title + the five
+  //  benefit bubbles come from c.nlMicroTitle / c.nlMicroBenefits
+  //  (fillNewsletterTextSlots); the defaults below are the safe local fallback.
+  // ══════════════════════════════════════════════════
+  const MICRO_DEFAULT_TITLE = 'Benefits of Microlearning';
+  const MICRO_DEFAULT_BENEFITS = [
+    { heading: 'Continuous learning', body: 'Keeps security knowledge present by re-engaging you on a regular basis.' },
+    { heading: 'Better retention', body: 'Short, condensed lessons help you remember and apply what you learn.' },
+    { heading: 'Time-flexible', body: 'Fit a quick lesson into your workday — no long meeting to plan around.' },
+    { heading: 'More engaging', body: 'Bite-size content replaces long, boring slide decks and stays memorable.' },
+    { heading: 'Better outcomes', body: 'Learning in short bursts boosts engagement, knowledge and retention.' }
+  ];
+  function buildGenMicrolearning(c, arts, wo, lk, poster, qr, illus) {
+    c = c || {};
+    const title = escapeHtml(String(c.nlMicroTitle || '').trim()) || escapeHtml(MICRO_DEFAULT_TITLE);
+    const benefits = (Array.isArray(c.nlMicroBenefits) && c.nlMicroBenefits.length ? c.nlMicroBenefits : MICRO_DEFAULT_BENEFITS).slice(0, 5);
+    const figSrc = escAttr(assetSrc('microlearning_figure.png'));
+    const abiSrc = escAttr(assetSrc('ABI.png'));
+
+    // Email-safe "bubbles around a centre figure": a pure-table grid — one bubble
+    // top-centre, the figure centre flanked by two bubbles, two more below. Each
+    // bubble is a rounded gold cell with a solid bgcolor fallback (Outlook squares
+    // the radius + ignores the gradient but keeps the colour + text). rowspan keeps
+    // the figure centred between the side bubbles. Text stays live so the
+    // per-fragment translator can localise it.
+    const bubble = (b) => {
+      if (!b) return '&nbsp;';
+      const h = escapeHtml(String((b.heading) || '').trim());
+      const body = escapeHtml(String((b.body) || '').trim());
+      return `<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
+        + `<td align="center" bgcolor="#D4A420" style="background-color:#D4A420;background:linear-gradient(135deg,#EBC94E 0%,#D4A420 55%,#A87C12 100%);border-radius:16px;padding:15px 13px;">`
+        + `<div style="${NLFF};font-weight:800;font-size:12px;line-height:1.15;letter-spacing:0.4px;text-transform:uppercase;color:#0A0A0A;margin:0 0 6px;">${h}</div>`
+        + `<div style="${NLFF};font-weight:600;font-size:11px;line-height:1.4;color:#0A0A0A;">${body}</div>`
+        + `</td></tr></table>`;
+    };
+    const figureFramed = `<table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" style="border:3px solid #D4A420;border-radius:14px;"><tr><td style="padding:0;font-size:0;line-height:0;"><img src="${figSrc}" alt="Person learning on a laptop" width="172" style="display:block;width:100%;max-width:172px;height:auto;border:0;"></td></tr></table>`;
+
+    const grid = `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">`
+      + `<tr><td colspan="3" align="center" style="padding:0 0 10px;"><table role="presentation" align="center" cellpadding="0" cellspacing="0" border="0" width="232"><tr><td>${bubble(benefits[0])}</td></tr></table></td></tr>`
+      + `<tr>`
+      + `<td width="33%" valign="middle" style="padding:6px 8px 6px 0;">${bubble(benefits[1])}</td>`
+      + `<td width="34%" rowspan="2" valign="middle" align="center" style="padding:0 2px;">${figureFramed}</td>`
+      + `<td width="33%" valign="middle" style="padding:6px 0 6px 8px;">${bubble(benefits[2])}</td>`
+      + `</tr>`
+      + `<tr>`
+      + `<td valign="middle" style="padding:6px 8px 6px 0;">${bubble(benefits[3])}</td>`
+      + `<td valign="middle" style="padding:6px 0 6px 8px;">${bubble(benefits[4])}</td>`
+      + `</tr>`
+      + `</table>`;
+
+    const masthead = `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr>`
+      + `<td valign="middle" align="left"><img src="${abiSrc}" alt="ABInBev" height="30" style="height:30px;width:auto;display:block;border:0;"></td>`
+      + `<td valign="middle" align="right" style="text-align:right;"><div style="${NLFF};font-weight:700;font-size:11px;letter-spacing:3px;color:#D4A420;text-transform:uppercase;">Security &amp; Compliance Awareness</div><div style="${NLFF};font-weight:600;font-size:9px;letter-spacing:3px;color:#888888;text-transform:uppercase;margin-top:3px;">Awareness Series</div></td>`
+      + `</tr></table>`;
+
+    const socCta = `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;"><tr><td align="center" bgcolor="#D4A420" style="background-color:#D4A420;border-radius:6px;"><a href="mailto:soc-support@ab-inbev.com" style="display:inline-block;padding:13px 26px;${NLFF};font-size:15px;font-weight:700;color:#0A0A0A;text-decoration:none;">Report to SOC Now &rarr; soc-support@ab-inbev.com</a></td></tr></table>`;
+
+    // Fixed 640px card centred on a stone field (mirrors nlOuterOpen) so the grid
+    // columns never stretch wide and the bubbles stay a legible, consistent size.
+    const card = `<table width="640" align="center" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#0A0A0A" style="max-width:640px;width:100%;background-color:#0A0A0A;border-collapse:collapse;">`
+      + tbc('', 'height="6" style="height:6px;line-height:6px;font-size:0;background:linear-gradient(135deg,#C09010,#D4A420 50%,#EBC94E);background-color:#D4A420;"')
+      + tbc(masthead, 'style="padding:14px 26px;background-color:#0A0A0A;border-bottom:1px solid #8A7010;"')
+      + tbc(`<div style="${NLFF};font-weight:800;font-size:34px;line-height:1.12;letter-spacing:-0.5px;color:#FFFFFF;">${title}</div>`, 'align="center" style="padding:24px 24px 4px;background-color:#0A0A0A;"')
+      + tbc(grid, 'align="center" style="padding:8px 22px 14px;background-color:#0A0A0A;"')
+      + tbc(socCta, 'align="center" style="padding:22px 30px 24px;background-color:#FFFFFF;"')
+      + tbc('', 'height="1" style="height:1px;line-height:1px;font-size:0;background-color:#8A7010;"')
+      + tbc(foot(c, qr), 'style="padding:0;margin:0;"')
+      + tbc('', 'height="6" style="height:6px;line-height:6px;font-size:0;background:linear-gradient(135deg,#D4A420,#C09010);background-color:#D4A420;"')
+      + `</table>`;
+    return `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr><td align="center" bgcolor="#C5BEAF" style="background-color:#C5BEAF;padding:20px 12px;">${card}</td></tr></table>`;
+  }
+
+  // ══════════════════════════════════════════════════
+  //  ADVISORY: per-CVE Cyber Security Advisory (id: advisory)
+  //  Direct port of nessus_advisory/template.html + cve_alert.py's deterministic
+  //  token builders. One advisory per CVE. NO AI for content — pure placeholder
+  //  replacement. The date shown is the feed's exact pubDate, never "today".
+  //  AI is used only by the app's existing translation pass, never here.
+  // ══════════════════════════════════════════════════
+  // Ported from cve_alert.py SEVERITY_COLORS.
+  const ADVISORY_SEVERITY_COLORS = {
+    Critical: '#800000', // maroon
+    High: '#cc0000',     // red
+    Medium: '#ffa000',   // amber
+    Low: '#27ae60',      // green
+    Advisory: '#aaaaaa'  // grey
+  };
+  // Ported from cve_alert.py IMPACT_KEYWORDS — first match in title+description wins.
+  const ADVISORY_IMPACT_KEYWORDS = [
+    ['remote code execution',  'Remote code execution — an attacker could run arbitrary code on affected systems without authentication.'],
+    ['arbitrary code',         'Arbitrary code execution — an attacker could execute unauthorized commands on affected systems.'],
+    ['privilege escalation',   'Privilege escalation — a low-privileged attacker could gain elevated or root-level system access.'],
+    ['sql injection',          'SQL injection — an attacker could read, modify, or delete database contents.'],
+    ['cross-site scripting',   'Cross-site scripting (XSS) — an attacker could inject malicious scripts into affected web interfaces.'],
+    ['denial of service',      'Denial of service — an attacker could crash or make affected services unavailable.'],
+    ['information disclosure', 'Information disclosure — sensitive data may be exposed to unauthorized parties.'],
+    ['authentication bypass',  'Authentication bypass — an attacker could access protected resources without valid credentials.'],
+    ['file deletion',          'Unauthorized file deletion — an attacker could delete arbitrary files on affected systems.'],
+    ['buffer overflow',        'Buffer overflow — an attacker could crash the service or execute arbitrary code via memory corruption.'],
+    ['path traversal',         'Path traversal — an attacker could read or write files outside the intended directory.'],
+    ['command injection',      'Command injection — an attacker could execute arbitrary OS commands on the host.']
+  ];
+  // Ported from cve_alert.py SEVERITY_IMPACTS — fallback when no keyword matches.
+  const ADVISORY_SEVERITY_IMPACTS = {
+    Critical: 'Critical severity — successful exploitation could lead to full system compromise, data loss, or complete service disruption with no user interaction required.',
+    High: 'High severity — successful exploitation could result in significant data breach, service disruption, or unauthorized privileged access.',
+    Medium: 'Medium severity — successful exploitation could lead to partial compromise of affected systems or limited data exposure.',
+    Low: 'Low severity — limited impact if exploited; may assist in information gathering or enable minor unauthorized access.',
+    Advisory: 'Review the referenced advisory to assess the potential impact on systems in your environment.'
+  };
+  // White content style (mirrors the _W constant in cve_alert.py).
+  const ADV_W = `color:#ffffff;${NLFF};font-size:15px;line-height:1.6;`;
+
+  function advisoryTicket() {
+    return `ABSOC${1000 + Math.floor(Math.random() * 9000)}`;
+  }
+
+  // Format the feed's publish time deterministically in UTC (no machine-TZ
+  // drift). Unparseable values are shown verbatim — never replaced with today.
+  function fmtAdvisoryDate(raw) {
+    const s = String(raw || '').trim();
+    if (!s) return '';
+    const d = new Date(s);
+    if (isNaN(d.getTime())) return s;
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    const dd = String(d.getUTCDate()).padStart(2, '0');
+    const mon = months[d.getUTCMonth()];
+    const yyyy = d.getUTCFullYear();
+    const hh = String(d.getUTCHours()).padStart(2, '0');
+    const mm = String(d.getUTCMinutes()).padStart(2, '0');
+    return `${dd} ${mon} ${yyyy}, ${hh}:${mm} UTC`;
+  }
+
+  function advisorySeverity(item) {
+    const sev = String((item && item.severity) || '').trim();
+    return ADVISORY_SEVERITY_COLORS[sev] ? sev : 'Advisory';
+  }
+
+  function advisoryBuildSummary(item, severity) {
+    const cves = (Array.isArray(item.cveIds) && item.cveIds.length ? item.cveIds : [item.cveId])
+      .filter(Boolean).map(c => escapeHtml(String(c).toUpperCase()));
+    const cvss = String(item.cvss || '').trim();
+    const pub = fmtAdvisoryDate(item.pubDate);
+    const desc = escapeHtml(String(item.description || '').trim());
+    const parts = [];
+    if (cves.length) {
+      parts.push(`<p style="${ADV_W}margin:0 0 6px 0;"><strong>CVE(s) Identified:</strong> <span data-nl-keep>${cves.join(', ')}</span></p>`);
+    }
+    if (cvss) {
+      parts.push(`<p style="${ADV_W}margin:0 0 6px 0;"><strong>CVSS Base Score:</strong> ${escapeHtml(cvss)}</p>`);
+    }
+    if (pub) {
+      parts.push(`<p style="${ADV_W}margin:0 0 6px 0;"><strong>Advisory Published:</strong> ${escapeHtml(pub)}</p>`);
+    }
+    if (desc) {
+      parts.push(`<div style="${ADV_W}margin-top:8px;">${desc}</div>`);
+    }
+    return parts.length ? parts.join('\n') : `<p style="${ADV_W}margin:0;">See advisory link for full details.</p>`;
+  }
+
+  function advisoryBuildImpact(item, severity) {
+    const blob = `${item.title || ''} ${item.description || ''}`.toLowerCase();
+    for (const [kw, statement] of ADVISORY_IMPACT_KEYWORDS) {
+      if (blob.includes(kw)) return escapeHtml(statement);
+    }
+    return escapeHtml(ADVISORY_SEVERITY_IMPACTS[severity] || ADVISORY_SEVERITY_IMPACTS.Advisory);
+  }
+
+  function advisoryBuildRecommendations() {
+    const bullets = [
+      'Review the linked advisory and apply all vendor-recommended patches or mitigations immediately.',
+      'Prioritise assets exposed to the internet and those in critical or high-value network segments.',
+      'Validate patched systems using an authenticated vulnerability scan before closing the ticket.',
+      'The scan reports will be shared with the zones shortly and we request all zones to prioritize their remediation efforts effectively. Should you have any questions or concerns, reach out to <strong>@SOC-VMS</strong>'
+    ];
+    const li = bullets.map(b => `<li style="${ADV_W}margin-bottom:6px;list-style-type:circle;">${b}</li>`).join('\n');
+    return `<p style="${ADV_W}margin:0 0 8px 0;">ABI Global Security team recommends the following:</p>\n<ul style="padding-left:20px;margin:0;">\n${li}\n</ul>`;
+  }
+
+  function advisoryBuildReferences(item) {
+    const links = (Array.isArray(item.references) ? item.references : []).filter(Boolean);
+    if (!links.length) return `<p style="${ADV_W}margin:0;">No reference link available.</p>`;
+    // Wrap URLs in data-nl-keep so the translation pass leaves them verbatim.
+    const items = links.map(u =>
+      `<a href="${escAttr(u)}" target="_blank" rel="noopener noreferrer" style="color:#ffffff;text-decoration:underline;word-break:break-all;${NLFF};font-size:15px;">${escapeHtml(u)}</a>`
+    ).join('<br>');
+    return `<span data-nl-keep>${items}</span>`;
+  }
+
+  // One advisory unit = the 950px container table from template.html with the
+  // {{TOKEN}} slots filled. Kept verbatim in structure (black bg, gold rules).
+  function advisoryUnit(item) {
+    item = item || {};
+    const severity = advisorySeverity(item);
+    const sevColor = ADVISORY_SEVERITY_COLORS[severity] || '#eab308';
+    const ticket = advisoryTicket();
+    const title = escapeHtml(String(item.title || 'Security Advisory').trim());
+    const logo = escAttr(assetSrc('ABI.png'));
+    const date = escapeHtml(fmtAdvisoryDate(item.pubDate));
+    const labelTd = (label) => `<td width="25%" valign="top" bgcolor="#000000" style="background-color:#000000;font-size:15px;font-weight:bold;color:#ffffff;${NLFF};line-height:1.6;padding-right:20px;">${label}</td>`;
+    const contentTd = (html) => `<td bgcolor="#000000" style="background-color:#000000;font-size:15px;color:#ffffff;${NLFF};line-height:1.6;">${html}</td>`;
+    const row = (label, html, extraTdStyle) => `<tr><td bgcolor="#000000" style="background-color:#000000;${extraTdStyle}padding:22px 0;"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${labelTd(label)}${contentTd(html)}</tr></table></td></tr>`;
+
+    return `<table width="950" cellpadding="0" cellspacing="0" border="0" bgcolor="#000000" style="background-color:#000000;max-width:950px;">`
+      // Header
+      + `<tr><td bgcolor="#000000" style="background-color:#000000;padding-bottom:40px;"><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
+      + `<td width="240" valign="middle" bgcolor="#000000" style="background-color:#000000;width:240px;padding:0 10px;"><img src="${logo}" alt="ABInBev" height="48" style="display:block;max-height:55px;max-width:220px;border:0;" border="0"></td>`
+      + `<td width="20" bgcolor="#000000" style="background-color:#000000;"></td>`
+      + `<td valign="bottom" bgcolor="#000000" style="background-color:#000000;padding-bottom:4px;"><span style="color:#ffffff;${NLFF};font-size:30px;font-weight:bold;letter-spacing:0.5px;display:inline-block;">Cyber Security Advisory</span></td>`
+      + `<td valign="top" align="right" bgcolor="#000000" style="background-color:#000000;padding-top:5px;white-space:nowrap;"><table cellpadding="0" cellspacing="0" border="0">`
+      + `<tr><td valign="top" style="font-size:13px;font-weight:bold;color:#ffffff;${NLFF};line-height:1.2;padding-bottom:20px;">Advisory<br>Number</td><td width="30" bgcolor="#000000" style="background-color:#000000;"></td><td valign="top" style="font-size:13px;font-weight:bold;color:#ffffff;${NLFF};padding-bottom:20px;"><span data-nl-keep>${escapeHtml(ticket)}</span></td></tr>`
+      + `<tr><td valign="top" style="font-size:13px;font-weight:bold;color:#ffffff;${NLFF};line-height:1.2;">Date<br>issued</td><td width="30" bgcolor="#000000" style="background-color:#000000;"></td><td valign="top" style="font-size:13px;font-weight:bold;color:#ffffff;${NLFF};"><span data-nl-keep>${date}</span></td></tr>`
+      + `</table></td></tr></table></td></tr>`
+      // Subtitle (severity + CVE title) — right-aligned so the "High …" line sits
+      // on the right-hand side, directly below the Advisory Number / Date issued
+      // block in the header above it.
+      + `<tr><td align="right" bgcolor="#000000" style="background-color:#000000;padding:0 10px 25px;text-align:right;font-size:22px;font-weight:bold;color:#ffffff;${NLFF};line-height:1.3;"><span style="color:${sevColor};font-size:22px;font-weight:bold;${NLFF};">${escapeHtml(severity)}</span><span style="color:#ffffff;font-size:22px;font-weight:bold;${NLFF};"> ${title}</span></td></tr>`
+      // Section rows
+      + row('Overview', title, 'border-top:1px solid #eab308;border-bottom:1px solid #eab308;')
+      + row('Summary', advisoryBuildSummary(item, severity), 'border-bottom:1px solid #eab308;')
+      + row('Potential<br>Impact', advisoryBuildImpact(item, severity), 'border-bottom:1px solid #eab308;')
+      + row('Recommendations', advisoryBuildRecommendations(), 'border-bottom:1px solid #eab308;')
+      + row('References', advisoryBuildReferences(item), 'border-bottom:1px solid #eab308;')
+      + `<tr><td bgcolor="#000000" style="background-color:#000000;height:40px;"></td></tr>`
+      + `</table>`;
+  }
+
+  // ══════════════════════════════════════════════════
+  //  GENERATED: mfa_extra_step  (POSTER, light + gold)
+  //  Original ABI multi-factor-authentication awareness poster. Conveys: a
+  //  stolen password alone is not enough — the one-time code lives on YOUR
+  //  phone. Built entirely from email-safe tables (no rgba text, no absolute
+  //  positioning, hex colours, border-radius degrades gracefully in Outlook):
+  //  ABI masthead, headline, a [intruder → stolen password] threat row, a
+  //  side-by-side login card + phone one-time-code card, caption, Report-to-SOC
+  //  CTA, and the standard portal/QR footer (with the AI credit line).
+  // ══════════════════════════════════════════════════
+  function buildMfaExtraStep(c, arts, wo, lk, poster, qr, illus) {
+    c = c || {};
+    const portalName = escapeHtml((c.pname || c.title || '').trim()) || 'Security &amp; Compliance Awareness Portal';
+    const portalHref = escAttr(normalizeWebUrl((c.portal || c.portalUrl || '').trim()) || (c.soc ? 'mailto:' + String(c.soc).trim() : '#'));
+    const socMail = escAttr('mailto:' + String((c.soc || 'soc-support@ab-inbev.com')).trim());
+    // The same demo one-time code on the phone and in the laptop's extra field —
+    // that pairing IS the message: only the phone holder can complete the login.
+    const CODE = '3K825Fi';
+
+    // ── ABI masthead (gold rule, dark bar, logo + eyebrow) ──
+    const masthead =
+      `<tr><td bgcolor="#D4A420" style="background:linear-gradient(135deg,#C09010,#D4A420);background-color:#D4A420;height:6px;line-height:6px;font-size:0;">&nbsp;</td></tr>`
+      + `<tr><td style="padding:0;background:#0A0A0A;"><table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#0A0A0A" style="background:#0A0A0A;"><tr>`
+        + `<td valign="middle" align="left" style="padding:16px 26px 14px;vertical-align:middle;"><img src="${assetSrc('ABI.png')}" alt="ABInBev" height="34" style="height:34px;width:auto;display:block;border:0;"></td>`
+        + `<td valign="middle" align="right" style="padding:16px 26px 14px;vertical-align:middle;text-align:right;"><div style="font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:12px;letter-spacing:3px;color:#D4A420;text-transform:uppercase;">Security &amp; Compliance Awareness</div><div style="font-family:Arial,Helvetica,sans-serif;font-weight:600;font-size:10px;letter-spacing:3px;color:#888888;text-transform:uppercase;margin-top:3px;">Multi-Factor Authentication</div></td>`
+      + `</tr></table></td></tr>`
+      + `<tr><td bgcolor="#8A7010" style="background:#8A7010;height:1px;line-height:1px;font-size:0;">&nbsp;</td></tr>`;
+
+    // ── Headline ──
+    const heading =
+      `<tr><td align="center" style="padding:26px 34px 2px;background:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:11px;letter-spacing:3px;color:#C09010;text-transform:uppercase;">The Extra Step</td></tr>`
+      + `<tr><td align="center" style="padding:2px 34px 0;background:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:28px;line-height:1.16;letter-spacing:-0.3px;color:#0A0A0A;">That makes all the difference</td></tr>`;
+
+    // ── Threat row: a masked intruder who has the password, but it is not enough ──
+    // Masked face = a dark circle with a gold "mask band" carrying two dark eyes.
+    const intruder =
+      `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center"><tr>`
+      + `<td width="58" height="58" align="center" valign="middle" bgcolor="#1A1A1A" style="background-color:#1A1A1A;border:2px solid #0A0A0A;border-radius:50%;">`
+      + `<div style="background-color:#D4A420;height:18px;line-height:18px;font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:10px;letter-spacing:5px;color:#0A0A0A;">..</div>`
+      + `</td></tr></table>`;
+    const crackedChip =
+      `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center"><tr><td bgcolor="#0A0A0A" style="background-color:#0A0A0A;border:1px solid #C09010;border-radius:8px;padding:9px 16px;font-family:'Courier New',Courier,monospace;font-weight:700;font-size:16px;letter-spacing:2px;color:#D4A420;">!(#:@*!$%#</td></tr></table>`;
+    const threatRow =
+      `<tr><td align="center" style="padding:18px 34px 2px;background:#FFFFFF;">`
+        + `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center"><tr>`
+          + `<td valign="middle" align="center" style="padding-right:14px;">${intruder}<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:1px;color:#9A9A9A;text-transform:uppercase;margin-top:5px;">Intruder</div></td>`
+          + `<td valign="middle" align="center" style="font-family:Arial,Helvetica,sans-serif;font-size:24px;font-weight:700;color:#C09010;padding:0 12px 16px;">&rarr;</td>`
+          + `<td valign="middle" align="center">${crackedChip}<div style="font-family:Arial,Helvetica,sans-serif;font-size:9px;letter-spacing:1px;color:#9A9A9A;text-transform:uppercase;margin-top:6px;">Has your stolen password</div></td>`
+        + `</tr></table>`
+      + `</td></tr>`;
+
+    // ── Login + one-time-code scene ──
+    const fieldRow = (label, value, hot) =>
+      `<tr><td style="padding:9px 20px 0;">`
+        + `<div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#7A7A7A;padding-bottom:4px;">${label}</div>`
+        + `<table width="100%" role="presentation" border="0" cellpadding="0" cellspacing="0"><tr>`
+          + `<td bgcolor="${hot ? '#FFF6DD' : '#F4F4F4'}" style="background-color:${hot ? '#FFF6DD' : '#F4F4F4'};border:1px solid ${hot ? '#D4A420' : '#E2E2E2'};border-radius:7px;padding:10px 12px;font-family:${hot ? "'Courier New',Courier,monospace" : 'Arial,Helvetica,sans-serif'};font-weight:700;font-size:14px;color:#0A0A0A;letter-spacing:${hot ? '2px' : '0'};">${value}</td>`
+        + `</tr></table>`
+      + `</td></tr>`;
+    const loginCard =
+      `<td width="56%" valign="top" style="padding:0 8px 0 0;">`
+      + `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#FFFFFF" style="background:#FFFFFF;border:1px solid #E2E2E2;border-radius:14px;">`
+        + `<tr><td align="center" style="padding:18px 20px 4px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center"><tr><td width="46" height="46" align="center" valign="middle" bgcolor="#D4A420" style="background:linear-gradient(135deg,#EBC94E,#C09010);background-color:#D4A420;border-radius:50%;font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:12px;color:#0A0A0A;line-height:46px;">MFA</td></tr></table></td></tr>`
+        + fieldRow('Username', 'user6153', false)
+        + fieldRow('Password', '••••••••••••', false)
+        + fieldRow('Enter the additional code', CODE, true)
+        + `<tr><td style="padding:12px 20px 20px;"><table width="100%" role="presentation" border="0" cellpadding="0" cellspacing="0"><tr><td align="center" bgcolor="#D4A420" style="background:linear-gradient(135deg,#EBC94E,#C09010);background-color:#D4A420;border-radius:8px;padding:12px;font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:14px;color:#0A0A0A;">Log in</td></tr></table></td></tr>`
+      + `</table></td>`;
+    const phoneCard =
+      `<td width="44%" valign="top" style="padding:0 0 0 8px;">`
+      + `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#0A0A0A" style="background:#0A0A0A;border:1px solid #C09010;border-radius:18px;">`
+        + `<tr><td align="center" style="padding:16px 16px 2px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center"><tr><td width="40" height="40" align="center" valign="middle" bgcolor="#D4A420" style="background-color:#D4A420;border-radius:50%;font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:18px;color:#0A0A0A;line-height:40px;">!</td></tr></table></td></tr>`
+        + `<tr><td align="center" style="padding:8px 18px 0;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:13px;color:#FFFFFF;">Login attempt detected</td></tr>`
+        + `<tr><td align="center" style="padding:2px 18px 0;font-family:Arial,Helvetica,sans-serif;font-size:11px;color:#B8B8B8;">Is this you?</td></tr>`
+        + `<tr><td align="center" style="padding:12px 18px 2px;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center"><tr><td bgcolor="#161616" style="background-color:#161616;border:1px solid #C09010;border-radius:8px;padding:10px 18px;font-family:'Courier New',Courier,monospace;font-weight:800;font-size:20px;letter-spacing:4px;color:#D4A420;">${CODE}</td></tr></table></td></tr>`
+        + `<tr><td align="center" style="padding:10px 18px 16px;font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#8A8A8A;line-height:1.4;">Only you have this code on your phone</td></tr>`
+      + `</table></td>`;
+    const scene =
+      `<tr><td style="padding:16px 22px 4px;background:#FFFFFF;"><table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr>`
+        + loginCard + phoneCard
+      + `</tr></table></td></tr>`;
+
+    // ── Caption ──
+    const caption =
+      `<tr><td align="center" style="padding:20px 40px 4px;background:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.55;color:#3A3A3A;">When you use <strong style="color:#0A0A0A;">multi-factor authentication</strong> as an extra layer of security, you make it far harder for criminals to get into your account &mdash; even when they already have your password.</td></tr>`;
+
+    // ── Report-to-SOC CTA ──
+    const reportCta =
+      `<tr><td align="center" style="padding:18px 30px 24px;background:#FFFFFF;"><table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;"><tr><td align="center" bgcolor="#D4A420" style="background-color:#D4A420;border-radius:6px;"><a href="${socMail}" style="display:inline-block;padding:13px 26px;font-family:Arial,Helvetica,sans-serif;font-size:15px;font-weight:700;color:#0A0A0A;text-decoration:none;">Report a suspicious login &rarr;</a></td></tr></table></td></tr>`;
+
+    // ── Portal/QR footer (mirrors the gen_* footer; carries the AI credit) ──
+    const footer =
+      `<tr><td bgcolor="#8A7010" style="background:#8A7010;height:1px;line-height:1px;font-size:0;">&nbsp;</td></tr>`
+      + `<tr><td style="background:#0A0A0A; padding:28px 36px 22px;"><table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" bgcolor="#0A0A0A"><tr>`
+        + `<td valign="top"><p style="margin:0 0 14px; font-family:Arial,Helvetica,sans-serif; font-size:20px; color:#D4A420; font-weight:700;">${portalName}</p>`
+        + `<p style="margin:0 0 22px; font-family:Arial,Helvetica,sans-serif; font-size:14px; color:#909090; line-height:1.5;">Training modules, policies, and past bulletins.</p>`
+        + `<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;"><tr><td align="center" style="border:1px solid #C09010; border-radius:4px; padding:10px 22px; line-height:1; font-family:Arial,Helvetica,sans-serif; font-size:14px; font-weight:700;"><a href="${portalHref}" style="color:#D4A420; text-decoration:none;">Visit Portal</a></td></tr></table></td>`
+        + `<td width="200" valign="top" align="center" style="padding-left:24px;"><table cellpadding="0" cellspacing="0" border="0" style="border:4px solid #C09010;background-color:#FFFFFF;" bgcolor="#FFFFFF"><tr><td style="padding:8px;" id="nl-qr" data-qr-size="90"></td></tr></table><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-top:12px;font-size:9px;color:#909090;letter-spacing:0.08em;text-transform:uppercase;font-family:Arial,Helvetica,sans-serif;font-weight:700;">Scan for Portal</td></tr></table></td>`
+      + `</tr><tr><td colspan="2" align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;font-family:Arial,Helvetica,sans-serif;">Disclaimer: The above content is curated and created with AI</td></tr></table></td></tr>`
+      + `<tr><td bgcolor="#D4A420" style="background:linear-gradient(135deg,#D4A420,#C09010);background-color:#D4A420;height:6px;line-height:6px;font-size:0;">&nbsp;</td></tr>`;
+
+    return `${nlOuterOpen()}<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#FFFFFF" style="background:#FFFFFF;">`
+      + masthead + heading + threatRow + scene + caption + reportCta + footer
+      + `</table>${nlOuterClose()}`;
+  }
+
+  const ADVISORY_PLACEHOLDER = {
+    cveId: '', cveIds: [], cvss: '', severity: 'Advisory',
+    title: 'No advisories selected',
+    description: 'Choose a source and severity, fetch advisories, then select the CVEs to generate.',
+    references: [], pubDate: '', source: ''
+  };
+
+  function buildAdvisory(c, arts, wo, lk, poster, qr, illus) {
+    c = c || {};
+    const items = (Array.isArray(arts) ? arts.filter(Boolean) : []);
+    const list = items.length ? items : [ADVISORY_PLACEHOLDER];
+    const black = (inner, pad) => `<tr><td align="center" bgcolor="#000000" style="background-color:#000000;padding:${pad || '40px 20px'};">${inner}</td></tr>`;
+    const units = list.map(it => black(advisoryUnit(it))).join(stoneSpacerTr());
+    // Advisory pages intentionally omit the Report-to-SOC CTA and the portal/QR
+    // footer used by the awareness newsletters — they are a per-CVE technical
+    // bulletin, not an awareness mailer.
+    return `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#000000" style="background-color:#000000;">${units}</table>`;
+  }
+
+  NB.registerTemplate('advisory',     buildAdvisory);
   NB.registerTemplate('poster',       buildCorporateAlert);
   NB.registerTemplate('people',       buildPeopleTalking);
   NB.registerTemplate('knowbe4',      buildKnowBe4Style);
@@ -3012,4 +3382,6 @@ ${redFlagsRowsHtml}
   NB.registerTemplate('gen_strong_passwords', buildGenStrongPasswords);
   NB.registerTemplate('gen_vishing', buildGenVishing);
   NB.registerTemplate('gen_social_engineering', buildGenSocialEngineering);
+  NB.registerTemplate('gen_microlearning', buildGenMicrolearning);
+  NB.registerTemplate('mfa_extra_step', buildMfaExtraStep);
 })();

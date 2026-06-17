@@ -44,9 +44,15 @@ App.Slider = (() => {
     const renderSlide = typeof opts.renderSlide === 'function' ? opts.renderSlide : () => {};
     const onSelect = typeof opts.onSelect === 'function' ? opts.onSelect : () => {};
     const onPreview = typeof opts.onPreview === 'function' ? opts.onPreview : null;
+    // Opt-in flip: when both are provided, clicking the centred card flips it to a
+    // caller-rendered back face instead of selecting. renderBack(backEl, item,
+    // { close, index }) returns truthy if this item is flippable; a falsy return
+    // means the item selects normally (so a slider can mix flip + non-flip cards).
+    const renderBack = typeof opts.renderBack === 'function' ? opts.renderBack : null;
+    const flipEnabled = !!opts.flipOnSelect && !!renderBack;
 
     // ── Build DOM ──
-    const root = el('div', 'tpl-slider', { tabindex: '0', role: 'group', 'aria-roledescription': 'carousel' });
+    const root = el('div', `tpl-slider${flipEnabled ? ' tpl-slider--flip' : ''}`, { tabindex: '0', role: 'group', 'aria-roledescription': 'carousel' });
     const prevBtn = el('button', 'slider--btn slider--btn__prev', { type: 'button', 'aria-label': 'Previous template' });
     const nextBtn = el('button', 'slider--btn slider--btn__next', { type: 'button', 'aria-label': 'Next template' });
     prevBtn.innerHTML = ARROW_PREV;
@@ -60,17 +66,24 @@ App.Slider = (() => {
 
     const slideNodes = [];
     const infoNodes = [];
+    // Per-slide flip bookkeeping: { rendered, flippable } decided lazily on first
+    // click of the centred card.
+    const backState = [];
     // Track swipe so a drag doesn't also register as a select-click.
     let dragX = null;
     let swiped = false;
 
-    items.forEach((item) => {
+    items.forEach((item, i) => {
       const slide = el('div', 'slide', { 'data-id': item.id });
-      slide.innerHTML =
-        '<div class="slide__inner">' +
-          '<div class="slide--image__wrapper"><div class="slide--placeholder">…</div></div>' +
-          '<span class="slide--selected-badge">✓ Selected</span>' +
-        '</div>';
+      const frontInner =
+        '<div class="slide--image__wrapper"><div class="slide--placeholder">…</div></div>' +
+        '<span class="slide--selected-badge">✓ Selected</span>';
+      slide.innerHTML = flipEnabled
+        ? '<div class="slide__inner">'
+            + '<div class="slide__face slide__front">' + frontInner + '</div>'
+            + '<div class="slide__face slide__back"></div>'
+          + '</div>'
+        : '<div class="slide__inner">' + frontInner + '</div>';
 
       const info = el('div', 'slide-info', { 'data-id': item.id });
       const title = (item.title || item.id || '');
@@ -94,7 +107,26 @@ App.Slider = (() => {
 
       // Left-click anywhere on the poster selects that template for generation
       // (a real swipe sets `swiped`, which suppresses the trailing click).
-      slide.addEventListener('click', () => { if (swiped) return; onSelect(item); });
+      // In flip mode: a side card centres first; the centred card flips to its
+      // back face (lazily rendered) when flippable, else selects normally.
+      slide.addEventListener('click', () => {
+        if (swiped) return;
+        if (flipEnabled) {
+          if (i !== currentIndex) { goTo(i); return; }
+          if (!backState[i] || !backState[i].rendered) {
+            const backEl = slide.querySelector('.slide__back');
+            let flippable = false;
+            try {
+              flippable = backEl
+                ? !!renderBack(backEl, item, { close: () => slide.classList.remove('is-flipped'), index: i })
+                : false;
+            } catch (_e) { flippable = false; }
+            backState[i] = { rendered: true, flippable };
+          }
+          if (backState[i].flippable) { slide.classList.toggle('is-flipped'); return; }
+        }
+        onSelect(item);
+      });
 
       slides.appendChild(slide);
       infos.appendChild(info);
@@ -148,6 +180,8 @@ App.Slider = (() => {
     function goTo(i) {
       const next = Math.max(0, Math.min(N - 1, i));
       if (next === currentIndex) return;
+      // Never leave a card flipped once it scrolls off-centre.
+      if (flipEnabled) slideNodes.forEach((s) => s.classList.remove('is-flipped'));
       currentIndex = next;
       layout();
     }
