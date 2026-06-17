@@ -232,6 +232,30 @@ test("every entry HTML carries a meta Content-Security-Policy", () => {
   assert.deepEqual(missing, [], `Meta CSP missing from: ${missing.join(", ")}`);
 });
 
+// ─── 6b. CSP connect-src allows local OpenAI-compatible model servers ───────
+
+test("every entry HTML connect-src permits local http model servers (Ollama/LM Studio/vLLM)", () => {
+  // The Custom (OpenAI-compatible) provider's headline use case is a LOCAL model
+  // server — Ollama (http://localhost:11434, the config placeholder), LM Studio
+  // (:1234), vLLM (:8000), LiteLLM (:4000). These serve over PLAIN http on
+  // localhost, so the page's CSP connect-src must allow them or the browser kills
+  // the fetch before it leaves (TypeError → "unreachable"). The blanket `https:`
+  // token only covers remote https endpoints (OpenRouter/Groq), never local http.
+  const failures = [];
+  for (const file of ENTRY_HTML) {
+    const text = readFileSync(path.join(rootDir, file), "utf8");
+    const m = text.match(/connect-src([^;]*);/i);
+    if (!m) { failures.push(`${file}: no connect-src directive`); continue; }
+    const directive = m[1];
+    for (const origin of ["http://localhost:*", "http://127.0.0.1:*"]) {
+      if (!directive.includes(origin)) {
+        failures.push(`${file}: connect-src missing ${origin}`);
+      }
+    }
+  }
+  assert.deepEqual(failures, [], `connect-src must allow local model servers:\n${failures.join("\n")}`);
+});
+
 // ─── 7. CDN scripts carry SRI integrity hashes ──────────────────────────────
 
 test("every cdnjs.cloudflare.com reference in entry HTML carries SRI (sha384) + anonymous crossorigin", () => {
