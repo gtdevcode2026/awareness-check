@@ -14,35 +14,33 @@ security advisories.
   so there is **no `npm install`** and **no Node.js** needed just to view it.
   (Node.js is only for development: tests, linting, the dev server.)
 
-## Two ways to open it — please read
+## Two ways to open it
 
-There are two things you might try. **Only one works.**
+**Both work.** The only difference is whether the **live news / CVE feeds** (and
+the optional AI features) load.
 
-### ❌ Double-clicking `awareness/index.html` (opening the file directly)
+### ✅ Double-clicking `awareness/index.html` (opening the file directly)
 
 - The page opens at a `file://…` address (read straight from your disk).
-- **Why it fails:** for security, browsers **refuse to run a page's program files
-  (its JavaScript) when the page is opened directly from disk.** With its code
-  blocked, the app never starts.
-- **Result: a blank or broken screen.** Nothing loads — not the buttons, not the
-  newsletter builder, not the advisory generator, not the news feeds.
-- **Do not use this method.** It is not a bug you can work around; it is how every
-  modern browser behaves for files opened off the disk.
+- **The app runs.** Building newsletters, posters, and security advisories;
+  editing; and exporting files (`.html`, `.eml`, the `send_advisories.py` sender)
+  all work — fully offline.
+- **The one limit:** the live **news / CVE feeds** and the optional **AI**
+  features need a network call the browser will not make from a `file://` page, so
+  those stay empty. Everything you build or paste in by hand still works.
+- Fine if you just want to build and export without the live feeds.
 
-### ✅ Launching with the script — `run.py`
+### ✅ Launching with the script — `run.py` (recommended)
 
 - Running `run.py` starts a small **local web server** and opens the app at
   **http://127.0.0.1:4173**.
-- **Why this is needed / why it works:** the browser will only run the app's code
-  when the page is **served over http**, not read from disk. `run.py` does that
-  serving for you — so the browser now trusts and runs everything.
-- **Result: the full app works** — building newsletters and posters, the security
-  advisory generator, exporting files (`.html`, `.eml`, the `send_advisories.py`
-  sender), and (when you're online) fetching live **news and CVE feeds**.
-- This is the **supported way** to run it.
+- **Everything from double-click mode, plus** the live **news / CVE feeds** and AI
+  features — because the page is now **served over http**, the browser allows those
+  network calls.
+- Use this when you want the feeds to load. This is the **supported way** to run it.
 
-> **In one line:** the app must be *served*, not *opened from disk*. `run.py` serves
-> it for you — run the script, then use the page it opens.
+> **In one line:** double-click runs the app for building and exporting; use
+> `run.py` when you also want the live feeds.
 
 ## How to run
 
@@ -103,8 +101,8 @@ Full developer docs (testing, deployment) live in
 
 ## Notes
 
-- The app is **static** but must be **served over http** — double-clicking
-  `awareness/index.html` will not work (see "Two ways to open it" above). `run.py`
-  serves it for you.
+- The app is **static**. Double-clicking `awareness/index.html` runs it for
+  building and exporting; serving it with `run.py` over http additionally enables
+  the live **news / CVE feeds** and AI (see "Two ways to open it" above).
 - Optional AI features need your own API key, entered in the app's settings
   (nothing is committed to this repo).
