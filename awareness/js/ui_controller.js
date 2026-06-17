@@ -1342,7 +1342,12 @@ App.UI = (() => {
     const aiKeyEl = document.getElementById('ai-key');
     const baseUrlEl = document.getElementById('ai-base-url');
     const modelEl = document.getElementById('ai-model');
-    if (providerEl && cfg.provider) providerEl.value = cfg.provider;
+    if (providerEl && cfg.provider) {
+      // Coerce an unknown/removed provider (e.g. a previously-saved 'custom')
+      // to the first available option so the dropdown never renders blank.
+      const known = Array.from(providerEl.options).some((o) => o.value === cfg.provider);
+      providerEl.value = known ? cfg.provider : (providerEl.options[0] && providerEl.options[0].value) || 'claude';
+    }
     // Base URL + model are non-secret and restored straight from the persisted
     // (localStorage) settings.
     if (baseUrlEl) baseUrlEl.value = cfg.customBaseUrl || '';
