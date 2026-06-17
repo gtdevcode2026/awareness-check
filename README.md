@@ -12,11 +12,7 @@ A static web app for creating security-awareness newsletters and posters.
   library, so there is **no `npm install`** and **no Node.js** needed just to view
   it. (Node.js is only for development: tests, linting, the dev server.)
 
-> ⚠️ **Do NOT double-click `awareness/index.html`.**
-> Opening the page directly from disk (a `file://` address) will load a blank or
-> broken screen — the browser blocks the app's scripts and data loading over
-> `file://`. The app must be **served over http**, which `run.py` (below) does for
-> you, then open **http://127.0.0.1:4173**.
+
 
 ## How to run
 
