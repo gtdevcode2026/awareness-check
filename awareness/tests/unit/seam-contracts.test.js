@@ -192,6 +192,28 @@ test("Seam: App.AISummarizer surfaces generateTips + estimateLevel via the local
   assert.ok(Array.isArray(tips) && tips.length > 0, "generateTips returned empty");
 });
 
+// ─── Seam 4b: model-listing surface (config "Load models") ──────────────────
+
+test("Seam: App.AISummarizer exposes resolveModelsUrl + listModels, App.UI exposes loadCustomModels", () => {
+  // AI core side: the model-listing helpers behind the Config "Load models" button.
+  const ctxAI = createContext();
+  loadScript(ctxAI, "js/ai/prompts.js");
+  loadScript(ctxAI, "js/ai/local_fallbacks.js");
+  loadScript(ctxAI, "js/ai_summarizer.js");
+  const AS = ctxAI.App.AISummarizer;
+  assert.equal(typeof AS.resolveModelsUrl, "function", "App.AISummarizer.resolveModelsUrl missing");
+  assert.equal(typeof AS.listModels, "function", "App.AISummarizer.listModels missing");
+  // A representative derivation must stay stable (the loopback relay base).
+  assert.equal(AS.resolveModelsUrl("http://127.0.0.1:8799/v1"), "http://127.0.0.1:8799/v1/models");
+
+  // UI side: the onclick wrapper referenced by config.html must still exist.
+  const ctxUI = createContext();
+  loadScript(ctxUI, "js/utils.js");
+  loadScript(ctxUI, "js/translation_metrics.js");
+  loadScript(ctxUI, "js/ui_controller.js");
+  assert.equal(typeof ctxUI.App.UI.loadCustomModels, "function", "App.UI.loadCustomModels wrapper missing");
+});
+
 // ─── Seam 5: ui ai_experiment module ────────────────────────────────────────
 
 test("Seam: App.UIAIExperiment exposes the experiment-controls surface", () => {

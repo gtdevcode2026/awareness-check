@@ -16,9 +16,10 @@ there is no equivalent of the client's:
 So when the custom AI endpoint uses a self-signed / internal-CA certificate, a
 browser fetch fails on the cert and there is no JS-side override. This relay is
 the bridge (same idea as scripts/smtp_relay_server.py for email): the browser
-POSTs to this loopback server, and the relay forwards the request to the real
-endpoint, then returns the upstream JSON. The real base URL + API key stay here
-(read from env), not in the browser.
+POSTs chat-completions to this loopback server (and GETs the model list from
+.../models), and the relay forwards the request to the real endpoint, then
+returns the upstream JSON. The real base URL + API key stay here (read from
+env), not in the browser.
 
 TLS: secure by default
 -----------------------
@@ -99,6 +100,21 @@ def normalize_chat_url(base):
     return t + "/v1/chat/completions"
 
 
+def normalize_models_url(base):
+    """Mirror the app's resolveModelsUrl(): derive <base>/models from a bare
+    host, a '/v1' (or '/api/v2') base, or a full chat/completions URL."""
+    t = (base or "").strip().rstrip("/")
+    if not t:
+        return ""
+    if t.endswith("/models"):
+        return t
+    if t.endswith("/chat/completions"):
+        t = t[: -len("/chat/completions")]
+    if re.search(r"/v\d+$", t):
+        return t + "/models"
+    return t + "/v1/models"
+
+
 def make_ssl_context():
     """Verify the upstream cert by default (optionally against AI_RELAY_CA_BUNDLE).
     Only when AI_RELAY_INSECURE_SKIP_VERIFY is set do we reproduce verify=False."""
@@ -138,10 +154,34 @@ def forward_chat(body_bytes, incoming_auth):
         return exc.code, exc.read(), ctype
 
 
+def forward_models(incoming_auth):
+    """Forward a GET <upstream>/models request and return
+    (status, raw_response_bytes, content_type)."""
+    url = normalize_models_url(UPSTREAM_BASE)
+    if not url:
+        raise ValueError("OPENAI_BASE_URL is not set. Start the relay with the real endpoint, e.g. "
+                         'OPENAI_BASE_URL="https://host/v1".')
+
+    req = urllib.request.Request(url, method="GET")
+    if UPSTREAM_KEY:
+        req.add_header("Authorization", f"Bearer {UPSTREAM_KEY}")
+    elif incoming_auth:
+        req.add_header("Authorization", incoming_auth)
+
+    ctx = make_ssl_context()
+    try:
+        with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
+            ctype = resp.headers.get("Content-Type", "application/json")
+            return resp.status, resp.read(), ctype
+    except urllib.error.HTTPError as exc:
+        ctype = exc.headers.get_content_type() if exc.headers else "application/json"
+        return exc.code, exc.read(), ctype
+
+
 class RelayHandler(BaseHTTPRequestHandler):
     def _cors(self):
         self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
+        self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
     def _json(self, status, obj):
@@ -167,6 +207,23 @@ class RelayHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self):
+        # A request to <something>/models is forwarded upstream so the app can
+        # list available models; any other GET is the loopback health check.
+        if self.path.rstrip("/").endswith("/models"):
+            try:
+                status, raw, ctype = forward_models(self.headers.get("Authorization"))
+                print(f"  [AI] {status}  ->  {normalize_models_url(UPSTREAM_BASE)}")
+                return self._passthrough(status, raw, ctype)
+            except urllib.error.URLError as exc:
+                hint = ""
+                if isinstance(getattr(exc, "reason", None), ssl.SSLError):
+                    hint = (" (TLS verification failed — point AI_RELAY_CA_BUNDLE at your internal CA, "
+                            "or set AI_RELAY_INSECURE_SKIP_VERIFY=1 as a last resort)")
+                print(f"  [ERROR] {exc}{hint}", file=sys.stderr)
+                return self._json(502, {"error": {"message": f"Could not reach upstream AI endpoint: {exc.reason}{hint}"}})
+            except Exception as exc:  # noqa: BLE001 — surface any failure to the app
+                print(f"  [ERROR] {exc}", file=sys.stderr)
+                return self._json(502, {"error": {"message": str(exc)}})
         # Tiny health check so you can confirm the relay is up in a browser.
         self._json(200, {
             "ok": True,
