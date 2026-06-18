@@ -1396,6 +1396,16 @@ App.UI = (() => {
     else if (provider === 'openai') url = 'https://api.openai.com/v1/chat/completions';
     else url = App.AISummarizer.normalizeChatCompletionsUrl(dom.baseUrl);
 
+    // The custom chat probe needs a model. Guide the user to Load models / pick
+    // one rather than firing the probe just to get a bare "No model set".
+    if (provider === 'custom' && !dom.model) {
+      const msg = 'Pick a model first — click "Load models" above and choose one (or type a model name), then Test connection.';
+      if (statusEl) { statusEl.textContent = msg; statusEl.style.color = '#b3261e'; }
+      if (debugEl) { debugEl.style.display = 'none'; debugEl.textContent = ''; }
+      showToast(msg, true);
+      return;
+    }
+
     if (statusEl) { statusEl.textContent = 'Testing connection…'; statusEl.style.color = ''; }
     if (debugEl) { debugEl.style.display = 'none'; debugEl.textContent = ''; }
 

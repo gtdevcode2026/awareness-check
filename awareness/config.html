@@ -487,14 +487,14 @@
         <div class="toggle"><span>Enable AI</span><label><input type="checkbox" id="feat-ai" checked></label></div>
         <div class="field"><label>AI Provider</label><select id="ai-provider"><option value="claude">Claude (Anthropic)</option><option value="openai">GPT-4o Mini (OpenAI)</option><option value="custom">Custom (OpenAI-compatible)</option></select></div>
         <div class="field" id="ai-custom-base-field" style="display:none"><label>Custom Base URL</label><input id="ai-base-url" placeholder="http://localhost:11434" spellcheck="false" autocomplete="off"><p class="title-sub" style="margin:.35rem 0 0">OpenAI-compatible endpoint — Ollama, OpenRouter, LM Studio, vLLM, LiteLLM, Groq… Browser calls need CORS enabled on the server (for Ollama: <code>OLLAMA_ORIGINS</code>).</p></div>
-        <div class="field" id="ai-custom-model-field" style="display:none"><label>Custom Model</label><input id="ai-model" placeholder="llama3.1" spellcheck="false" autocomplete="off"></div>
+        <div class="field"><label>AI API Key</label><input type="password" id="ai-key" placeholder="sk-... (leave blank for keyless local servers)" autocomplete="new-password" spellcheck="false"></div>
         <div class="field" id="ai-custom-models-field" style="display:none">
           <label>Available Models</label>
           <button type="button" class="btn" id="ai-load-models-btn" onclick="App.UI.loadCustomModels()">Load models</button>
           <select id="ai-model-list" style="display:none;margin-top:.4rem"></select>
-          <p class="title-sub" id="ai-models-status" style="margin:.35rem 0 0" aria-live="polite">Fetches <code>GET &lt;base&gt;/models</code> and lets you pick one. Leave blank to type a model name above instead.</p>
+          <p class="title-sub" id="ai-models-status" style="margin:.35rem 0 0" aria-live="polite">Set the Base URL (+ key) above, then fetch <code>GET &lt;base&gt;/models</code> and pick one. Or type a model name in the field below.</p>
         </div>
-        <div class="field"><label>AI API Key</label><input type="password" id="ai-key" placeholder="sk-... (leave blank for keyless local servers)" autocomplete="new-password" spellcheck="false"></div>
+        <div class="field" id="ai-custom-model-field" style="display:none"><label>Model</label><input id="ai-model" placeholder="llama3.1" spellcheck="false" autocomplete="off"><p class="title-sub" style="margin:.35rem 0 0">Auto-filled when you pick from Available Models. Type here to override, or if the list comes back empty.</p></div>
         <div class="save-actions compact">
           <button class="btn" onclick="App.UI.saveAISettings()">Save AI Settings</button>
           <button type="button" class="btn" id="ai-custom-test-btn" onclick="App.UI.testCustomAIConnection()">Test connection</button>
