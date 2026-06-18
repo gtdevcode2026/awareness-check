@@ -183,6 +183,77 @@ App.AISummarizer = (() => {
     return checkCustomEndpoint(merged);
   }
 
+  // Derive the OpenAI-style "list models" URL (GET <base>/models) from a base
+  // URL, mirroring normalizeChatCompletionsUrl's tolerance. Accepts a bare host,
+  // a versioned base ('/v1', '/api/v2'), a full chat/completions URL, or an
+  // already-resolved /models URL.
+  function resolveModelsUrl(baseUrl) {
+    const trimmed = String(baseUrl || '').trim().replace(/\/+$/, '');
+    if (!trimmed) return '';
+    if (/\/models$/.test(trimmed)) return trimmed;
+    const noChat = trimmed.replace(/\/chat\/completions$/, '');
+    if (/\/v\d+$/.test(noChat)) return `${noChat}/models`;
+    return `${noChat}/v1/models`;
+  }
+
+  // Normalize whatever a /models endpoint returns into a plain list of model ids.
+  // Tolerates the OpenAI `{data:[...]}` shape, a `{models:[...]}` wrapper, or a
+  // bare array; items may be strings or objects keyed by id/name/model. Blanks
+  // are dropped and duplicates collapsed while preserving first-seen order.
+  function parseModelsList(parsed) {
+    let arr = [];
+    if (Array.isArray(parsed)) arr = parsed;
+    else if (parsed && Array.isArray(parsed.data)) arr = parsed.data;
+    else if (parsed && Array.isArray(parsed.models)) arr = parsed.models;
+    const out = [];
+    const seen = new Set();
+    for (const item of arr) {
+      let id = '';
+      if (typeof item === 'string') id = item;
+      else if (item && typeof item === 'object') id = item.id || item.name || item.model || '';
+      id = String(id || '').trim();
+      if (!id || seen.has(id)) continue;
+      seen.add(id);
+      out.push(id);
+    }
+    return out;
+  }
+
+  // Fetch the list of available models from an OpenAI-compatible endpoint.
+  // Same result-shape family as checkCustomEndpoint (never returns the key — only
+  // whether one was attached) so the UI can reuse the Test-connection messaging:
+  //   { ok: true, status, models: [ids] }
+  //   { ok: false, kind: 'config' }                — base URL missing
+  //   { ok: false, kind: 'unreachable', detail }   — CORS blocked or server down
+  //   { ok: false, kind: 'http', status }          — reachable but errored
+  //   { ok: false, kind: 'parse', detail }         — reachable but body wasn't JSON
+  async function listModels(cfg = config) {
+    const provider = (cfg && cfg.provider) || 'custom';
+    let base, key;
+    if (provider === 'openai') { base = 'https://api.openai.com/v1'; key = (cfg && cfg.openaiKey) || ''; }
+    else { base = (cfg && cfg.customBaseUrl) || ''; key = (cfg && cfg.customKey) || ''; }
+    const url = resolveModelsUrl(base);
+    const request = { url, method: 'GET', hasKey: !!key };
+    if (!url) return { ok: false, kind: 'config', detail: 'No base URL set', models: [], request };
+    try {
+      const resp = await fetch(url, { method: 'GET', cache: 'no-store', headers: openAICompatHeaders(key) });
+      let responseText = '';
+      try { if (typeof resp.text === 'function') responseText = await resp.text(); } catch (e) {}
+      if (!resp.ok) return { ok: false, kind: 'http', status: resp.status, models: [], request, responseText };
+      let parsed = null;
+      if (responseText) {
+        try { parsed = JSON.parse(responseText); }
+        catch (e) { return { ok: false, kind: 'parse', detail: 'Response was not valid JSON', models: [], request, responseText }; }
+      } else if (typeof resp.json === 'function') {
+        try { parsed = await resp.json(); }
+        catch (e) { return { ok: false, kind: 'parse', detail: 'Response was not valid JSON', models: [], request, responseText }; }
+      }
+      return { ok: true, status: resp.status || 200, models: parseModelsList(parsed), request, responseText };
+    } catch (err) {
+      return { ok: false, kind: 'unreachable', detail: String((err && err.message) || err || 'network error'), models: [], request };
+    }
+  }
+
   // Turn a connection-probe result into a clear, user-facing sentence. `opts`
   // adapts the wording per provider: `label` names the target (defaults to the
   // custom-server wording for back-compat) and `corsHint` is the trailing CORS
@@ -3683,6 +3754,8 @@ Output: JSON only, no markdown. Key allowed: watchouts (array of exactly 3 strin
     checkCustomEndpoint,
     checkClaudeEndpoint,
     checkAIEndpoint,
+    resolveModelsUrl,
+    listModels,
     describeCustomEndpointResult,
     summarizeArticle,
     summarizeAll,

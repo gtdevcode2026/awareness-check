@@ -1322,7 +1322,7 @@ App.UI = (() => {
   // selected (no-op on pages where the fields are hidden inputs without wrappers).
   function syncCustomProviderFields() {
     const isCustom = (document.getElementById('ai-provider')?.value || 'claude') === 'custom';
-    for (const id of ['ai-custom-base-field', 'ai-custom-model-field']) {
+    for (const id of ['ai-custom-base-field', 'ai-custom-model-field', 'ai-custom-models-field']) {
       const el = document.getElementById(id);
       if (el) el.style.display = isCustom ? '' : 'none';
     }
@@ -1444,6 +1444,69 @@ App.UI = (() => {
       debugEl.style.display = '';
     }
     showToast(msg, !result.ok);
+  }
+
+  // Fetch the available models from the custom (OpenAI-compatible) endpoint's
+  // /models route and offer them as a dropdown. The #ai-model text input stays
+  // the single source of truth — the dropdown just writes the chosen id into it
+  // — so persistence (saveAISettings) and the hidden-input pages are unaffected.
+  // On any failure the user can still type a model name by hand.
+  async function loadCustomModels() {
+    const statusEl = document.getElementById('ai-models-status');
+    const selectEl = document.getElementById('ai-model-list');
+    const modelEl = document.getElementById('ai-model');
+    const dom = readAISettingsDom();
+    const url = App.AISummarizer.resolveModelsUrl(dom.baseUrl);
+    if (statusEl) { statusEl.textContent = 'Loading models…'; statusEl.style.color = ''; }
+    if (selectEl) selectEl.style.display = 'none';
+
+    const result = await App.AISummarizer.listModels(aiSummarizerConfigFromDom(dom));
+
+    if (!result.ok) {
+      const msg = result.kind === 'parse'
+        ? `Reached ${url || 'the endpoint'} but the response wasn't a JSON model list.`
+        : App.AISummarizer.describeCustomEndpointResult(result, url, { label: 'models endpoint' });
+      if (statusEl) { statusEl.textContent = msg; statusEl.style.color = '#b3261e'; }
+      showToast(msg, true);
+      return;
+    }
+
+    const models = result.models || [];
+    if (!models.length) {
+      const msg = `Connected to ${url}, but it returned no models. You can still type a model name manually.`;
+      if (statusEl) { statusEl.textContent = msg; statusEl.style.color = '#b3261e'; }
+      showToast(msg, true);
+      return;
+    }
+
+    if (selectEl) {
+      // Keep whatever the user already typed selectable, even if the endpoint
+      // doesn't list it, by surfacing it as a "(current)" option at the top.
+      const current = modelEl ? modelEl.value.trim() : '';
+      const ids = (current && !models.includes(current)) ? [current, ...models] : models;
+      while (selectEl.firstChild) selectEl.removeChild(selectEl.firstChild);
+      for (const id of ids) {
+        const opt = document.createElement('option');
+        opt.value = id;
+        opt.textContent = (id === current && !models.includes(current)) ? `${id} (current)` : id;
+        selectEl.appendChild(opt);
+      }
+      selectEl.value = current && ids.includes(current) ? current : models[0];
+      if (modelEl) modelEl.value = selectEl.value;
+      selectEl.style.display = '';
+      if (!selectEl._modelSyncBound) {
+        selectEl.addEventListener('change', () => {
+          const m = document.getElementById('ai-model');
+          if (m) m.value = selectEl.value;
+          flagUnsavedChanges(true);
+        });
+        selectEl._modelSyncBound = true;
+      }
+      flagUnsavedChanges(true);
+    }
+    const msg = `Loaded ${models.length} model${models.length === 1 ? '' : 's'}. Pick one and Save AI Settings.`;
+    if (statusEl) { statusEl.textContent = msg; statusEl.style.color = '#1a7f37'; }
+    showToast(msg);
   }
 
   // AI experiment control block lives in js/ui/ai_experiment.js (App.UIAIExperiment).
@@ -3339,7 +3402,7 @@ Now translate the content inside <source> into ${targetLanguageName} following a
     saveDraft, saveCopy, saveProjectVersion, loadSelectedDraft, pickDraftToLoad,
     editorLoadSelectedProjectVersion, editorRestoreSelectedVersionAsLatest,
     saveSMTPConfig, sendTestEmail, sendNewsletter, buildAdvisorySenderScript, downloadAdvisoryEml,
-    saveAISettings, testCustomAIConnection, saveAIExperimentControl, triggerAIRollback, exportAIExperimentEvidence, saveCentralConfig,
+    saveAISettings, testCustomAIConnection, loadCustomModels, saveAIExperimentControl, triggerAIRollback, exportAIExperimentEvidence, saveCentralConfig,
     addSidebarCriticalKeyword, addSidebarContextKeyword, addSidebarNoiseKeyword,
     removeSidebarCriticalKeyword, removeSidebarContextKeyword, removeSidebarNoiseKeyword,
     resetSidebarKeywords,
