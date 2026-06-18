@@ -305,18 +305,24 @@ test("JSZip + qrcode are vendored locally and loaded local-first (so the zipped 
 
 // ─── 8. AI-key persistence wiring (source-level guarantees) ─────────────────
 
-test("ui_controller.js never writes aiKey under AI_SETTINGS_STORAGE_KEY", () => {
+test("ui_controller.js never writes aiKey or customBaseUrl under AI_SETTINGS_STORAGE_KEY", () => {
   const source = readFileSync(path.join(rootDir, "js/ui_controller.js"), "utf8");
-  // The persisted bundle must always strip aiKey before localStorage.setItem.
+  // The persisted bundle must strip the session-only fields (aiKey + the custom
+  // base URL) before localStorage.setItem.
   assert.match(
     source,
-    /const \{ aiKey,\s*\.\.\.persisted \}/,
-    "saveAISettings should destructure aiKey out before persisting"
+    /const \{ aiKey, customBaseUrl,\s*\.\.\.persisted \}/,
+    "saveAISettings should destructure aiKey + customBaseUrl out before persisting"
   );
   assert.match(
     source,
     /AI_KEY_SESSION_STORAGE_KEY/,
     "sessionStorage constant for the AI key must be referenced"
+  );
+  assert.match(
+    source,
+    /AI_BASE_URL_SESSION_STORAGE_KEY/,
+    "sessionStorage constant for the custom base URL must be referenced"
   );
 });
 

@@ -97,6 +97,39 @@ test.describe("security smoke", () => {
     }
   });
 
+  test("Custom Base URL entered on /config.html is session-only (not in localStorage) but survives navigation", async ({ page }) => {
+    await resetStorage(page);
+    await page.goto("/config.html", { waitUntil: "domcontentloaded" });
+    await page.selectOption("#ai-provider", "custom");
+
+    const BASE = "http://internal-gateway.example.test/asimov/api/v2";
+    await page.locator("#ai-base-url").fill(BASE);
+    await page.evaluate(() => window.saveAllConfig?.(true));
+    await page.waitForTimeout(700);
+
+    const localDump = await page.evaluate(() => {
+      const out = {};
+      for (let i = 0; i < localStorage.length; i++) {
+        const k = localStorage.key(i);
+        out[k] = localStorage.getItem(k);
+      }
+      return JSON.stringify(out);
+    });
+    expect(localDump, "Base URL must not appear anywhere in localStorage").not.toContain(BASE);
+
+    // It SHOULD live in sessionStorage so the custom provider keeps working.
+    const sessionValue = await page.evaluate(() =>
+      sessionStorage.getItem("awareness_ai_base_url_session_v1")
+    );
+    expect(sessionValue).toBe(BASE);
+
+    // And it must be restored into the (hidden) base-URL input on another page in
+    // the same session — otherwise cross-page AI would break.
+    await page.goto("/index.html", { waitUntil: "domcontentloaded" });
+    const restored = await page.evaluate(() => document.getElementById("ai-base-url")?.value || "");
+    expect(restored, "Base URL should be restored from sessionStorage on navigation").toBe(BASE);
+  });
+
   test("SMTP password entered on /config.html is never written to localStorage or IndexedDB profile entry", async ({ page }) => {
     await resetStorage(page);
     await page.goto("/config.html", { waitUntil: "domcontentloaded" });
