@@ -70,7 +70,7 @@ Important browser storage keys:
 - `awareness_custom_feed_sources_v1`
 - `awareness_keywords_v1`
 - `awareness_smtp_profile_v1` — SMTP delivery profile. **Password field is always `''` here.** The actual password lives in sessionStorage (`awareness_smtp_password_session_v1`) — see Session-only keys below.
-- `awareness_ai_settings_v1` — AI provider + model selection, plus `customBaseUrl` / `customModel` for the **Custom (OpenAI-compatible)** provider (Ollama, OpenRouter, LM Studio, …). Base URL and model are non-secret and persist here; the provider value is one of `claude` / `openai` / `custom`. **Does not contain `aiKey`** (which doubles as the custom key) — that lives in sessionStorage (`awareness_ai_key_session_v1`). A custom endpoint may run keyless (e.g. local Ollama). Browser-direct calls require the target to allow this origin via CORS — for Ollama set `OLLAMA_ORIGINS`.
+- `awareness_ai_settings_v1` — AI provider + `customModel` for the **Custom (OpenAI-compatible)** provider (Ollama, OpenRouter, LM Studio, …). The provider value is one of `claude` / `openai` / `custom`; the model is non-secret and persists here. **Does not contain `aiKey` or `customBaseUrl`** — both are session-only (`awareness_ai_key_session_v1` / `awareness_ai_base_url_session_v1`); the base URL points at an internal/relay endpoint that is treated as sensitive. A custom endpoint may run keyless (e.g. local Ollama). Browser-direct calls require the target to allow this origin via CORS — for Ollama set `OLLAMA_ORIGINS`.
 - `awareness_ai_experiment_control_v1`
 - `awareness_central_config_v1`
 
@@ -79,6 +79,7 @@ Important browser storage keys:
 These hold the only copies of user credentials anywhere in the app. They are never written to localStorage or IndexedDB.
 
 - `awareness_ai_key_session_v1` — the user's AI API key, restored into the `#ai-key` field by `applyAISettings` on every page that loads `ui_controller.js`.
+- `awareness_ai_base_url_session_v1` — the Custom (OpenAI-compatible) base URL, restored into the `#ai-base-url` field by `applyAISettings`. Session-only because it can be an internal/relay endpoint; still tab-scoped so the custom provider works across pages within a session.
 - `awareness_smtp_password_session_v1` — the user's SMTP password, restored into the `#smtp-password` field by `applySMTPConfig`.
 
 Both follow the same pattern: `saveAISettings` / `saveSMTPConfig` split the credential into sessionStorage and persist a sanitized object (`{ ...cfg, aiKey: '' }` / `{ ...cfg, password: '' }`) to localStorage and IndexedDB. The init code in `ui_controller.js` scrubs any legacy plaintext credential left over from older builds. See `docs/SECURITY.md` for the full policy and `tests/unit/security.test.js` + `tests/e2e/security-smoke.spec.js` for the regression locks.

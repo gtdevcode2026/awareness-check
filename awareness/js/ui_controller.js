@@ -21,6 +21,11 @@ App.UI = (() => {
   // is cleared on tab close / fresh app launch and is never written to
   // localStorage. Users must re-enter the key each time they re-open the app.
   const AI_KEY_SESSION_STORAGE_KEY = 'awareness_ai_key_session_v1';
+  // Custom Base URL is session-only too: the internal/relay endpoint is
+  // sensitive infrastructure, so it is never written to localStorage. It still
+  // lives in sessionStorage (tab-scoped) so the custom provider keeps working
+  // across pages within a session; a fresh app launch starts with it blank.
+  const AI_BASE_URL_SESSION_STORAGE_KEY = 'awareness_ai_base_url_session_v1';
   // SMTP password follows the same pattern as the AI key: stored in
   // sessionStorage only (tab-scoped), never persisted to localStorage or
   // IndexedDB. Mirrors AI_KEY_SESSION_STORAGE_KEY.
@@ -1343,12 +1348,15 @@ App.UI = (() => {
     const baseUrlEl = document.getElementById('ai-base-url');
     const modelEl = document.getElementById('ai-model');
     if (providerEl && cfg.provider) providerEl.value = cfg.provider;
-    // Base URL + model are non-secret and restored straight from the persisted
-    // (localStorage) settings.
-    if (baseUrlEl) baseUrlEl.value = cfg.customBaseUrl || '';
+    // Model is non-secret and restored straight from the persisted (localStorage)
+    // settings.
     if (modelEl) modelEl.value = cfg.customModel || '';
-    // aiKey is restored from sessionStorage (tab-scoped) only — never from
-    // localStorage. A fresh app launch starts with an empty key field.
+    // Base URL + aiKey are restored from sessionStorage (tab-scoped) only —
+    // never from localStorage. A fresh app launch starts with both blank.
+    if (baseUrlEl) {
+      try { baseUrlEl.value = sessionStorage.getItem(AI_BASE_URL_SESSION_STORAGE_KEY) || ''; }
+      catch (e) { baseUrlEl.value = ''; }
+    }
     if (aiKeyEl) {
       try {
         const sessionKey = sessionStorage.getItem(AI_KEY_SESSION_STORAGE_KEY) || '';
@@ -1367,11 +1375,16 @@ App.UI = (() => {
     const { silent = false } = options;
     try {
       const cfg = getAISettingsFromUI();
-      const { aiKey, ...persisted } = cfg;
+      // aiKey and customBaseUrl are session-only — keep both out of localStorage.
+      const { aiKey, customBaseUrl, ...persisted } = cfg;
       localStorage.setItem(AI_SETTINGS_STORAGE_KEY, JSON.stringify(persisted));
       try {
         if (aiKey) sessionStorage.setItem(AI_KEY_SESSION_STORAGE_KEY, aiKey);
         else sessionStorage.removeItem(AI_KEY_SESSION_STORAGE_KEY);
+      } catch (e) {}
+      try {
+        if (customBaseUrl) sessionStorage.setItem(AI_BASE_URL_SESSION_STORAGE_KEY, customBaseUrl);
+        else sessionStorage.removeItem(AI_BASE_URL_SESSION_STORAGE_KEY);
       } catch (e) {}
       clearUnsavedChanges();
       if (!silent) showToast('AI settings saved.');
@@ -3147,15 +3160,18 @@ Now translate the content inside <source> into ${targetLanguageName} following a
       const aiSettings = JSON.parse(localStorage.getItem(AI_SETTINGS_STORAGE_KEY) || 'null');
       if (aiSettings) {
         applyAISettings(aiSettings);
-        if (Object.prototype.hasOwnProperty.call(aiSettings, 'aiKey')) {
-          const { aiKey: _drop, ...sanitized } = aiSettings;
+        // Purge any session-only fields an older build may have written to
+        // localStorage (aiKey, customBaseUrl) — they belong in sessionStorage.
+        if (Object.prototype.hasOwnProperty.call(aiSettings, 'aiKey') ||
+            Object.prototype.hasOwnProperty.call(aiSettings, 'customBaseUrl')) {
+          const { aiKey: _dropKey, customBaseUrl: _dropUrl, ...sanitized } = aiSettings;
           localStorage.setItem(AI_SETTINGS_STORAGE_KEY, JSON.stringify(sanitized));
         }
       } else {
         applyAISettings({});
       }
       // applyAISettings() above has populated the shared DOM inputs (provider +
-      // base URL/model from localStorage, key from sessionStorage), so configure
+      // model from localStorage, base URL + key from sessionStorage), so configure
       // straight from them. A keyless custom endpoint is still usable.
       if (aiSettingsUsable()) {
         try {
