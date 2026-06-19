@@ -2756,7 +2756,7 @@ ${redFlagsRowsHtml}
         + `<td valign="bottom" align="center" width="44%" bgcolor="#0A0A0A" style="background:#0A0A0A;padding:18px 10px 0;"><img src="${assetSrc('social_engineering_hero.png')}" alt="Illustration of a person being manipulated online" width="100%" style="display:block;max-width:220px;width:100%;height:auto;border:0;margin:0 auto;"></td>`
       + `</tr></table></td></tr>`
       // Section heading above the red flags — flip-form theme, else the default
-      + `<tr><td style="padding:14px 34px 0;background:#FFFFFF;"><div style="font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:21px;line-height:1.2;letter-spacing:-0.2px;color:#0A0A0A;">{{REDFLAGHEADING}}</div><div style="width:54px;height:4px;background:#D4A420;background-color:#D4A420;font-size:0;line-height:0;margin:12px 0 0;">&nbsp;</div></td></tr>`
+      + `<tr><td align="center" style="padding:14px 34px 0;background:#FFFFFF;text-align:center;"><div style="font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:21px;line-height:1.2;letter-spacing:-0.2px;color:#0A0A0A;">{{REDFLAGHEADING}}</div><div style="width:54px;height:4px;background:#D4A420;background-color:#D4A420;font-size:0;line-height:0;margin:12px auto 0;">&nbsp;</div></td></tr>`
       // Three "red flags of this attack" rows
       + `<tr><td style="padding:20px 34px 18px;background:#FFFFFF;"><table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation">`
         + flagRow('{{REDFLAG1}}', '22px')
