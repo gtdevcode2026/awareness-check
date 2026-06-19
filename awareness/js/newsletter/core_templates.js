@@ -2921,7 +2921,7 @@ ${redFlagsRowsHtml}
     // Teller layout). Stacks on narrow widths via the 100%-max image.
     const leadStory = `${tbl()}${tbc(
       `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
-      + `<td width="232" valign="top" style="padding-right:22px;">${imgSlot(lead, 'width="232" style="display:block;width:232px;max-width:100%;height:auto;border:1px solid #0A0A0A;"', GAZETTE_LEAD_IMAGE)}</td>`
+      + `<td width="232" valign="top" style="padding-right:22px;">${imgSlot(lead, 'width="232" height="180" style="display:block;width:100%;max-width:232px;height:180px;object-fit:cover;border:1px solid #0A0A0A;"', GAZETTE_LEAD_IMAGE)}</td>`
       + `<td valign="top">${leadBody}</td>`
       + `</tr></table>`,
       'bgcolor="#FFFFFF" style="padding:24px 28px 20px;background-color:#FFFFFF;"'
