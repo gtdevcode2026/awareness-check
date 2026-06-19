@@ -799,8 +799,15 @@
         case 'size':
           if (_sel) {
             var rngS = getActiveRangeInside(_sel);
-            if (rngS) wrapRangeWithStyle(rngS, { fontSize: d.v + 'px' });
-            else _sel.style.fontSize = d.v + 'px';
+            if (rngS) {
+              // Enlarging a sub-selection (e.g. a drop-cap first letter) must NOT
+              // add any spacing. line-height:0 makes the wrapper contribute zero
+              // height to the line box, so the line never grows — the big glyph
+              // simply overflows upward instead of pushing the lines apart.
+              wrapRangeWithStyle(rngS, { fontSize: d.v + 'px', lineHeight: '0' });
+            } else {
+              _sel.style.fontSize = d.v + 'px';
+            }
             post('select', getProps(_sel));
           }
           break;
