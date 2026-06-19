@@ -2958,8 +2958,12 @@ Keep each point to max ${SD_POINT_MAX_CHARS} chars.${tipThemeClause(theme)}`;
       return slots;
     }
     if (formatId === 'gen_social_engineering') {
-      if (useAI) return aiFillSocEngEnsemble(list, mode, 0, tipTheme);
-      return localSocEngSlots(list);
+      const slots = useAI ? ((await aiFillSocEngEnsemble(list, mode, 0, tipTheme)) || {}) : localSocEngSlots(list);
+      // Poster flip-form theme drives the visible heading above the red-flag rows
+      // (exact picked preset or typed text). Absent when no theme is chosen, so the
+      // template keeps its default "Red flags of this attack" heading.
+      if (tipTheme) slots.nlSocEngRedFlagsHeading = tipTheme;
+      return slots;
     }
     if (formatId === 'newspaper') {
       if (useAI) return aiFillNewspaperSlots(list, mode);

@@ -65,6 +65,18 @@ test('AI-filled intro + 3 red flags are used when provided', () => {
   assert.ok(html.includes('Attackers phone staff pretending to be IT support'), 'AI intro is rendered');
 });
 
+test('renders the flip-form theme as the heading above the red flags', () => {
+  const html = build({ portal: 'https://p.example.com', nlSocEngRedFlagsHeading: 'How to spot a USB drop attack' }, ART);
+  assert.ok(html.includes('How to spot a USB drop attack'), 'the chosen/typed theme is shown above the red flags');
+  // It sits before the first red-flag row.
+  assert.ok(html.indexOf('How to spot a USB drop attack') < html.indexOf('redflag_ico.png'), 'heading appears above the red-flag rows');
+});
+
+test('uses a default red-flags heading when no flip-form theme was chosen', () => {
+  const html = build({ portal: 'https://p.example.com' }, ART);
+  assert.ok(html.includes('Red flags of this attack'), 'default heading present above the red flags');
+});
+
 test('falls back to sensible default intro + red flags when no AI slots are present', () => {
   const html = build({ portal: 'https://p.example.com' }, ART);
   assert.ok(html.includes('Unfortunately, social engineering is used to craft clever scams'), 'default intro');
