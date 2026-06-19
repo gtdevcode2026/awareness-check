@@ -75,6 +75,46 @@ test("toStandaloneHtml with no variant CSS is still a valid document and adds no
   assert.ok(out.includes("Plain body"));
 });
 
+test("toStandaloneHtml scrubs editor chrome baked into a pre-existing project (scripts, contenteditable, data-nl-*, chrome CSS)", () => {
+  const internals = loadInternals();
+  // Mirrors how an OLD draft/project snapshot was saved before the editor export
+  // path was hardened: the injected editor + QR <script> tags, stale
+  // contenteditable / data-nl-* attributes, and the edit-chrome outline CSS.
+  const polluted = {
+    html:
+      '<table><tr><td><p contenteditable="true" data-nl-hover="1">Lead copy</p></td>' +
+      '<td data-nl-sel="1" draggable="true">More text</td></tr></table>' +
+      '<div id="nl-qr"></div>' +
+      '<script>(function(){document.addEventListener("mousemove",function(){});})();</script>' +
+      '<script>/* qr runtime */</script>',
+    css:
+      'p{color:#222}' +
+      '[data-nl-sel="1"]{outline:2.5px solid #D4A420!important}' +
+      '[data-nl-hover="1"]{outline:1px solid rgba(255,255,255,.32)!important}' +
+      '[contenteditable="true"]{outline:2px solid rgba(212,164,32,.9)!important;caret-color:#D4A420}' +
+      '.nl-drag-ghost{opacity:.35!important}' +
+      'td{padding:8px}',
+  };
+  const out = internals.toStandaloneHtml(polluted, "en");
+  // No edit affordance survives → the downloaded file is inert on hover.
+  assert.ok(!/<script/i.test(out), "no <script> survives the export");
+  assert.ok(!/contenteditable/i.test(out), "no contenteditable attribute survives");
+  assert.ok(!/data-nl-(sel|multisel|hover|drop-inside|regen-pending)/i.test(out), "no editor data-nl-* attribute survives");
+  assert.ok(!/\sdraggable\s*=/i.test(out), "no draggable attribute survives");
+  assert.ok(!/\[data-nl-hover|\[data-nl-sel|\[contenteditable|nl-drag-ghost/i.test(out), "no edit-chrome CSS rule survives");
+  // Real content + real styling are preserved.
+  assert.ok(out.includes("Lead copy") && out.includes("More text"), "newsletter copy is preserved");
+  assert.ok(out.includes("p{color:#222}") && out.includes("td{padding:8px}"), "legitimate CSS is preserved");
+});
+
+test("toStandaloneHtml leaves clean content untouched (no false stripping)", () => {
+  const internals = loadInternals();
+  const out = internals.toStandaloneHtml(
+    { html: '<table><tr><td>Plain editorial copy</td></tr></table>', css: '.brand{color:#D4A420}' }, "en");
+  assert.ok(out.includes("Plain editorial copy"), "content preserved");
+  assert.ok(out.includes(".brand{color:#D4A420}"), "CSS preserved");
+});
+
 test("buildLanguageIndexHtml produces a viewer linking every language file", () => {
   const internals = loadInternals();
   const entries = [
