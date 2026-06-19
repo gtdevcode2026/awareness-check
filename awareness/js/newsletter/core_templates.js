@@ -2559,6 +2559,21 @@ ${redFlagsRowsHtml}
     const portalName = escapeHtml((c.pname || c.title || '').trim()) || 'Security &amp; Compliance Awareness Portal';
     const portalHref = escAttr(normalizeWebUrl((c.portal || c.portalUrl || '').trim()) || (c.soc ? 'mailto:' + String(c.soc).trim() : '#'));
 
+    // Source line under the heading: the selected article's source, linked to the
+    // article when links are enabled. Built as raw HTML (interpolated directly, not
+    // via the {{TOKEN}} loop which escapes the anchor) and omitted entirely when the
+    // article carries no source, so the layout is unchanged in that case.
+    const srcLabel = escapeHtml(String((a0 && a0.source) || '').trim());
+    const srcUrl   = String((a0 && a0.url) || '').trim();
+    const sourceInner = srcLabel
+      ? ((lk && srcUrl)
+          ? `Source: <a href="${escAttr(srcUrl)}" style="color:#C09010;font-weight:700;text-decoration:none;">${srcLabel}</a>`
+          : `Source: ${srcLabel}`)
+      : '';
+    const sourceRow = sourceInner
+      ? `<tr><td align="center" style="padding:9px 34px 0;background:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-style:italic;font-size:12px;letter-spacing:0.3px;color:#8A8A8A;">${sourceInner}</td></tr>`
+      : '';
+
     // One precaution tile = ONE gold row cell. The three goldTile()s are siblings in
     // a single <tr> (with thin spacer cells between), so the table row equalizes them
     // to the tallest — uniform height in every client and in every translated language
@@ -2581,6 +2596,7 @@ ${redFlagsRowsHtml}
       + `</tr></table></td></tr>`
       + `<tr><td bgcolor="#8A7010" style="background:#8A7010;height:1px;line-height:1px;font-size:0;">&nbsp;</td></tr>`
       + `<tr><td align="center" style="padding:26px 34px 0;background:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:28px;line-height:1.18;letter-spacing:-0.3px;color:#0A0A0A;">{{INTRO}}</td></tr>`
+      + sourceRow
       + `<tr><td style="padding:20px 22px 6px;background:#FFFFFF;"><table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"><tr>`
         + goldTile('Tip 1', '{{SECTION1_BULLET1}}')
         + `<td width="2%" style="font-size:1px;line-height:1px;">&nbsp;</td>`
