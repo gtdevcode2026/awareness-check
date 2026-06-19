@@ -2911,19 +2911,25 @@ ${redFlagsRowsHtml}
       return `Source: ${srcHtml} &middot; ${dateStr}`;
     };
 
-    const leadBody =
+    // Top of the lead: title + byline + summary sit in the right column beside
+    // the image. The "What it means for you" block is pulled OUT of this column
+    // and rendered full-width below (see leadStory), so it spans left-to-right
+    // under the photo — filling the blank space beneath the image instead of
+    // stacking only on the right.
+    const leadBodyTop =
       `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td><span style="font-size:26px;font-weight:bold;color:#0A0A0A;line-height:1.16;${NLFF}">${escapeHtml(lead.title || '')}</span></td></tr></table>`
       + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:8px;"><span style="font-size:10px;font-style:italic;letter-spacing:0.5px;color:#999999;${NLFF}">${bylineFor(lead)}</span></td></tr></table>`
-      + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:11px;"><span style="font-size:14px;color:#2A2A2A;line-height:1.72;${NLFF}">${cleanSummary(lead)}</span></td></tr></table>`
-      + whatItMeans(leadBullets);
+      + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:11px;"><span style="font-size:14px;color:#2A2A2A;line-height:1.72;${NLFF}">${cleanSummary(lead)}</span></td></tr></table>`;
 
     // Lead: image slot on the LEFT, story body on the RIGHT (Honest Stories
-    // Teller layout). Stacks on narrow widths via the 100%-max image.
+    // Teller layout). The "What it means for you" block then spans the FULL
+    // width below both cells. Stacks on narrow widths via the 100%-max image.
     const leadStory = `${tbl()}${tbc(
       `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
       + `<td width="232" valign="top" style="padding-right:22px;">${imgSlot(lead, 'width="232" style="display:block;width:232px;max-width:100%;height:auto;border:1px solid #0A0A0A;"', GAZETTE_LEAD_IMAGE)}</td>`
-      + `<td valign="top">${leadBody}</td>`
-      + `</tr></table>`,
+      + `<td valign="top">${leadBodyTop}</td>`
+      + `</tr></table>`
+      + whatItMeans(leadBullets),
       'bgcolor="#FFFFFF" style="padding:24px 28px 20px;background-color:#FFFFFF;"'
     )}${tblx()}`;
 
