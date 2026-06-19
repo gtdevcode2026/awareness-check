@@ -57,6 +57,15 @@ test('the source line sits below the heading and above the hero image', () => {
   assert.ok(iHero > iSource, 'source appears above the hero image');
 });
 
+test('every anchor in the poster declares the Arial font (uniform font across the template, incl. Outlook which resets anchors to serif)', () => {
+  const html = build({ portal: 'https://p.example.com' }, ART, { useLinks: true });
+  const anchors = html.match(/<a\b[^>]*>/gi) || [];
+  assert.ok(anchors.length >= 3, 'has the source, CTA, and Visit Portal anchors');
+  for (const a of anchors) {
+    assert.ok(/font-family\s*:\s*Arial/i.test(a), `anchor missing Arial font-family: ${a}`);
+  }
+});
+
 test('omits the source line entirely when the article has no source', () => {
   const html = build({ portal: 'https://p.example.com' }, [{ title: 'Strong passwords matter', type: 'Password & MFA' }], { useLinks: true });
   assert.ok(!html.includes('Source:'), 'no "Source:" label when the article has no source');
