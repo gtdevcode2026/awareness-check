@@ -110,6 +110,11 @@ App.Editor = (function () {
 .ed-prop input[type="range"]{flex:1;accent-color:#C09010}
 .ed-clr-x{background:transparent;border:1px solid rgba(255,255,255,.1);color:#888;border-radius:3px;padding:.17rem .3rem;cursor:pointer;font-size:.6rem;flex-shrink:0}
 .ed-clr-x:hover{border-color:#C0392B;color:#C0392B}
+.ed-clr-swatches{display:flex;flex-wrap:wrap;gap:4px;margin-top:.34rem}
+.ed-clr-swatches:empty{display:none}
+.ed-swatch{width:18px;height:18px;border-radius:4px;border:1px solid rgba(255,255,255,.22);cursor:pointer;padding:0;flex-shrink:0}
+.ed-swatch:hover{border-color:#D4A420;transform:translateY(-1px)}
+.ed-swatch-lbl{font-size:.55rem;color:rgba(255,255,255,.3);width:100%;margin:.1rem 0 0;letter-spacing:.04em;text-transform:uppercase}
 .ed-fmt-row{display:flex;gap:.26rem}
 .ed-fmt{flex:1;padding:.4rem;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:4px;color:#ccc;cursor:pointer;font-size:.76rem;transition:all .12s;font-family:'DM Sans',sans-serif;text-align:center}
 .ed-fmt:hover{border-color:rgba(212,164,32,.4);color:#D4A420}
@@ -308,6 +313,8 @@ App.Editor = (function () {
               <input type="color" id="prop-color" oninput="App.Editor._prop('color',this.value)">
               <input type="text" class="ed-hex" id="prop-color-hex" maxlength="9" placeholder="#ffffff" oninput="App.Editor._propHex('color',this.value)">
             </div>
+            <!-- Saved/recent colours: every applied colour code is remembered and rendered here as a one-click swatch. -->
+            <div class="ed-clr-swatches" id="ed-color-swatches" aria-label="Recent colors"></div>
           </div>
 
           <div class="ed-prop">
@@ -1681,7 +1688,67 @@ App.Editor = (function () {
   /* ────────────────────────────────────────────────────────
      EDITOR ACTIONS (called from onclick in injected HTML)
      ──────────────────────────────────────────────────────── */
-  function _prop(cmd, val) { if (!_selectedProps) return; _pushUndo(); _post(cmd, val); _dirty = true; _status('Unsaved changes'); }
+  // ── Saved / recent colours ────────────────────────────────────────────────
+  // Every text colour the user applies is remembered (most-recent-first, deduped,
+  // capped) in localStorage and rendered as one-click swatches under the picker,
+  // so a colour code can be re-applied without re-typing it.
+  const RECENT_COLORS_KEY = 'awareness_editor_recent_colors_v1';
+  const RECENT_COLORS_MAX = 10;
+
+  function _loadRecentColors() {
+    try {
+      const a = JSON.parse(localStorage.getItem(RECENT_COLORS_KEY) || '[]');
+      return Array.isArray(a) ? a.filter(c => typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c)) : [];
+    } catch (e) { return []; }
+  }
+
+  function _rememberColor(hex) {
+    if (!hex || !/^#[0-9a-fA-F]{3,8}$/.test(hex)) return;
+    const norm = hex.toLowerCase();
+    let list = _loadRecentColors().filter(c => c.toLowerCase() !== norm);
+    list.unshift(norm);
+    list = list.slice(0, RECENT_COLORS_MAX);
+    try { localStorage.setItem(RECENT_COLORS_KEY, JSON.stringify(list)); } catch (e) {}
+    _renderRecentColors();
+  }
+
+  function _renderRecentColors() {
+    const box = document.getElementById('ed-color-swatches');
+    if (!box) return;
+    while (box.firstChild) box.removeChild(box.firstChild);
+    const list = _loadRecentColors();
+    if (!list.length) return;
+    const lbl = document.createElement('p');
+    lbl.className = 'ed-swatch-lbl';
+    lbl.textContent = 'Saved colors';
+    box.appendChild(lbl);
+    list.forEach(hex => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'ed-swatch';
+      b.style.background = hex;
+      b.title = hex;
+      b.addEventListener('click', () => _applyRecentColor(hex));
+      box.appendChild(b);
+    });
+  }
+
+  // Apply a saved swatch: sync the picker inputs, then route through _prop so the
+  // colour reaches the selected text (and bumps itself back to most-recent).
+  function _applyRecentColor(hex) {
+    if (!_selectedProps) { _status('Select text first'); return; }
+    const ci = document.getElementById('prop-color');
+    if (ci && /^#[0-9a-fA-F]{6}$/.test(hex)) ci.value = hex;
+    const ch = document.getElementById('prop-color-hex');
+    if (ch) ch.value = hex;
+    _prop('color', hex);
+  }
+
+  function _prop(cmd, val) {
+    if (!_selectedProps) return;
+    _pushUndo(); _post(cmd, val); _dirty = true; _status('Unsaved changes');
+    if (cmd === 'color') _rememberColor(val);
+  }
 
   function _propHex(cmd, val) {
     if (!val || !/^#[0-9a-fA-F]{3,8}$/.test(val)) return;
@@ -1847,6 +1914,8 @@ App.Editor = (function () {
     // Make sure the regen button reflects the language we just opened in
     // (disabled in non-English, since auto-translation flows EN -> others).
     _regenSetButtonState();
+    // Show any previously-saved colour swatches under the Text Color picker.
+    _renderRecentColors();
   }
 
   async function _extractIframeVariant() {
