@@ -872,8 +872,35 @@ App.UI = (() => {
     return injectNlQrImageIntoHtml(raw, uri);
   }
 
+  // Scrub editor-only chrome from a variant before export. This is a safety net
+  // for content saved BEFORE the editor's export path was hardened: older drafts /
+  // project snapshots can have the injected editor + QR <script> tags, stale
+  // contenteditable / data-nl-* attributes, and the edit-chrome outline CSS baked
+  // into their stored html/css. Without this, downloading such a pre-existing
+  // project would re-ship those scripts — and they re-run when the file is opened,
+  // re-adding hover outlines and editable text-boxes. Pure string ops only (no DOM
+  // round-trip) so full-document gen_* templates and Outlook conditional comments
+  // are left structurally intact.
+  function stripEditorChromeForExport(variant) {
+    const v = variant || {};
+    let html = String(v.html || '');
+    let css = String(v.css || '');
+    // 1) Drop injected <script> tags (editor runtime + QR). A finished newsletter
+    //    is static, so no script should ship.
+    html = html.replace(/<script\b[^>]*>[\s\S]*?<\/script\s*>/gi, '');
+    // 2) Strip editor-only attributes left on elements.
+    html = html
+      .replace(/\s+contenteditable(?:\s*=\s*("[^"]*"|'[^']*'|[^\s">]+))?/gi, '')
+      .replace(/\s+data-nl-(?:sel|multisel|hover|drop-inside|regen-pending)(?:\s*=\s*("[^"]*"|'[^']*'|[^\s">]+))?/gi, '')
+      .replace(/\s+draggable\s*=\s*("true"|'true'|true)/gi, '');
+    // 3) Remove the edit-chrome CSS rules (hover / selection / contenteditable
+    //    outlines, drag ghost) so they can't draw boxes in the exported file.
+    css = css.replace(/[^{}]*(?:data-nl-(?:sel|multisel|hover|drop-inside)|contenteditable|nl-drag-ghost)[^{}]*\{[^{}]*\}/gi, '');
+    return Object.assign({}, v, { html, css });
+  }
+
   function toStandaloneHtml(variant, langId) {
-    const v = normalizeVariant(variant);
+    const v = stripEditorChromeForExport(normalizeVariant(variant));
     const cfg = getMergedConfigForExport();
     const bodyHtml = withEmbeddedQrInBodyHtml(v.html, cfg);
     // The preview keeps each variant's stylesheet in `variant.css` (split out of the body by
