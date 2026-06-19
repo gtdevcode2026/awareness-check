@@ -78,6 +78,10 @@
       '[data-nl-drop-inside="1"]{box-shadow:inset 0 0 0 2px rgba(212,164,32,.6)!important}' +
       '[contenteditable="true"]{outline:2px solid rgba(212,164,32,.9)!important;caret-color:#D4A420}' +
       '.nl-drag-ghost{opacity:.35!important;pointer-events:none}';
+    // Tag as editor-injected so the export/save CSS collectors
+    // (style:not([data-nl-ed-inject])) never ship these edit-only outline rules
+    // into the downloaded HTML.
+    _hl.setAttribute('data-nl-ed-inject', '1');
     document.head.appendChild(_hl);
 
     function setHl(el, on) {
@@ -625,6 +629,8 @@
 
     _dropLine = document.createElement('div');
     _dropLine.style.cssText = 'height:3px;background:#D4A420;border-radius:2px;pointer-events:none;display:none;margin:1px 0;box-shadow:0 0 6px rgba(212,164,32,.5)';
+    // Editor-only chrome: tag so getCleanHtml / _iframeHtml strip it from exports.
+    _dropLine.setAttribute('data-nl-ed-ui', '1');
     document.body.appendChild(_dropLine);
 
     document.addEventListener('dragstart', function (e) {
@@ -913,24 +919,26 @@
           break;
         }
         case 'getCleanHtml': {
-          var sels = document.querySelectorAll('[data-nl-sel]');
-          sels.forEach(function (el) { el.removeAttribute('data-nl-sel'); });
-          var multis = document.querySelectorAll('[data-nl-multisel]');
-          multis.forEach(function (el) { el.removeAttribute('data-nl-multisel'); });
-          var savedEdEl = _edEl;
-          if (savedEdEl) { savedEdEl.removeAttribute('contenteditable'); savedEdEl.style.cursor = ''; }
-          document.querySelectorAll('[style*="cursor: text"]').forEach(function (el) { el.style.cursor = ''; });
-          document.querySelectorAll('#nl-qr canvas').forEach(function (el) { el.remove(); });
-          // Detach editor-only chrome (image resize handles) so it never ships in
-          // the exported HTML. removeChild keeps the node + its listeners intact,
-          // so we can re-attach it right after serialising.
-          var edUi = Array.prototype.slice.call(document.querySelectorAll('[data-nl-ed-ui]'));
-          edUi.forEach(function (n) { n._edParent = n.parentNode; if (n._edParent) n._edParent.removeChild(n); });
-          post('cleanHtml', { html: document.body.innerHTML });
-          edUi.forEach(function (n) { if (n._edParent) { n._edParent.appendChild(n); n._edParent = null; } });
-          sels.forEach(function (el) { el.setAttribute('data-nl-sel', '1'); });
-          multis.forEach(function (el) { el.setAttribute('data-nl-multisel', '1'); });
-          if (savedEdEl) { savedEdEl.contentEditable = 'true'; savedEdEl.style.cursor = 'text'; }
+          // Serialise from a CLONE so the live editor is never mutated, and scrub
+          // every edit affordance: resize-handle chrome, live QR canvases, stray
+          // contenteditable (which renders as an editable text-box), and the
+          // hover/selection/drop markers. This is what stops the exported or saved
+          // HTML from showing outline boxes on hover, or editable text-boxes, once
+          // it is opened on its own.
+          var _clone = document.body.cloneNode(true);
+          _clone.querySelectorAll('[data-nl-ed-ui]').forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+          // Drop the injected editor + QR <script> tags. They live in the iframe
+          // <body>, so without this they serialise into the export and RE-RUN when
+          // the downloaded file is opened — re-adding hover outlines and editable
+          // text-boxes. A finished newsletter is static, so no script should ship.
+          _clone.querySelectorAll('script').forEach(function (n) { n.remove(); });
+          _clone.querySelectorAll('#nl-qr canvas').forEach(function (n) { n.remove(); });
+          var _STRIP = ['contenteditable', 'data-nl-sel', 'data-nl-multisel', 'data-nl-hover', 'data-nl-drop-inside', 'data-nl-regen-pending', 'draggable'];
+          Array.prototype.slice.call(_clone.querySelectorAll('*')).forEach(function (el) {
+            _STRIP.forEach(function (a) { el.removeAttribute(a); });
+            if (el.style && el.style.cursor === 'text') el.style.cursor = '';
+          });
+          post('cleanHtml', { html: _clone.innerHTML });
           break;
         }
         case 'getSelectionTexts': {

@@ -232,7 +232,7 @@ App.Editor = (function () {
               <button type="button" class="ed-act2" onclick="App.Editor._moveDown()" title="Move element down">Down</button>
               <button type="button" class="ed-act2" onclick="App.Editor._startDrag()" title="Drag to reorder in the canvas">Drag</button>
               <button type="button" class="ed-act2" onclick="App.Editor._duplicate()" title="Duplicate this block">Duplicate</button>
-              <button type="button" class="ed-act2 ed-act2--wide" id="ed-replace-img-btn" onclick="void App.Editor._replaceImageOpen()" disabled title="Select an image to replace">&#x1F5BC; Replace image</button>
+              <button type="button" class="ed-act2 ed-act2--wide" id="ed-replace-img-btn" onclick="void App.Editor._replaceImageOpen()" disabled title="Select a hero image to replace">&#x1F5BC; Replace image</button>
               <button type="button" class="ed-act2 ed-act2--regen" id="ed-regen-btn" onclick="App.Editor._regenOpen('current')" title="Re-run the AI on the selected element(s) in the currently-previewed language only">&#x21BB; Regenerate</button>
               <button type="button" class="ed-act2 ed-act2--regen" id="ed-regen-all-btn" onclick="App.Editor._regenOpen('all')" title="Re-run the AI on the selected element(s) in English, then auto-translate to every other language">&#x21BB; All languages</button>
               <button type="button" class="ed-act2 ed-act2--danger" onclick="App.Editor._delete()" title="Remove this element">Remove</button>
@@ -345,20 +345,11 @@ App.Editor = (function () {
             <label>Image Size</label>
             <div class="ed-prop-row">
               <input type="range" id="prop-img-range" min="32" max="640" value="200" oninput="App.Editor._setImgWidth(this.value)">
+              <input type="number" class="ed-num ed-num-wide" id="prop-img-width" min="16" max="2000" oninput="App.Editor._setImgWidth(this.value)">
+              <span class="ed-prop-unit">px</span>
             </div>
             <div class="ed-prop-row">
-              <input type="number" class="ed-num ed-num-wide" id="prop-img-width" min="8" max="4000" oninput="App.Editor._setImgWidth(this.value)" title="Width (px)">
-              <span class="ed-prop-unit">w</span>
-              <input type="number" class="ed-num ed-num-wide" id="prop-img-height" min="8" max="4000" oninput="App.Editor._setImgHeight(this.value)" title="Height (px)">
-              <span class="ed-prop-unit">h</span>
-            </div>
-            <div class="ed-prop-row">
-              <label style="display:flex;align-items:center;gap:.34rem;margin:0;font-size:.55rem;letter-spacing:.02em;text-transform:none;color:rgba(255,255,255,.5);cursor:pointer">
-                <input type="checkbox" id="prop-img-lock" style="width:auto;margin:0;cursor:pointer"> Lock aspect (scale together)
-              </label>
-            </div>
-            <div class="ed-prop-row">
-              <span class="ed-prop-hint" id="ed-img-hint" style="font-size:.55rem;color:rgba(255,255,255,.34);letter-spacing:.04em">Width &amp; height are independent</span>
+              <span class="ed-prop-hint" id="ed-img-hint" style="font-size:.55rem;color:rgba(255,255,255,.34);letter-spacing:.04em">Scales proportionally</span>
             </div>
           </div>
 
@@ -442,14 +433,22 @@ App.Editor = (function () {
     try {
       const body = _ifrm()?.contentDocument?.body;
       if (!body) return '';
-      // Exclude editor-only chrome (image resize handles) from undo/redo
-      // snapshots so it can't be captured and re-injected on restore.
-      if (body.querySelector('[data-nl-ed-ui]')) {
-        const clone = body.cloneNode(true);
-        clone.querySelectorAll('[data-nl-ed-ui]').forEach((n) => n.remove());
-        return clone.innerHTML;
-      }
-      return body.innerHTML;
+      // Always clone and scrub editor-only chrome + edit affordances (resize
+      // handles, contenteditable text-boxes, hover/selection markers) so neither
+      // an undo/redo snapshot nor the export fallback (when getCleanHtml times
+      // out) can ship edit chrome into the saved or downloaded HTML.
+      const clone = body.cloneNode(true);
+      clone.querySelectorAll('[data-nl-ed-ui]').forEach((n) => n.remove());
+      // Strip the injected editor + QR <script> tags so they can't re-run when an
+      // exported file is opened (the source of the hover/contenteditable boxes).
+      clone.querySelectorAll('script').forEach((n) => n.remove());
+      clone.querySelectorAll('#nl-qr canvas').forEach((n) => n.remove());
+      const STRIP = ['contenteditable', 'data-nl-sel', 'data-nl-multisel', 'data-nl-hover', 'data-nl-drop-inside', 'data-nl-regen-pending', 'draggable'];
+      clone.querySelectorAll('*').forEach((el) => {
+        STRIP.forEach((a) => el.removeAttribute(a));
+        if (el.style && el.style.cursor === 'text') el.style.cursor = '';
+      });
+      return clone.innerHTML;
     } catch (e) { return ''; }
   }
 
@@ -1047,6 +1046,13 @@ App.Editor = (function () {
       if (window.App?.Utils?.showToast) App.Utils.showToast('Select a hero image first.', true);
       return;
     }
+    const w = _selectedProps.imgWidth || _selectedProps.rectWidth || 0;
+    const h = _selectedProps.imgHeight || _selectedProps.rectHeight || 0;
+    const minDim = Math.min(w, h);
+    if (minDim < 80) {
+      if (window.App?.Utils?.showToast) App.Utils.showToast('Replace is only available on hero images (≥ 80 px).', true);
+      return;
+    }
     _ensureReplaceImgModal();
     const modal = document.getElementById('ed-rimg-modal');
     if (!modal) return;
@@ -1364,12 +1370,18 @@ App.Editor = (function () {
   function _replaceImageUpdateButton(props) {
     const btn = document.getElementById('ed-replace-img-btn');
     if (!btn) return;
-    // Any selected <img> can be replaced — no size gate, no lock.
     const isImg = props && props.tag === 'IMG';
-    btn.disabled = !isImg;
-    btn.title = isImg
-      ? 'Replace this image from the library or upload a new one'
-      : 'Select an image to replace';
+    // Prefer the new iframe-reported naturalWidth/Height, but fall back to
+    // rectWidth/rectHeight (always reported) so the button works even when
+    // the iframe is running pre-extension cached code.
+    const w = isImg ? (props.imgWidth || props.rectWidth || 0) : 0;
+    const h = isImg ? (props.imgHeight || props.rectHeight || 0) : 0;
+    const minDim = Math.min(w, h);
+    const eligible = isImg && minDim >= 80 && !props.locked;
+    btn.disabled = !eligible;
+    btn.title = eligible
+      ? 'Replace this hero image from the library or upload a new one'
+      : 'Select a hero image to replace';
   }
 
   function _status(txt) {
@@ -1467,24 +1479,17 @@ App.Editor = (function () {
     if (imgBox) imgBox.style.display = isImg ? '' : 'none';
     if (isImg) {
       const curW = Math.round(props.rectWidth || props.imgWidth || 0);
-      const curH = Math.round(props.rectHeight || props.imgHeight || 0);
       const nW = props.imgWidth || 0, nH = props.imgHeight || 0;
       const imgR = document.getElementById('prop-img-range');
       const imgN = document.getElementById('prop-img-width');
-      const imgH = document.getElementById('prop-img-height');
       if (imgN) imgN.value = curW || '';
-      if (imgH) imgH.value = curH || '';
       if (imgR) {
         const max = Math.max(640, Math.round((nW || curW) * 1.5) || 640);
         imgR.max = String(max);
         imgR.value = String(Math.min(curW || 200, max));
       }
       const hint = document.getElementById('ed-img-hint');
-      const locked = _imgAspectLocked();
-      if (hint) {
-        const orig = (nW && nH) ? `Original ${nW} × ${nH}px · ` : '';
-        hint.textContent = orig + (locked ? 'locked aspect (W & H scale together)' : 'W & H are independent');
-      }
+      if (hint) hint.textContent = (nW && nH) ? `Original ${nW} × ${nH}px · scales proportionally` : 'Scales proportionally';
     }
     const fB = document.getElementById('fmt-bold'), fI = document.getElementById('fmt-italic'), fU = document.getElementById('fmt-underline');
     if (fB) fB.classList.toggle('on', !!props.bold);
@@ -1711,48 +1716,14 @@ App.Editor = (function () {
     _pushUndo(); _post('padding', parseInt(val) || 0); _dirty = true; _status('Unsaved changes');
   }
 
-  function _imgAspectLocked() {
-    const cb = document.getElementById('prop-img-lock');
-    return !!(cb && cb.checked);
-  }
-
-  // Image WIDTH. By default width & height are independent ("everything dynamic"):
-  // we send { w, h } keeping the current height. With "Lock aspect" checked we post
-  // a bare width so the iframe derives the height from the natural ratio.
+  // Proportional image resize. Posts the target width; the iframe derives the
+  // height from the image's natural aspect ratio (see iframe 'imgSize' case).
   function _setImgWidth(val) {
     if (!_selectedProps || _selectedProps.tag !== 'IMG') return;
     const w = parseInt(val) || 0; if (!w) return;
-    _pushUndo();
-    if (_imgAspectLocked()) {
-      _post('imgSize', w); // proportional — height follows; panel re-seeds on the 'select' echo
-    } else {
-      const h = parseInt((document.getElementById('prop-img-height') || {}).value, 10) || 0;
-      _post('imgSize', h ? { w, h } : w);
-    }
+    _pushUndo(); _post('imgSize', w);
     const imgR = document.getElementById('prop-img-range');
     const imgN = document.getElementById('prop-img-width');
-    if (imgN) imgN.value = w;
-    if (imgR) imgR.value = String(Math.min(w, parseInt(imgR.max, 10) || 640));
-    _dirty = true; _status('Unsaved changes');
-  }
-
-  // Image HEIGHT. Independent by default (keeps current width); with "Lock aspect"
-  // it derives the width from the image's natural ratio so nothing squishes.
-  function _setImgHeight(val) {
-    if (!_selectedProps || _selectedProps.tag !== 'IMG') return;
-    const h = parseInt(val) || 0; if (!h) return;
-    _pushUndo();
-    let w = parseInt((document.getElementById('prop-img-width') || {}).value, 10) || 0;
-    if (_imgAspectLocked()) {
-      const nW = _selectedProps.imgWidth || 0, nH = _selectedProps.imgHeight || 0;
-      if (nW && nH) w = Math.round(h * nW / nH);
-    }
-    if (!w) w = Math.round(_selectedProps.rectWidth || _selectedProps.imgWidth || h);
-    _post('imgSize', { w, h });
-    const imgH = document.getElementById('prop-img-height');
-    const imgN = document.getElementById('prop-img-width');
-    const imgR = document.getElementById('prop-img-range');
-    if (imgH) imgH.value = h;
     if (imgN) imgN.value = w;
     if (imgR) imgR.value = String(Math.min(w, parseInt(imgR.max, 10) || 640));
     _dirty = true; _status('Unsaved changes');
@@ -1973,7 +1944,7 @@ App.Editor = (function () {
     // Internal actions bound by onclick in injected HTML
     _prop, _propHex, _propSize, _toggle, _setText, _deselect,
     _delete, _moveUp, _moveDown, _startDrag, _duplicate, _applyPreset,
-    _setWidth, _setPadding, _setImgWidth, _setImgHeight,
+    _setWidth, _setPadding, _setImgWidth,
     _addEl, _addSec,
     _device, _navTab, _scrollTo,
     _undo, _redo, _reset, _preview,
