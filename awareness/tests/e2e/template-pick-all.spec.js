@@ -24,7 +24,7 @@ async function stubFeedFetch(page, articles = fixtureArticles) {
 // Hard-coded list mirrors js/newsletter_builder.js READY_TEMPLATE_IDS — kept
 // inline so a future split of Ready vs Beta is caught by this list going out
 // of date (the in-test catalog snapshot below asserts it).
-const READY_IDS  = ["poster", "bankpage1_static", "bankpage1_dynamic", "gen_chase_email", "gen_cybershield", "gen_strong_passwords", "gen_vishing", "gen_social_engineering"];
+const READY_IDS  = ["poster", "bankpage1_dynamic", "gen_chase_email", "gen_cybershield", "gen_strong_passwords", "gen_vishing", "gen_social_engineering"];
 
 test.describe("template picker: every catalog card builds with its own builder", () => {
   test.beforeEach(async ({ page }) => {

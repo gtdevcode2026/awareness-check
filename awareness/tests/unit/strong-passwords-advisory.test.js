@@ -79,6 +79,35 @@ test("with no articles it falls back to a calm default advisory", async () => {
   assert.match(slots.nlStrongPwAdvisory, /safe|secure/i, "default reads as a generic safety advisory");
 });
 
+// The three precaution tiles are now a BUILD-TIME slot (nlStrongPwTips) so they
+// no longer depend on the article being AI-curated at fetch time. The local
+// path derives them from the lead article's watchouts, padded with defaults.
+test("fillNewsletterTextSlots(gen_strong_passwords, local) returns three non-empty nlStrongPwTips", async () => {
+  const AIS = loadAISummarizer(aiContext());
+  const slots = await AIS.fillNewsletterTextSlots("gen_strong_passwords", PHISHING_ARTS, { forceLocal: true, mode: "balanced" });
+  assert.ok(Array.isArray(slots.nlStrongPwTips), "must return a nlStrongPwTips array");
+  assert.equal(slots.nlStrongPwTips.length, 3, "exactly three tiles");
+  assert.ok(slots.nlStrongPwTips.every((t) => typeof t === "string" && t.trim().length > 0), "every tile non-empty");
+});
+
+test("local nlStrongPwTips use the lead article's watchouts when present", async () => {
+  const AIS = loadAISummarizer(aiContext());
+  const arts = [{ title: "X", type: "Phishing", summary: "y", watchouts: ["Hover links before clicking", "Confirm the sender by phone", "Forward odd emails to the SOC"] }];
+  const slots = await AIS.fillNewsletterTextSlots("gen_strong_passwords", arts, { forceLocal: true });
+  // Compare element-by-element: the array comes from the vm realm, so a strict
+  // deepEqual would fail on cross-realm Array.prototype identity, not on value.
+  assert.equal(slots.nlStrongPwTips[0], "Hover links before clicking");
+  assert.equal(slots.nlStrongPwTips[1], "Confirm the sender by phone");
+  assert.equal(slots.nlStrongPwTips[2], "Forward odd emails to the SOC");
+});
+
+test("with no articles, nlStrongPwTips fall back to three generic precautions", async () => {
+  const AIS = loadAISummarizer(aiContext());
+  const slots = await AIS.fillNewsletterTextSlots("gen_strong_passwords", [], { forceLocal: true });
+  assert.equal(slots.nlStrongPwTips.length, 3);
+  assert.ok(slots.nlStrongPwTips.every((t) => t && t.length > 0), "every default tile non-empty");
+});
+
 // tipThemeClause is the additive steer appended to poster tip prompts when the
 // user enters a theme via the poster flip form. It must be a no-op without a
 // theme (so the original generation is byte-identical) and carry the theme when set.

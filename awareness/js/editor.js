@@ -210,6 +210,7 @@ App.Editor = (function () {
       </div>
       <button type="button" class="ed-tbtn ed-tbtn--close" onclick="App.Editor.close()" title="Close editor">&#x2715;</button>
     </div>
+    <div id="ed-ai-fallback-banner" style="display:none"></div>
     <div class="ed-body">
       <div class="ed-nav" id="ed-nav">
         <div class="ed-nav-tabs">
@@ -1888,6 +1889,31 @@ App.Editor = (function () {
   /* ────────────────────────────────────────────────────────
      PUBLIC API
      ──────────────────────────────────────────────────────── */
+  // Surface a banner inside the editor when the open newsletter was generated
+  // without AI. Reads workspace.aiFallback (set by the generate pipeline). The
+  // banner lives in the editor chrome, outside the canvas iframe, so it never
+  // appears in saved/exported HTML.
+  function _renderAiFallbackBanner() {
+    const el = document.getElementById('ed-ai-fallback-banner');
+    if (!el) return;
+    let fb = null;
+    try { fb = window.App && window.App.UI && window.App.UI._state
+      && window.App.UI._state.newsletterWorkspace
+      && window.App.UI._state.newsletterWorkspace.aiFallback; } catch (e) {}
+    if (!fb || fb.used || !Array.isArray(fb.reasons) || !fb.reasons.length) {
+      el.style.display = 'none';
+      el.innerHTML = '';
+      return;
+    }
+    const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const items = fb.reasons.map((r) => `<li>${esc(r)}</li>`).join('');
+    el.style.cssText = 'display:block;margin:0;padding:.55rem .9rem;background:#3a2e00;color:#ffd76b;border-bottom:1px solid #6b5400;font-size:.74rem;line-height:1.45';
+    el.innerHTML = '<div style="display:flex;justify-content:space-between;gap:.6rem;align-items:flex-start">'
+      + '<div><strong>⚠ Generated without AI — built-in content was used.</strong>'
+      + `<ul style="margin:.3rem 0 0;padding-left:1.1rem">${items}</ul></div>`
+      + '<button type="button" title="Dismiss" onclick="this.closest(\'#ed-ai-fallback-banner\').style.display=\'none\'" style="background:none;border:none;color:#ffd76b;font-size:1rem;line-height:1;cursor:pointer">✕</button></div>';
+  }
+
   function open(opts) {
     _opts = opts;
     const modal = document.getElementById('editor-modal'); if (!modal) return;
@@ -1916,6 +1942,8 @@ App.Editor = (function () {
     _regenSetButtonState();
     // Show any previously-saved colour swatches under the Text Color picker.
     _renderRecentColors();
+    // Surface a banner if this newsletter was generated without AI.
+    _renderAiFallbackBanner();
   }
 
   async function _extractIframeVariant() {

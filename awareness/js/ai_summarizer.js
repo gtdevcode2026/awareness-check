@@ -1993,6 +1993,84 @@ ${JSON.stringify(compact)}${tipThemeClause(theme)}`;
     }
   }
 
+  // ─── Strong-passwords poster precaution TILES (gen_strong_passwords, SECTION1_BULLET1..3) ─
+  // The three gold tiles used to read the lead article's per-article AI
+  // `watchouts`, which are produced at FETCH/curation time. On a fresh clone the
+  // key is session-only and the first fetch often runs without AI, so the tiles
+  // stayed generic even after a key was added — unlike gen_vishing/soceng, whose
+  // content is generated at BUILD time. This build-time filler fixes that: the
+  // tiles are now AI-written every Generate (with the curated watchouts, then
+  // generic defaults, as graceful fallbacks).
+  const STRONGPW_TIP_MAX_CHARS = 64;
+  const STRONGPW_TIPS_FALLBACK = [
+    'Verify unexpected requests before you act',
+    'Never share passwords or one-time codes',
+    'Report suspicious messages to the SOC'
+  ];
+
+  function localStrongPwTips(articles = []) {
+    const a0 = (Array.isArray(articles) ? articles : [])[0] || {};
+    const fromWatch = Array.isArray(a0.watchouts)
+      ? a0.watchouts.map((w) => trimToWords(w, STRONGPW_TIP_MAX_CHARS)).filter(Boolean)
+      : [];
+    const tips = [];
+    for (let i = 0; i < 3; i++) tips.push(fromWatch[i] || STRONGPW_TIPS_FALLBACK[i]);
+    return tips;
+  }
+
+  const STRONGPW_TIPS_SYSTEM = `${EMPLOYEE_VOICE_BLOCK}
+
+You write the three short precaution tiles on a security-awareness poster about account and password safety. Each tile is ONE concrete, imperative precaution a non-technical employee can act on, grounded in the article provided.
+
+STYLE (mandatory):
+- Imperative, present tense. No marketing voice, no rhetorical questions, no exclamation marks.
+- No jargon ("threat actors", "adversaries", "credentials", "TTPs"). Say "login details", "attackers", "scammers".
+- No filler ("it is important", "stay vigilant", "be mindful"). No URLs, no vendor names, no statistics.
+- Each tile at most ${STRONGPW_TIP_MAX_CHARS} characters. Three DIFFERENT precautions, ordered prevent -> detect -> report.
+- GROUNDING: every tile must be supportable from the article. Never invent facts.
+
+Output: JSON only, exactly { "nlStrongPwTips": ["...", "...", "..."] } — no markdown, no extra keys.`;
+
+  function buildStrongPwTipsUserPrompt(articles = [], mode = 'balanced', theme = '') {
+    const modeCfg = CURATION_MODES[mode] || CURATION_MODES.balanced;
+    const compact = (Array.isArray(articles) ? articles : []).slice(0, 4).map((a) => ({
+      title: a.title,
+      type: a.type,
+      summary: truncate(a.summary || a.description || '', modeCfg.maxContentChars)
+    }));
+    return `Template: account/password-safety awareness poster — the three precaution tiles.
+
+Write exactly three imperative precaution tiles (each at most ${STRONGPW_TIP_MAX_CHARS} characters), grounded in the story below, ordered prevent -> detect -> report.
+
+Mode: ${modeCfg.label}
+
+Story (JSON):
+${JSON.stringify(compact)}${tipThemeClause(theme)}`;
+  }
+
+  async function aiFillStrongPwTips(articles, mode, retries = 0, theme = '') {
+    const localT = localStrongPwTips(articles);
+    const out = { nlStrongPwTips: localT };
+    try {
+      const p = await callTemplateSlotsAI(
+        buildStrongPwTipsUserPrompt(articles, mode, theme),
+        { systemPrompt: STRONGPW_TIPS_SYSTEM, maxTokens: 320, logName: 'strong_passwords_tips.txt' }
+      );
+      const arr = p && Array.isArray(p.nlStrongPwTips) ? p.nlStrongPwTips : [];
+      const cleaned = arr.map((t) => trimToWords(t, STRONGPW_TIP_MAX_CHARS)).filter(Boolean);
+      const tips = [];
+      for (let i = 0; i < 3; i++) tips.push(cleaned[i] || localT[i]);
+      out.nlStrongPwTips = tips;
+      return out;
+    } catch {
+      if (retries < config.retryAttempts) {
+        await App.Utils.wait(config.retryDelayMs * (retries + 1));
+        return aiFillStrongPwTips(articles, mode, retries + 1, theme);
+      }
+      return out;
+    }
+  }
+
   // ─── Vishing poster (gen_vishing) ─ intro + 4 fixed-theme tips ─────────────
   // The poster has FOUR advice icons in a fixed order, each a fixed theme. The AI
   // tailors each tip to the selected article; the local fallback uses the poster’s
@@ -2911,7 +2989,7 @@ Keep each point to max ${SD_POINT_MAX_CHARS} chars.${tipThemeClause(theme)}`;
         nlCorporateTopicHeading: CORPORATE_TOPIC_HEADING
       };
     }
-    if (formatId === 'bankpage1_static' || formatId === 'bankpage1_dynamic') {
+    if (formatId === 'bankpage1_dynamic') {
       if (useAI) return aiFillBankPageSlots(list, mode);
       return localBankPageSlots(list);
     }
@@ -2946,8 +3024,20 @@ Keep each point to max ${SD_POINT_MAX_CHARS} chars.${tipThemeClause(theme)}`;
       };
     }
     if (formatId === 'gen_strong_passwords') {
-      if (useAI) return aiFillStrongPwAdvisory(list, mode, 0, tipTheme);
-      return { nlStrongPwAdvisory: localStrongPwAdvisory(list) };
+      if (useAI) {
+        // Generate the three precaution tiles AND the closing advisory at build
+        // time (in parallel) so the poster shows AI content every Generate,
+        // independent of whether the article was AI-curated at fetch time.
+        const [adv, tips] = await Promise.all([
+          aiFillStrongPwAdvisory(list, mode, 0, tipTheme),
+          aiFillStrongPwTips(list, mode, 0, tipTheme)
+        ]);
+        return { ...adv, ...tips };
+      }
+      return {
+        nlStrongPwAdvisory: localStrongPwAdvisory(list),
+        nlStrongPwTips: localStrongPwTips(list)
+      };
     }
     if (formatId === 'gen_vishing') {
       const slots = useAI ? (await aiFillVishingTips(list, mode, 0, tipTheme)) || {} : localVishingSlots(list);

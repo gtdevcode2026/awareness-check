@@ -167,7 +167,7 @@ test.describe("every footer-bearing template carries the AI credit", () => {
 });
 
 test.describe("bank-page footers carry the 'Disclaimer: The above content is curated and created with AI' credit", () => {
-  for (const id of ["bankpage1_static", "bankpage1_dynamic", "phishingbrief"]) {
+  for (const id of ["bankpage1_dynamic", "phishingbrief"]) {
     test(`${id} footer ends with the AI credit, below the Visit Portal block`, () => {
       const html = buildTemplate(id);
       assert.ok(html.includes("Disclaimer: The above content is curated and created with AI"), `${id} must carry the AI credit`);

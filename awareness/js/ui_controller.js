@@ -954,6 +954,33 @@ App.UI = (() => {
     return normalizeVariant(state.newsletterWorkspace.variants[langId]);
   }
 
+  // Show a non-exported banner above the preview when the newsletter was built
+  // without AI (feature off / no provider / endpoint unreachable / call failed),
+  // listing why. Reads workspace.aiFallback set by the generate pipeline. Lives
+  // outside #nl-out so it never leaks into exports or sends.
+  function renderAiFallbackBanner() {
+    const out = document.getElementById('nl-out');
+    if (!out || !out.parentNode) return;
+    let banner = document.getElementById('ai-fallback-banner');
+    const fb = state.newsletterWorkspace && state.newsletterWorkspace.aiFallback;
+    if (!fb || fb.used || !Array.isArray(fb.reasons) || !fb.reasons.length) {
+      if (banner) banner.remove();
+      return;
+    }
+    if (!banner) {
+      banner = document.createElement('div');
+      banner.id = 'ai-fallback-banner';
+      banner.style.cssText = 'margin:0 0 .75rem;padding:.7rem .9rem;border:1px solid #E0A800;border-left:4px solid #E0A800;border-radius:8px;background:rgba(224,168,0,.14);color:#7a5b00;font-size:.8rem;line-height:1.45';
+      out.parentNode.insertBefore(banner, out);
+    }
+    const items = fb.reasons.map(r => `<li>${escapeHtml(String(r))}</li>`).join('');
+    banner.innerHTML = '<div style="display:flex;justify-content:space-between;gap:.6rem;align-items:flex-start">'
+      + '<div><strong>⚠ Generated without AI — built-in content was used.</strong>'
+      + `<ul style="margin:.35rem 0 0;padding-left:1.1rem">${items}</ul></div>`
+      + '<button type="button" aria-label="Dismiss" title="Dismiss" onclick="document.getElementById(\'ai-fallback-banner\')?.remove()" '
+      + 'style="background:none;border:none;color:#7a5b00;font-size:1rem;line-height:1;cursor:pointer">✕</button></div>';
+  }
+
   function renderPreviewForLanguage(langId) {
     const variant = getLanguageVariant(langId);
     if (!variant?.html) return;
@@ -964,6 +991,7 @@ App.UI = (() => {
     const out = document.getElementById('nl-out');
     if (!out) return;
     out.innerHTML = renderVariantHtml(variant);
+    renderAiFallbackBanner();
     const previewLang = document.getElementById('preview-lang');
     if (previewLang) previewLang.value = langId;
     renderWorkflowControls();
@@ -1078,6 +1106,7 @@ App.UI = (() => {
     document.querySelectorAll('.fmt-card').forEach(c => c.classList.remove('sel'));
     el.classList.add('sel');
     state.selectedFormat = fmt;
+    enforcePosterSelectionLimit();
   }
 
   function setDuration(el, days) {
@@ -1665,7 +1694,7 @@ App.UI = (() => {
   function renderArticleStats(inRange = [], showing = []) {
     const el = document.getElementById('article-stats');
     if (!el) return;
-    const max = getConfig().max;
+    const max = effectiveMax();
     const selected = state.selectedArticleIndices.length;
     const searchOn = !!(state.articleKeywordQuery && String(state.articleKeywordQuery).trim());
     const rangeLabel = searchOn
@@ -2110,7 +2139,7 @@ App.UI = (() => {
 
   function renderArticles(arts) {
     try {
-    const max = getConfig().max;
+    const max = effectiveMax();
     const countEl = document.getElementById('articles-count');
     const inRange = Array.isArray(arts) ? arts.length : 0;
     const selected = state.selectedArticleIndices.length;
@@ -2188,12 +2217,40 @@ App.UI = (() => {
     renderArticles(filteredArticles());
   }
 
+  // Posters are single-subject: their article selection is capped at one.
+  // effectiveMax() returns 1 for poster templates (see NewsletterBuilder.
+  // isPosterTemplate), else the user-configured max.
+  function effectiveMax() {
+    const NB = window.App && window.App.NewsletterBuilder;
+    if (NB && typeof NB.isPosterTemplate === 'function' && NB.isPosterTemplate(state.selectedFormat)) return 1;
+    return getConfig().max;
+  }
+
+  // When the user switches to a poster after picking several articles, trim the
+  // selection down to the cap so the "Selected x/y" count and the build stay
+  // consistent. Safe to call after any template change.
+  function enforcePosterSelectionLimit() {
+    const cap = effectiveMax();
+    if (state.selectedArticleIndices.length > cap) {
+      state.selectedArticleIndices = state.selectedArticleIndices.slice(0, cap);
+      try { renderArticles(filteredArticles()); } catch (e) {}
+    }
+  }
+
   function toggleArticle(idx) {
     if (idx < 0 || idx >= state.allArticles.length) return;
-    const max = getConfig().max;
+    const max = effectiveMax();
     const pos = state.selectedArticleIndices.indexOf(idx);
-    if (pos > -1) state.selectedArticleIndices.splice(pos, 1);
-    else { if (state.selectedArticleIndices.length >= max) return; state.selectedArticleIndices.push(idx); }
+    if (pos > -1) {
+      state.selectedArticleIndices.splice(pos, 1);
+    } else if (state.selectedArticleIndices.length >= max) {
+      // At the cap. For single-select posters (max === 1) replace the current
+      // pick with the new one; for multi-select templates, ignore the extra.
+      if (max === 1) state.selectedArticleIndices = [idx];
+      else return;
+    } else {
+      state.selectedArticleIndices.push(idx);
+    }
     renderArticles(filteredArticles());
   }
 
@@ -3346,6 +3403,7 @@ Now translate the content inside <source> into ${targetLanguageName} following a
       s.classList.toggle('is-selected', s.getAttribute('data-id') === id);
     });
     if (App.Slider && typeof App.Slider.goToId === 'function') App.Slider.goToId(id);
+    enforcePosterSelectionLimit();
     showToast(`Template "${id}" selected`);
   }
 
@@ -3428,7 +3486,7 @@ Now translate the content inside <source> into ${targetLanguageName} following a
     NEWSLETTER_LANGUAGES,
     AI_EXPERIMENT_CONTROL_STORAGE_KEY,
     // Build/generate pipeline + draft/project helpers (consumed by js/ui/generate_pipeline.js)
-    getOptions, getConfig, getMetadata, filteredArticles,
+    getOptions, getConfig, getMetadata, filteredArticles, effectiveMax,
     defaultProjectTitle, getProjectTitle,
     normalizeWorkflow, renderWorkflowControls,
     syncVariantFromPreviewDom,

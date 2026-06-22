@@ -86,6 +86,9 @@
     // endpoint configured with just a base URL (keyless local servers).
     const aiDom = I.readAISettingsDom();
     const aiUsable = I.aiSettingsUsable(aiDom);
+    const featAi = document.getElementById('feat-ai')?.checked !== false;
+    // Track why AI may not have been used, for the post-build fallback banner.
+    let aiProbeFailed = false, aiChromeFailed = false, aiSlotsFailed = false;
     // Force-clear any stale build context from a previous session / bfcache
     // restore. Without this, clicking Generate a second time could navigate
     // preview.html with the PREVIOUS project's id in the handoff — the preview
@@ -109,10 +112,13 @@
     // a romance-scam piece) silently drops articles before they ever reach
     // the section prompts, leaving the AI to write generic platitudes.
     const hadExplicitSelection = state.selectedArticleIndices.length > 0;
+    // Posters cap article selection at one (I.effectiveMax() returns 1 for
+    // poster templates, else the configured max).
+    const maxArts = I.effectiveMax();
     let arts = hadExplicitSelection
       ? state.selectedArticleIndices.map(i => state.allArticles[i]).filter(Boolean)
-      : I.filteredArticles().slice(0, I.getConfig().max);
-    arts = arts.slice(0, I.getConfig().max);
+      : I.filteredArticles().slice(0, maxArts);
+    arts = arts.slice(0, maxArts);
     if (!arts.length) { showToast('No articles selected. Fetch news first, then select articles.', true); return; }
     const willTranslate = aiUsable && !skipTranslation;
     const willShowProgress = aiUsable;
@@ -141,7 +147,6 @@
     try {
       App.AISummarizer.configure(I.aiSummarizerConfigFromDom(aiDom));
       let nlChrome = App.AISummarizer.localNewsletterChrome(arts);
-      const featAi = document.getElementById('feat-ai')?.checked !== false;
       // For a custom (OpenAI-compatible) endpoint, fail loudly-but-gracefully:
       // probe it once up front so the user gets a clear notification (e.g. an
       // unreachable Ollama / missing OLLAMA_ORIGINS) instead of silently getting
@@ -150,6 +155,7 @@
         try {
           const probe = await App.AISummarizer.checkCustomEndpoint(I.aiSummarizerConfigFromDom(aiDom));
           if (!probe.ok) {
+            aiProbeFailed = true;
             const url = App.AISummarizer.normalizeChatCompletionsUrl(aiDom.baseUrl);
             showToast(`${App.AISummarizer.describeCustomEndpointResult(probe, url)} Using local content instead.`, true);
           }
@@ -161,6 +167,7 @@
         try {
           nlChrome = await App.AISummarizer.newsletterChrome(arts, { mode: state.curationMode || 'balanced' });
         } catch (chromeErr) {
+          aiChromeFailed = true;
           try { console.error('[awareness] newsletterChrome failed:', chromeErr); } catch {}
           nlChrome = App.AISummarizer.localNewsletterChrome(arts);
         }
@@ -186,6 +193,7 @@
           });
         }
       } catch (slotErr) {
+        aiSlotsFailed = true;
         try { console.error('[awareness] fillNewsletterTextSlots failed:', slotErr); } catch {}
         showToast(`AI content fill failed: ${slotErr?.message || 'unknown error'}. Showing template defaults.`, true);
         textSlots = {};
@@ -204,6 +212,21 @@
         try { console.error('[awareness] selected template did not build — engine silently fell back. Selected:', state.selectedFormat); } catch {}
         showToast(`Template "${state.selectedFormat}" did not build (silent fallback). Check console.`, true);
       }
+      // AI was genuinely used only if the feature is on, a provider is usable,
+      // and none of the AI phases fell back. Otherwise collect the reason(s) so
+      // the preview/editor can show a fallback banner.
+      const aiUsed = featAi && aiUsable && !aiProbeFailed && !aiChromeFailed && !aiSlotsFailed;
+      const aiFallbackReasons = [];
+      if (!aiUsed) {
+        if (!featAi) aiFallbackReasons.push('AI generation is turned off (Configuration → “Use AI”).');
+        else if (!aiUsable) aiFallbackReasons.push('No usable AI provider configured — add an API key, or a custom base URL, in Configuration.');
+        else {
+          if (aiProbeFailed) aiFallbackReasons.push('The custom AI endpoint could not be reached (check the server, CORS, or base URL).');
+          if (aiChromeFailed) aiFallbackReasons.push('The AI request for the masthead failed — built-in copy was used.');
+          if (aiSlotsFailed) aiFallbackReasons.push('The AI request for the body content failed — template defaults were used.');
+          if (!aiFallbackReasons.length) aiFallbackReasons.push('The AI request did not complete — built-in content was used.');
+        }
+      }
       const variants = {};
       I.NEWSLETTER_LANGUAGES.forEach(l => {
         variants[l.id] = l.id === 'en'
@@ -214,7 +237,8 @@
         id: `nw_${Date.now()}`, createdAt: new Date().toISOString(),
         format: state.selectedFormat, cfg, opts, articles: arts, variants,
         currentLanguage: state.currentPreviewLanguage || 'en',
-        workflow: I.normalizeWorkflow(null)
+        workflow: I.normalizeWorkflow(null),
+        aiFallback: { used: aiUsed, reasons: aiUsed ? [] : aiFallbackReasons }
       };
       state.translationCache = {};
       I.persistWorkspace();

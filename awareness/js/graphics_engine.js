@@ -391,7 +391,6 @@ App.Graphics = (() => {
     gen_cybershield: 'templates/gen_cybershield/design/thumb.png',
     gen_chase_email: 'templates/gen_chase_email/design/thumb.jpeg',
     bankpage1_dynamic: 'templates/bankpage1_dynamic/design/thumb.jpeg',
-    bankpage1_static: 'templates/bankpage1_static/design/thumb.jpeg',
     poster: 'templates/poster/design/thumb.jpeg',
     gen_strong_passwords: 'assets/genpass.jpeg',
     gen_vishing: 'assets/genhts.jpeg',
