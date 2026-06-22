@@ -2141,7 +2141,7 @@ ${precautionsHtml}
   //    - "What's the threat?" overview → c.nlCybershieldThreat (article-derived).
   //    - "Recognizing Security Threats" → c.nlCybershieldRedFlags (4 indicators,
   //      article-derived, padded to 4). Both from the same fillNewsletterTextSlots
-  //      call. The three stat tiles stay static.
+  //      call.
   //  Two image placeholders (YOUR_IMAGE_1.jpg, YOUR_IMAGE_2.jpg) are left for
   //  the user to swap with real assets.
   //  Per-template ensemble logs land at templates/gen_cybershield/ensemble-logs/<session>/.
@@ -2316,40 +2316,6 @@ ${precautionsHtml}
             <p style="font-family:Arial,Helvetica,sans-serif; font-size:14px; line-height:1.75; color:#bbbbbb; margin:0;">
               {{IMPACT_SUMMARY}}
             </p>
-          </td>
-        </tr>
-
-        <!-- ───── BY THE NUMBERS — stat tiles in their own section so they stand out ───── -->
-        <tr>
-          <td bgcolor="#0f0f0f" style="background:#0f0f0f; padding:28px 32px; border-top:1px solid #1e1e1e;">
-            <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-              <tr>
-                <td class="stat-cell" valign="top" width="33%" style="width:33%; padding-right:6px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1a1a1a" style="background:#1a1a1a; border:1px solid #2a2a2a; border-top:2px solid #D4AF37;">
-                    <tr><td align="center" style="padding:18px 12px;">
-                      <div style="font-family:Arial,Helvetica,sans-serif; font-size:26px; font-weight:900; color:#D4AF37; line-height:1; margin:0 0 4px;">91%</div>
-                      <div style="font-family:Arial,Helvetica,sans-serif; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#767676; line-height:1.4;">Of breaches start with phishing</div>
-                    </td></tr>
-                  </table>
-                </td>
-                <td class="stat-cell" valign="top" width="34%" style="width:34%; padding:0 6px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1a1a1a" style="background:#1a1a1a; border:1px solid #2a2a2a; border-top:2px solid #D4AF37;">
-                    <tr><td align="center" style="padding:18px 12px;">
-                      <div style="font-family:Arial,Helvetica,sans-serif; font-size:26px; font-weight:900; color:#D4AF37; line-height:1; margin:0 0 4px;">$4.9M</div>
-                      <div style="font-family:Arial,Helvetica,sans-serif; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#767676; line-height:1.4;">Average cost of a data breach</div>
-                    </td></tr>
-                  </table>
-                </td>
-                <td class="stat-cell" valign="top" width="33%" style="width:33%; padding-left:6px;">
-                  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" bgcolor="#1a1a1a" style="background:#1a1a1a; border:1px solid #2a2a2a; border-top:2px solid #D4AF37;">
-                    <tr><td align="center" style="padding:18px 12px;">
-                      <div style="font-family:Arial,Helvetica,sans-serif; font-size:26px; font-weight:900; color:#D4AF37; line-height:1; margin:0 0 4px;">3.4B</div>
-                      <div style="font-family:Arial,Helvetica,sans-serif; font-size:10px; letter-spacing:1px; text-transform:uppercase; color:#767676; line-height:1.4;">Phishing emails sent daily</div>
-                    </td></tr>
-                  </table>
-                </td>
-              </tr>
-            </table>
           </td>
         </tr>
 

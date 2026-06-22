@@ -123,7 +123,7 @@ test.describe("gen_cybershield article-driven threat + red-flag slots", () => {
 });
 
 test.describe("buildGenCybershield consumes the new slots", () => {
-  test("renders the provided threat overview + 4 red flags, keeps impact and stat tiles", () => {
+  test("renders the provided threat overview + 4 red flags, keeps impact, no stat tiles", () => {
     const NB = loadBuilder(builderContext());
     const cfg = {
       org: "ACME", soc: "soc@acme.test", portal: "https://portal.example", pname: "Phishing Maestro",
@@ -137,9 +137,9 @@ test.describe("buildGenCybershield consumes the new slots", () => {
     for (const rf of cfg.nlCybershieldRedFlags) {
       assert.ok(html.includes(rf), `red flag rendered: ${rf}`);
     }
-    // Why-it-matters + stat tiles untouched.
+    // Why-it-matters kept; the static stat tiles are removed.
     assert.ok(html.includes("CUSTOM IMPACT SUMMARY about consequences."), "impact still rendered");
-    assert.ok(html.includes("91%") && html.includes("$4.9M") && html.includes("3.4B"), "stat tiles still static");
+    assert.ok(!html.includes("91%") && !html.includes("$4.9M") && !html.includes("3.4B"), "stat tiles removed");
   });
 
   test("removes the full-bleed image and moves Why it matters into its place (before Recognizing)", () => {
@@ -154,8 +154,8 @@ test.describe("buildGenCybershield consumes the new slots", () => {
     assert.ok(whatsThreat > -1 && why > -1 && recognizing > -1, "all three sections present");
     assert.ok(whatsThreat < why, "Why it matters should come after What's the threat");
     assert.ok(why < recognizing, "Why it matters should come before Recognizing Security Threats");
-    // Stat tiles travelled with the Why-it-matters block.
-    assert.ok(html.includes("91%") && html.includes("$4.9M") && html.includes("3.4B"), "stat tiles still present");
+    // The static stat tiles are removed entirely.
+    assert.ok(!html.includes("91%") && !html.includes("$4.9M") && !html.includes("3.4B"), "stat tiles removed");
   });
 
   test("article cards show each article's published date under the source", () => {
