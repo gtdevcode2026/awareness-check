@@ -68,3 +68,21 @@ test("normalizeWebUrl adds https for bare hosts and preserves schemes / special 
   assert.equal(normalizeWebUrl("\\windows\\style"), "\\windows\\style");
   assert.equal(normalizeWebUrl("has space.com"), "has space.com");
 });
+
+test("normalizeWebUrl rejects executable/data schemes so a Portal URL can't carry XSS", () => {
+  const context = createContext();
+  loadScript(context, "js/utils.js");
+  const { normalizeWebUrl } = context.App.Utils;
+
+  // Dangerous schemes collapse to '' (callers fall back to '#'/mailto) — they
+  // must never survive into an href in the rendered or emailed newsletter.
+  assert.equal(normalizeWebUrl("javascript:alert(1)"), "");
+  assert.equal(normalizeWebUrl("JavaScript:alert(document.domain)"), "");
+  assert.equal(normalizeWebUrl("  javascript:alert(1)  "), "");
+  assert.equal(normalizeWebUrl("data:text/html,<script>alert(1)</script>"), "");
+  assert.equal(normalizeWebUrl("vbscript:msgbox(1)"), "");
+  assert.equal(normalizeWebUrl("file:///etc/passwd"), "");
+  // Legitimate schemes/hosts still pass through unchanged.
+  assert.equal(normalizeWebUrl("https://portal.example.com"), "https://portal.example.com");
+  assert.equal(normalizeWebUrl("portal.example.com"), "https://portal.example.com");
+});

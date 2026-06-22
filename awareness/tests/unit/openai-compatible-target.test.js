@@ -63,6 +63,21 @@ test("normalizeChatCompletionsUrl appends /v1/chat/completions to a bare host", 
   );
 });
 
+test("normalizeChatCompletionsUrl / resolveModelsUrl reject executable & data schemes (no fetch to javascript:/data:)", () => {
+  const { normalizeChatCompletionsUrl, resolveModelsUrl } = loadSummarizer();
+  for (const bad of [
+    "javascript:alert(1)",
+    "data:application/json,{}",
+    "vbscript:msgbox(1)",
+    "file:///etc/passwd",
+  ]) {
+    assert.equal(normalizeChatCompletionsUrl(bad), "", `chat URL must reject ${bad}`);
+    assert.equal(resolveModelsUrl(bad), "", `models URL must reject ${bad}`);
+  }
+  // A normal base URL still resolves.
+  assert.equal(normalizeChatCompletionsUrl("http://localhost:11434"), "http://localhost:11434/v1/chat/completions");
+});
+
 test("normalizeChatCompletionsUrl strips a trailing slash before appending", () => {
   const { normalizeChatCompletionsUrl } = loadSummarizer();
   assert.equal(

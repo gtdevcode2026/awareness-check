@@ -70,12 +70,27 @@
     const ctxEl = document.getElementById('sb-context-keyword-list');
     const noiseEl = document.getElementById('sb-noise-keyword-list');
     if (!critEl || !ctxEl || !noiseEl) return;
-    const critical = KS.getCriticalKeywords();
-    const context = KS.getContextKeywords();
-    const noise = KS.getNoiseKeywords();
-    critEl.innerHTML = critical.slice(0, 120).map(k => `<span class="sb-kword-chip">${k}<button onclick="App.UI.removeSidebarCriticalKeyword('${k.replace(/'/g, "\\'")}')">×</button></span>`).join('');
-    ctxEl.innerHTML = context.slice(0, 120).map(k => `<span class="sb-kword-chip">${k}<button onclick="App.UI.removeSidebarContextKeyword('${k.replace(/'/g, "\\'")}')">×</button></span>`).join('');
-    noiseEl.innerHTML = noise.slice(0, 120).map(k => `<span class="sb-kword-chip">${k}<button onclick="App.UI.removeSidebarNoiseKeyword('${k.replace(/'/g, "\\'")}')">×</button></span>`).join('');
+    // Build chips with DOM APIs (textContent + addEventListener) instead of an
+    // innerHTML string: a keyword is user input, and the previous markup put it
+    // raw in the chip text and only single-quote-escaped in an inline onclick —
+    // both XSS sinks (e.g. a keyword of `<img src=x onerror=…>` or `'+alert(1)+'`).
+    // Behaviour is identical: each × removes its keyword.
+    const fillChips = (el, keywords, remove) => {
+      el.textContent = '';
+      keywords.slice(0, 120).forEach((k) => {
+        const chip = document.createElement('span');
+        chip.className = 'sb-kword-chip';
+        chip.appendChild(document.createTextNode(k));
+        const btn = document.createElement('button');
+        btn.textContent = '×';
+        btn.addEventListener('click', () => remove(k));
+        chip.appendChild(btn);
+        el.appendChild(chip);
+      });
+    };
+    fillChips(critEl, KS.getCriticalKeywords(), (k) => window.App.UI.removeSidebarCriticalKeyword(k));
+    fillChips(ctxEl, KS.getContextKeywords(), (k) => window.App.UI.removeSidebarContextKeyword(k));
+    fillChips(noiseEl, KS.getNoiseKeywords(), (k) => window.App.UI.removeSidebarNoiseKeyword(k));
   }
 
   function addSidebarCriticalKeyword() {

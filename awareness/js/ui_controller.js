@@ -174,6 +174,20 @@ App.UI = (() => {
       .replace(/'/g, '&#39;');
   }
 
+  // Escape a value for an inline event handler — a single-quoted JS string that
+  // itself sits inside a double-quoted HTML attribute. Must neutralize BOTH the
+  // JS-string breakout (\\ and ') and the HTML-attribute breakout (" < > &), and
+  // in that order so the backslash/quote escaping survives HTML entity-decoding.
+  function jsAttr(value) {
+    return String(value == null ? '' : value)
+      .replace(/\\/g, '\\\\')
+      .replace(/'/g, "\\'")
+      .replace(/&/g, '&amp;')
+      .replace(/"/g, '&quot;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   async function fetchWithTranslationRetry(url, init, options = {}) {
     const attempts = options.attempts ?? 4;
     const baseMs = options.baseMs ?? 400;
@@ -1768,19 +1782,19 @@ App.UI = (() => {
       if (activeLabel) activeLabel.textContent = 'No draft loaded';
       return;
     }
-    const options = state.drafts.map(d => `<option value="${d.id}" ${state.selectedDraftToLoad === d.id ? 'selected' : ''}>${d.title || 'Untitled'} · ${d.status || 'draft'} · ${fmtDate(d.issueDate || d.updatedAt)}</option>`).join('');
+    const options = state.drafts.map(d => `<option value="${escapeHtml(d.id)}" ${state.selectedDraftToLoad === d.id ? 'selected' : ''}>${escapeHtml(d.title || 'Untitled')} · ${escapeHtml(d.status || 'draft')} · ${fmtDate(d.issueDate || d.updatedAt)}</option>`).join('');
     const cards = state.drafts.slice(0, 24).map(d => {
       const wf = d.workspace?.workflow?.state || d.status || 'draft';
       const isActive = d.id === state.activeDraftId;
       return `<div style="padding:.55rem .65rem;border:1px solid ${isActive ? 'rgba(212,164,32,.5)' : 'rgba(255,255,255,.1)'};border-radius:6px;background:${isActive ? 'rgba(184,134,11,.08)' : 'rgba(255,255,255,.02)'}">
         <div style="display:flex;align-items:center;justify-content:space-between;gap:.45rem;flex-wrap:wrap">
-          <strong style="font-size:.73rem;color:var(--wh)">${d.title || 'Untitled'}</strong>
-          <span style="font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;padding:.14rem .45rem;border:1px solid rgba(212,164,32,.35);border-radius:999px;color:var(--gold-hi)">${wf}</span>
+          <strong style="font-size:.73rem;color:var(--wh)">${escapeHtml(d.title || 'Untitled')}</strong>
+          <span style="font-size:.54rem;letter-spacing:.08em;text-transform:uppercase;padding:.14rem .45rem;border:1px solid rgba(212,164,32,.35);border-radius:999px;color:var(--gold-hi)">${escapeHtml(wf)}</span>
         </div>
-        <div style="font-size:.64rem;color:var(--gray);margin-top:.25rem">Issue: ${fmtDate(d.issueDate || d.updatedAt)} · Updated: ${fmtDate(d.updatedAt)} · Versions: ${d.version || 1}</div>
+        <div style="font-size:.64rem;color:var(--gray);margin-top:.25rem">Issue: ${fmtDate(d.issueDate || d.updatedAt)} · Updated: ${fmtDate(d.updatedAt)} · Versions: ${escapeHtml(d.version || 1)}</div>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:.35rem;gap:.45rem;flex-wrap:wrap">
-          <span style="font-size:.62rem;color:var(--gray2)">Owner: ${d.owner || 'Unassigned'} · Campaign: ${d.campaignName || 'N/A'}</span>
-          <button class="btn" onclick="App.UI.loadDraftById('${d.id}')">Open</button>
+          <span style="font-size:.62rem;color:var(--gray2)">Owner: ${escapeHtml(d.owner || 'Unassigned')} · Campaign: ${escapeHtml(d.campaignName || 'N/A')}</span>
+          <button class="btn" onclick="App.UI.loadDraftById('${jsAttr(d.id)}')">Open</button>
         </div>
       </div>`;
     }).join('');
@@ -1817,8 +1831,8 @@ App.UI = (() => {
           <strong style="font-size:.72rem;color:var(--wh)">${l.action === 'test' ? 'Test Email' : 'Newsletter Send'} · ${l.status}</strong>
           <span style="font-size:.62rem;color:var(--gray)">${fmtDate(l.createdAt)}</span>
         </div>
-        <div style="font-size:.66rem;color:var(--gray2)">Draft: ${l.draftTitle || 'N/A'} | To: ${l.recipients || 'N/A'} | Lang: ${l.language || 'en'}</div>
-        ${l.error ? `<div style="font-size:.65rem;color:var(--red)">Error: ${l.error}</div>` : ''}
+        <div style="font-size:.66rem;color:var(--gray2)">Draft: ${escapeHtml(l.draftTitle || 'N/A')} | To: ${escapeHtml(l.recipients || 'N/A')} | Lang: ${escapeHtml(l.language || 'en')}</div>
+        ${l.error ? `<div style="font-size:.65rem;color:var(--red)">Error: ${escapeHtml(l.error)}</div>` : ''}
       </div>`).join('')}`;
   }
 
@@ -2186,7 +2200,7 @@ App.UI = (() => {
     const selected = state.selectedArticleIndices.length;
     const safeArts = Array.isArray(arts) ? arts : [];
     const types = ['All', ...new Set(safeArts.map(a => a?.type || 'Security News'))];
-    const fRow = `<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.65rem">${types.map(t => `<button class="fchip ${t===state.activeFilter?'active':''}" onclick="App.UI.setFilter('${t}')">${t}</button>`).join('')}</div>`;
+    const fRow = `<div style="display:flex;gap:.35rem;flex-wrap:wrap;margin-bottom:.65rem">${types.map(t => `<button class="fchip ${t===state.activeFilter?'active':''}" onclick="App.UI.setFilter('${jsAttr(t)}')">${escapeHtml(t)}</button>`).join('')}</div>`;
     const typeFiltered = state.activeFilter === 'All' ? safeArts : safeArts.filter(a => (a?.type || 'Security News') === state.activeFilter);
     const sortedFiltered = sortArticles(typeFiltered);
     renderArticleStats(safeArts, sortedFiltered);

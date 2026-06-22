@@ -67,6 +67,8 @@ App.AISummarizer = (() => {
   function normalizeChatCompletionsUrl(baseUrl) {
     const trimmed = String(baseUrl || '').trim().replace(/\/+$/, '');
     if (!trimmed) return '';
+    // Reject executable / data schemes before this becomes a fetch() target.
+    if (/^(?:javascript|data|vbscript|file):/i.test(trimmed)) return '';
     if (/\/chat\/completions$/.test(trimmed)) return trimmed;
     if (/\/v\d+$/.test(trimmed)) return `${trimmed}/chat/completions`;
     return `${trimmed}/v1/chat/completions`;
@@ -190,6 +192,8 @@ App.AISummarizer = (() => {
   function resolveModelsUrl(baseUrl) {
     const trimmed = String(baseUrl || '').trim().replace(/\/+$/, '');
     if (!trimmed) return '';
+    // Reject executable / data schemes before this becomes a fetch() target.
+    if (/^(?:javascript|data|vbscript|file):/i.test(trimmed)) return '';
     if (/\/models$/.test(trimmed)) return trimmed;
     const noChat = trimmed.replace(/\/chat\/completions$/, '');
     if (/\/v\d+$/.test(noChat)) return `${noChat}/models`;

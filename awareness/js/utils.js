@@ -634,6 +634,9 @@ App.Utils = (() => {
     if (!s) return '';
     const lower = s.toLowerCase();
     if (lower.startsWith('mailto:') || lower.startsWith('tel:') || lower.startsWith('sms:')) return s;
+    // Reject executable / data schemes so a crafted Portal URL can never become an
+    // active href in the rendered newsletter or the emailed copy (stored XSS).
+    if (/^(?:javascript|data|vbscript|file):/i.test(lower)) return '';
     if (/^[a-z][a-z0-9+.-]*:/i.test(s)) return s;
     if (lower.startsWith('//')) return `https:${s}`;
     if (s.startsWith('#') || s.startsWith('/') || s.startsWith('\\')) return s;
