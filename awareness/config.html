@@ -492,9 +492,11 @@
           <label>Available Models</label>
           <button type="button" class="btn" id="ai-load-models-btn" onclick="App.UI.loadCustomModels()">Load models</button>
           <select id="ai-model-list" style="display:none;margin-top:.4rem"></select>
-          <p class="title-sub" id="ai-models-status" style="margin:.35rem 0 0" aria-live="polite">Set the Base URL (+ key) above, then fetch <code>GET &lt;base&gt;/models</code> and pick one. Or type a model name in the field below.</p>
+          <p class="title-sub" id="ai-models-status" style="margin:.35rem 0 0" aria-live="polite">Set the Base URL (+ key) above, then fetch <code>GET &lt;base&gt;/models</code> and pick one.</p>
         </div>
-        <div class="field" id="ai-custom-model-field" style="display:none"><label>Model</label><input id="ai-model" placeholder="llama3.1" spellcheck="false" autocomplete="off"><p class="title-sub" style="margin:.35rem 0 0">Auto-filled when you pick from Available Models. Type here to override, or if the list comes back empty.</p></div>
+        <!-- Selected model — holds the value picked from Available Models. Hidden:
+             the model is chosen from the dropdown above, not typed by hand. -->
+        <input type="hidden" id="ai-model">
         <div class="save-actions compact">
           <button class="btn" onclick="App.UI.saveAISettings()">Save AI Settings</button>
           <button type="button" class="btn" id="ai-custom-test-btn" onclick="App.UI.testCustomAIConnection()">Test connection</button>

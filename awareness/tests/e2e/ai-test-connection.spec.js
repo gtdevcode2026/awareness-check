@@ -45,7 +45,9 @@ test.describe("custom AI: Test connection + field order", () => {
   test("Test connection reports Connected when the endpoint returns 200", async ({ page }) => {
     await openCustomConfig(page);
     await page.fill("#ai-base-url", BASE_URL);
-    await page.fill("#ai-model", "openai/gpt-4o-mini");
+    // #ai-model is a hidden value-holder now (set by the Available Models
+    // dropdown, not typed); seed it the same way the dropdown would.
+    await page.evaluate(() => { document.getElementById("ai-model").value = "openai/gpt-4o-mini"; });
     await page.route("**/chat/completions", (route) =>
       route.fulfill({
         status: 200,
@@ -60,7 +62,7 @@ test.describe("custom AI: Test connection + field order", () => {
   test("Test connection surfaces an HTTP error (401) from the endpoint", async ({ page }) => {
     await openCustomConfig(page);
     await page.fill("#ai-base-url", BASE_URL);
-    await page.fill("#ai-model", "openai/gpt-4o-mini");
+    await page.evaluate(() => { document.getElementById("ai-model").value = "openai/gpt-4o-mini"; });
     await page.route("**/chat/completions", (route) =>
       route.fulfill({
         status: 401,

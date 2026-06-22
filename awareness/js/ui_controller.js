@@ -1383,7 +1383,7 @@ App.UI = (() => {
   // selected (no-op on pages where the fields are hidden inputs without wrappers).
   function syncCustomProviderFields() {
     const isCustom = (document.getElementById('ai-provider')?.value || 'claude') === 'custom';
-    for (const id of ['ai-custom-base-field', 'ai-custom-model-field', 'ai-custom-models-field']) {
+    for (const id of ['ai-custom-base-field', 'ai-custom-models-field']) {
       const el = document.getElementById(id);
       if (el) el.style.display = isCustom ? '' : 'none';
     }
@@ -1468,7 +1468,7 @@ App.UI = (() => {
     // The custom chat probe needs a model. Guide the user to Load models / pick
     // one rather than firing the probe just to get a bare "No model set".
     if (provider === 'custom' && !dom.model) {
-      const msg = 'Pick a model first — click "Load models" above and choose one (or type a model name), then Test connection.';
+      const msg = 'Pick a model first — click "Load models" above and choose one, then Test connection.';
       if (statusEl) { statusEl.textContent = msg; statusEl.style.color = '#b3261e'; }
       if (debugEl) { debugEl.style.display = 'none'; debugEl.textContent = ''; }
       showToast(msg, true);
@@ -1526,10 +1526,10 @@ App.UI = (() => {
   }
 
   // Fetch the available models from the custom (OpenAI-compatible) endpoint's
-  // /models route and offer them as a dropdown. The #ai-model text input stays
-  // the single source of truth — the dropdown just writes the chosen id into it
-  // — so persistence (saveAISettings) and the hidden-input pages are unaffected.
-  // On any failure the user can still type a model name by hand.
+  // /models route and offer them as a dropdown. The hidden #ai-model input stays
+  // the single source of truth — the dropdown writes the chosen id into it — so
+  // persistence (saveAISettings) and the hidden-input pages are unaffected. The
+  // model is picked from this list only; there is no manual model-name field.
   async function loadCustomModels() {
     const statusEl = document.getElementById('ai-models-status');
     const selectEl = document.getElementById('ai-model-list');
@@ -1552,7 +1552,7 @@ App.UI = (() => {
 
     const models = result.models || [];
     if (!models.length) {
-      const msg = `Connected to ${url}, but it returned no models. You can still type a model name manually.`;
+      const msg = `Connected to ${url}, but it returned no models — this endpoint can't be used for generation.`;
       if (statusEl) { statusEl.textContent = msg; statusEl.style.color = '#b3261e'; }
       showToast(msg, true);
       return;
