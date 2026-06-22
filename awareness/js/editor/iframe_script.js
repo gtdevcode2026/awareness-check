@@ -707,7 +707,7 @@
       if (!t || t === document.body || t === document.documentElement) { stopEdit(); doSelect(null); return; }
       if (_edEl && _edEl.contains(t)) return;
       if (_edEl && !_edEl.contains(t)) stopEdit();
-      doSelect(t, !!e.shiftKey);
+      doSelect(t, !!(e.ctrlKey || e.metaKey)); // Ctrl (Win/Linux) / Cmd (Mac) = additive multi-select
     }, true);
 
     document.addEventListener('dblclick', function (e) {
