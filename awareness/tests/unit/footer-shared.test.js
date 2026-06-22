@@ -64,8 +64,9 @@ function buildPosterFooter() {
 // The shared footer (js/newsletter_builder.js → foot()) backs every core
 // template. It was unified to match the polished bank-page portal footer:
 // 20px gold heading, 14px sub-line, an Outlook-safe Visit Portal button
-// (padding on the TD, not an inline-block anchor that Word balloons), a 90px
-// gold-bordered QR + "Scan for Portal", and the bottom org/contact line kept.
+// (padding on the TD, not an inline-block anchor that Word balloons), and a 90px
+// gold-bordered QR + "Scan for Portal". The legacy grey org/contact line that
+// used to sit above the disclaimer has been removed.
 test.describe("shared footer matches the bank-page portal footer", () => {
   test("heading renders at 20px gold and forces its colour for Outlook", () => {
     const html = buildPosterFooter();
@@ -94,18 +95,18 @@ test.describe("shared footer matches the bank-page portal footer", () => {
     assert.ok(!html.includes("color:#555555"), "scan label should no longer use the dark #555555");
   });
 
-  test("bottom org / contact line is preserved", () => {
+  test("legacy grey org / contact line above the disclaimer is removed", () => {
     const html = buildPosterFooter();
-    assert.match(html, /Security Awareness · <a href="mailto:soc@acme\.test"/);
+    assert.ok(!/Security Awareness · <a href="mailto:soc@acme\.test"/.test(html), "the 'org · Security Awareness · email' grey line must no longer render in the footer");
   });
 
-  test("ends with a 'Disclaimer: The above content is curated and created with AI' credit line below the org/contact line", () => {
+  test("ends with a 'Disclaimer: The above content is curated and created with AI' credit line below the portal block", () => {
     const html = buildPosterFooter();
     assert.ok(html.includes("Disclaimer: The above content is curated and created with AI"), "footer must carry the 'Disclaimer: The above content is curated and created with AI' credit");
-    // The credit sits AFTER the org/contact line — i.e. at the very end of the footer.
-    const orgIdx = html.indexOf('Security Awareness · <a href="mailto:soc@acme.test"');
+    // The credit sits AFTER the portal block — i.e. at the very end of the footer.
+    const portalIdx = html.lastIndexOf(">Visit Portal<");
     const creditIdx = html.indexOf("Disclaimer: The above content is curated and created with AI");
-    assert.ok(orgIdx >= 0 && creditIdx > orgIdx, "credit must come after the org/contact line");
+    assert.ok(portalIdx >= 0 && creditIdx > portalIdx, "credit must come after the portal block");
   });
 });
 

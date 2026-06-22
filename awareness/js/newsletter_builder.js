@@ -250,9 +250,6 @@ App.NewsletterBuilder = (() => {
     const orgRaw = (c.org || '').trim();
     const pnameDisplay = pnameRaw || (orgRaw ? `${orgRaw} Security Awareness Portal` : 'Security Awareness Portal');
     const pnameHtml = escapeHtml(pnameDisplay);
-    const orgLine = escapeHtml(orgRaw || 'ABC Corp');
-    const socEsc = escapeHtml(soc);
-    const socAttr = escAttr(soc);
     const qrCell = qr
       ? `<td width="160" valign="top" align="center" style="padding-left:16px;"><table cellpadding="0" cellspacing="0" border="0" style="border:2px solid #C09010;background-color:#FFFFFF;" bgcolor="#FFFFFF"><tr><td style="padding:4px;" id="nl-qr" data-qr-size="90"></td></tr></table><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-top:6px;font-size:9px;color:#909090;letter-spacing:0.08em;text-transform:uppercase;${NLFF}">Scan for Portal</td></tr></table></td>`
       : '';
@@ -262,9 +259,6 @@ App.NewsletterBuilder = (() => {
         <td valign="top" style="padding:0 12px 0 0;"><a href="${portalEsc}" style="${NLFF};font-size:20px;font-weight:bold;color:#D4A420;text-decoration:none;" target="_blank" rel="noopener noreferrer"><font color="#D4A420">${pnameHtml}</font></a><br><br><span style="${NLFF};font-size:14px;color:#909090;line-height:1.5;">Training modules, policies, and past bulletins.</span><br><br><table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;"><tr><td align="center" style="border:1px solid #C09010;border-radius:4px;padding:10px 22px;line-height:1;${NLFF};font-size:14px;font-weight:700;"><a href="${portalEsc}" style="color:#D4A420;text-decoration:none;" target="_blank" rel="noopener noreferrer">Visit Portal</a></td></tr></table></td>
         ${qrCell}
       </tr></table>`,
-        'style="padding:0;margin:0"'
-      )}${tbc(
-        `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-top:14px;margin-top:8px;border-top:1px solid #333333;font-size:10px;color:#999999;letter-spacing:0.06em;${NLFF}">${orgLine} · Security Awareness · <a href="mailto:${socAttr}" style="color:#BBBBBB;text-decoration:none;">${socEsc}</a></td></tr></table>`,
         'style="padding:0;margin:0"'
       )}${tbc(
         // Subtle AI-credit line — the final element of every shared footer.

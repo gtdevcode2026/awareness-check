@@ -146,9 +146,6 @@
         + `<span style="font-size:18px;font-weight:bold;color:#D4A420;${NLFF_SERIF}">Key Takeaways This Edition</span>`
         + `${tbl()}${tbc('', 'height="11" style="font-size:1px;line-height:11px;"')}${tblx()}`
         + `<table width="100%" cellpadding="0" cellspacing="8" border="0"><tbody>${gridRows}</tbody></table>`
-        + `${tbl()}${tbc('', 'height="14" style="font-size:1px;line-height:14px;"')}${tblx()}`
-        + `<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#C09010" style="background-color:#C09010;border-radius:5px;">`
-        + `<tr><td align="center" style="padding:10px;font-size:12px;font-weight:bold;letter-spacing:.1em;text-transform:uppercase;color:#FFFFFF;${NLFF}">STOP · THINK · REPORT — ${escapeHtml((c.soc || '').trim())}</td></tr></table>`
         + `</td></tr></table>`,
         'data-nl-nav="nl-key-takeaways" bgcolor="#0A0A0A" style="padding:26px 35px;background-color:#0A0A0A;margin:0;"'
       );
@@ -157,10 +154,11 @@
     // CTA — inset dark box inside light row, matches reference (padding:1.5rem 2rem / margin:1.5rem 0)
     const mail = escAttr(`mailto:${(c.soc || '').trim()}`);
     const socShow = escapeHtml((c.soc || '').trim());
+    // Full-width dark band — flush and aligned with the Key Takeaways + footer
+    // sections (no cream gutter). Keeps the dark look + gold left accent; the
+    // top divider separates it from the Key Takeaways band above.
     const corpReportCTA = tbc(
-      `<table width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#0A0A0A" style="background-color:#0A0A0A;border-left:4px solid #C09010;">`
-      + `<tr><td style="padding:24px 32px;">`
-      + `<span style="font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#D4A420;font-weight:bold;${NLFF}">See Something Suspicious?</span>`
+      `<span style="font-size:8px;letter-spacing:0.18em;text-transform:uppercase;color:#D4A420;font-weight:bold;${NLFF}">See Something Suspicious?</span>`
       + `${tbl()}${tbc('', 'height="4" style="font-size:1px;line-height:4px;"')}${tblx()}`
       + `<span style="font-size:17px;font-weight:bold;color:#FFFFFF;line-height:1.25;${NLFF_SERIF}">Don't Click. Don't Reply. Report It.</span>`
       + `${tbl()}${tbc('', 'height="5" style="font-size:1px;line-height:5px;"')}${tblx()}`
@@ -169,9 +167,8 @@
       + `<table border="0" cellpadding="0" cellspacing="0"><tr>`
       + `<td bgcolor="#C09010" style="background-color:#C09010;border-radius:5px;">`
       + `<a href="${mail}" style="display:inline-block;color:#FFFFFF;font-weight:bold;font-size:12px;padding:11px 22px;text-decoration:none;${NLFF}">Report to ${socShow}</a>`
-      + `</td></tr></table>`
       + `</td></tr></table>`,
-      'data-nl-nav="nl-cta" bgcolor="#F8F5EF" style="padding:24px 35px;background-color:#F8F5EF;"'
+      'data-nl-nav="nl-cta" bgcolor="#0A0A0A" style="padding:24px 35px;background-color:#0A0A0A;border-left:4px solid #C09010;border-top:1px solid #5C4A10;"'
     );
 
     return `${nlOuterOpen()}${tbl()}`
