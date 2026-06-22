@@ -37,4 +37,7 @@ skills-lock.json
 __pycache__/
 *.pyc
 *.pyo
+# Stray top-level editor/ — a byte-identical duplicate of js/editor/iframe_script.js
+# that nothing loads and that fails the lint gate (no browser globals there).
+awareness/editor/
 
