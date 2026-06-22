@@ -899,6 +899,46 @@ App.UI = (() => {
     return Object.assign({}, v, { html, css });
   }
 
+  // ── Email-only: make the rendered design scale-to-fit on phones (no reflow) ──
+  // The in-app preview keeps each template fluid (`width:100%` + `max-width:Npx`)
+  // so it fits the preview pane. But in a phone MAIL client that hybrid backfires:
+  // the outer column goes fluid down to ~375px while the FIXED-width inner content
+  // (hero images, multi-column tip rows authored at the 640px design width) can't
+  // shrink — so it overflows, the client shrinks the whole message to compensate,
+  // and you get the empty side-margins / stray padding / "messed orientation" the
+  // design never intended. Anchoring each hybrid container back to its fixed
+  // max-width turns the email into a clean fixed-width block, so iOS Mail / Gmail /
+  // Outlook mobile all shrink-to-fit the EXACT desktop layout — same design, just
+  // smaller. Applied to the export/send document ONLY; renderVariantHtml (the live
+  // preview) is untouched, so on-screen editing keeps its fluid behaviour.
+  function anchorEmailWidthForMobile(html) {
+    const raw = String(html || '');
+    if (typeof DOMParser === 'undefined') return raw;
+    const isFull = /^\s*(?:<!doctype html>\s*)?<html[\s>]/i.test(raw);
+    try {
+      const wrapped = isFull ? raw
+        : `<!DOCTYPE html><html><head><meta charset="utf-8"></head><body>${raw}</body></html>`;
+      const doc = new DOMParser().parseFromString(wrapped, 'text/html');
+      // Anchor every hybrid "max-width:Npx; width:100%" container to a fixed Npx so
+      // the layout can no longer reflow under a phone-width viewport.
+      doc.querySelectorAll('[style*="max-width"]').forEach((el) => {
+        const s = el.getAttribute('style') || '';
+        const m = s.match(/max-width:\s*(\d+)px/i);
+        if (!m || !/width:\s*100%/i.test(s)) return;
+        el.setAttribute('style', s.replace(/width:\s*100%/i, `width:${m[1]}px`));
+        if (el.hasAttribute('width')) el.setAttribute('width', m[1]);
+      });
+      // Stop iOS Mail inflating text (a common overflow cause) if not already set.
+      const body = doc.body;
+      if (body && !/text-size-adjust/i.test(body.getAttribute('style') || '')) {
+        const bs = body.getAttribute('style') || '';
+        body.setAttribute('style', `${bs}${bs && !/;\s*$/.test(bs) ? ';' : ''}-webkit-text-size-adjust:100%;text-size-adjust:100%;`);
+      }
+      if (isFull) return (doc.doctype ? '<!DOCTYPE html>' : '') + doc.documentElement.outerHTML;
+      return doc.body.innerHTML;
+    } catch (e) { return raw; }
+  }
+
   function toStandaloneHtml(variant, langId) {
     const v = stripEditorChromeForExport(normalizeVariant(variant));
     const cfg = getMergedConfigForExport();
@@ -935,11 +975,12 @@ App.UI = (() => {
         else if (/<body[^>]*>/i.test(doc)) doc = doc.replace(/(<body[^>]*>)/i, `$1${styleTag}`);
         else doc = styleTag + doc;
       }
-      return emailSafe(doc);
+      return emailSafe(anchorEmailWidthForMobile(doc));
     }
     const bodyStyle =
       'margin:0;padding:20px;background-color:#C5BEAF;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;';
-    return emailSafe(`<!DOCTYPE html><html lang="${langId}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Newsletter - ${getLanguageLabel(langId)}</title>${styleTag}</head><body style="${bodyStyle}">${bodyHtml}</body></html>`);
+    const fragDoc = `<!DOCTYPE html><html lang="${langId}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Newsletter - ${getLanguageLabel(langId)}</title>${styleTag}</head><body style="${bodyStyle}">${bodyHtml}</body></html>`;
+    return emailSafe(anchorEmailWidthForMobile(fragDoc));
   }
 
   function refreshLanguageControls() {

@@ -115,6 +115,33 @@ test("toStandaloneHtml leaves clean content untouched (no false stripping)", () 
   assert.ok(out.includes(".brand{color:#D4A420}"), "CSS preserved");
 });
 
+// The emailed document must scale-to-fit on a phone WITHOUT reflow: a fluid
+// "width:100%;max-width:Npx" content table that wraps fixed-width inner artwork
+// overflows in mobile mail, so we anchor it back to its fixed Npx design width.
+// The full-bleed background band (width="100%" attribute, no max-width) stays fluid.
+test("toStandaloneHtml anchors hybrid width:100%+max-width to a fixed width (phone scale-to-fit, no reflow)", () => {
+  const internals = loadInternals();
+  const out = internals.toStandaloneHtml(
+    { html:
+        '<table width="100%"><tr><td align="center">' +
+        '<table width="640" style="width:100%;max-width:640px;background:#fff"><tr><td>Body copy</td></tr></table>' +
+        '</td></tr></table>',
+      css: "" }, "en");
+  assert.match(out, /width:640px;\s*max-width:640px/i,
+    "the content table's fluid width is anchored to its fixed 640px design width");
+  assert.ok(/width="100%"/i.test(out),
+    "the full-bleed background band stays width=100% (so the page background still fills the screen)");
+  assert.ok(out.includes("Body copy"), "content preserved");
+});
+
+test("toStandaloneHtml stamps text-size-adjust on a full-doc body (stops iOS Mail inflating text → overflow)", () => {
+  const internals = loadInternals();
+  const out = internals.toStandaloneHtml(
+    { html: '<!DOCTYPE html><html><head><meta charset="utf-8"></head><body><p>Hi there</p></body></html>', css: "" }, "en");
+  assert.match(out, /text-size-adjust:\s*100%/i, "body carries -webkit-text-size-adjust:100%");
+  assert.ok(out.includes("Hi there"), "body preserved");
+});
+
 test("buildLanguageIndexHtml produces a viewer linking every language file", () => {
   const internals = loadInternals();
   const entries = [
