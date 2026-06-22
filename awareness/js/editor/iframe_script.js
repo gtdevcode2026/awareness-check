@@ -346,6 +346,7 @@
       if (!el || el === document.body) return;
       if (_edEl && _edEl !== el) { _edEl.removeAttribute('contenteditable'); _edEl.style.cursor = ''; }
       _edEl = el; el.contentEditable = 'true'; el.style.cursor = 'text'; el.focus();
+      disarmDrag();   // editing → the block must not be draggable (don't hijack the caret)
       try {
         var r = document.createRange(); r.selectNodeContents(el); r.collapse(false);
         var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
@@ -365,6 +366,7 @@
         textFull: el.textContent || ''
       });
       if (_sel) post('select', getProps(_sel));
+      armDirectDrag();   // re-arm grab-drag once text editing ends
     }
 
     // After removing a node, walk UP and prune any ancestor that became
@@ -502,17 +504,22 @@
     function resolveMovableBlock(sel) {
       if (!sel || sel === document.body || sel === document.documentElement) return null;
       var card = null;
+      var firstRow = null;
       var n = sel;
       while (n && n !== document.body && n !== document.documentElement) {
         if (n.tagName === 'TR' || n.tagName === 'LI') {
           if (hasContentSibling(n)) return n;
+          if (!firstRow) firstRow = n;   // relaxed: remember a sibling-less row too
         } else if (n.tagName === 'TD' && !card) {
           var tr = n.parentElement;
           if (tr && tr.tagName === 'TR' && cellCount(tr) >= 3 && hasContentSibling(n)) card = n;
         }
         n = n.parentElement;
       }
-      return card;
+      // Everything is pickup-able (Wix-style): if no sibling'd row/card was found,
+      // fall back to the nearest row/list-item so a structurally-alone block (a
+      // masthead or footer band) can still be grabbed and dragged to reorder.
+      return card || firstRow;
     }
     function collectMovableBlocks() {
       var seen = new Set(), out = [];
@@ -531,6 +538,26 @@
         return 0;
       });
       return out;
+    }
+
+    // Direct grab-drag (Wix-style): when a block is selected, arm it as draggable
+    // so the user can just grab and drag it to reorder — no separate "Drag" button
+    // needed. Only the resolved movable block is armed, and arming is skipped while
+    // editing text so a drag can never hijack the contenteditable caret/selection.
+    function disarmDrag() {
+      if (_dragEl) { try { _dragEl.removeAttribute('draggable'); _dragEl.classList.remove('nl-drag-ghost'); } catch (e) {} }
+      _dragEntourage.forEach(function (n) { try { n.classList.remove('nl-drag-ghost'); } catch (e) {} });
+      _dragEntourage = [];
+      _dragEl = null;
+    }
+    function armDirectDrag() {
+      disarmDrag();
+      if (_edEl) return;                                  // never arm mid text-edit
+      var blocks = collectMovableBlocks();                // primary + any multi-selected
+      if (!blocks.length) return;
+      _dragEl = blocks[0];
+      _dragEntourage = blocks.slice(1);                   // towed after the primary on drop
+      try { _dragEl.setAttribute('draggable', 'true'); } catch (e) {}
     }
     // Nearest same-tag sibling that isn't an invisible spacer, walking `dir`.
     function adjacentContentSibling(n, dir) {
@@ -714,10 +741,11 @@
     document.addEventListener('click', function (e) {
       var t = e.target;
       if (t && t.getAttribute && t.getAttribute('data-nl-ed-ui')) return; // resize handle / editor chrome
-      if (!t || t === document.body || t === document.documentElement) { stopEdit(); doSelect(null); return; }
+      if (!t || t === document.body || t === document.documentElement) { stopEdit(); doSelect(null); disarmDrag(); return; }
       if (_edEl && _edEl.contains(t)) return;
       if (_edEl && !_edEl.contains(t)) stopEdit();
       doSelect(t, !!(e.ctrlKey || e.metaKey)); // Ctrl (Win/Linux) / Cmd (Mac) = additive multi-select
+      armDirectDrag();   // arm the just-selected block for grab-drag (Wix-style)
     }, true);
 
     document.addEventListener('dblclick', function (e) {
