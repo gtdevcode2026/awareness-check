@@ -142,7 +142,7 @@ test("the 'Disclaimer: The above content is curated and created with AI' footer 
   const cfg = { org: "ACME", soc: "soc@acme.test", freq: "Weekly", portal: "https://p.example", pname: "Portal" };
   const arts = [{ type: "Phishing", title: "Fake invoice scam", summary: "A forged invoice asks staff to wire payment.", source: "BleepingComputer", url: "https://x.test/a", pubDate: "2026-06-04", threatLevel: 3 }];
   // "poster" exercises the shared foot(); the bank-page templates carry their own footer.
-  for (const id of ["poster", "bankpage1_dynamic", "bankpage1_static", "phishingbrief"]) {
+  for (const id of ["poster", "bankpage1_dynamic", "phishingbrief"]) {
     const built = ctx.App.NewsletterBuilder.build(id, cfg, arts, { useLinks: false, usePoster: false, useQR: false, useIllus: false });
     assert.ok(built.includes("Disclaimer: The above content is curated and created with AI"), `precondition: ${id} build carries the credit`);
     const out = await ctx.App.UITranslation.translateHtmlWithAI(built, "fr", "openai", "key");

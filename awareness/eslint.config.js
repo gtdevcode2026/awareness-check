@@ -14,6 +14,9 @@ module.exports = [
       "playwright-report/**",
       "test-results/**",
       "dist/**",
+      // Vendored third-party minified libraries (jszip, qrcode) — not our
+      // source; linting minified UMD bundles only produces noise.
+      "vendor/**",
       // Installed agent-skill tooling (e.g. the `impeccable` skill scripts);
       // not application source and not part of this project's lint surface.
       ".agents/**",

@@ -2538,15 +2538,22 @@ ${redFlagsRowsHtml}
       if (/…$/.test(t)) t = t.replace(/\s*\S*…$/u, '').trim();
       return t;
     };
+    // Build-time AI tiles (cfg.nlStrongPwTips, written every Generate) take
+    // precedence, then the lead article's curated watchouts, then a safe
+    // generic precaution — so the three tiles are always full and on-theme.
+    const aiTips = (c && Array.isArray(c.nlStrongPwTips))
+      ? c.nlStrongPwTips.map(cleanTip).filter(Boolean)
+      : [];
     const watch = (a0 && Array.isArray(a0.watchouts))
       ? a0.watchouts.map(cleanTip).filter(Boolean)
       : [];
+    const tile = (i, fallback) => aiTips[i] || watch[i] || fallback;
 
     const tokens = {
       INTRO:            titleOf(a0) || 'Create Strong & Unique Passwords for Every Account',
-      SECTION1_BULLET1: watch[0] || firstSentence(summaryOf(a0)) || 'Verify unexpected requests before you act',
-      SECTION1_BULLET2: watch[1] || 'Never share passwords or one-time codes',
-      SECTION1_BULLET3: watch[2] || 'Report suspicious messages to the SOC',
+      SECTION1_BULLET1: tile(0, firstSentence(summaryOf(a0)) || 'Verify unexpected requests before you act'),
+      SECTION1_BULLET2: tile(1, 'Never share passwords or one-time codes'),
+      SECTION1_BULLET3: tile(2, 'Report suspicious messages to the SOC'),
       SECTION1_BULLET4: 'Store passwords in a trusted password manager',
       SECTION2_BULLET1: 'Never reuse a password exposed in a breach',
       SECTION2_BULLET2: 'Do not share credentials over email or chat',

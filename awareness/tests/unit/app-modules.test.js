@@ -229,7 +229,7 @@ test("NewsletterBuilder catalog exposes the 25 accessible template definitions",
   loadScript(context, "js/newsletter/core_templates.js");
 
   const catalog = context.App.NewsletterBuilder.getTemplateCatalog();
-  assert.equal(catalog.length, 38);
+  assert.equal(catalog.length, 37);
   assert.ok(catalog.every((template) => template.id && template.name));
   assert.ok(catalog.every((template) => template.accessibility.contrastSafe));
   assert.ok(catalog.every((template) => template.a11yScore >= 2));
@@ -312,7 +312,7 @@ test("NewsletterBuilder.build dispatches every catalog id to its own builder (no
   const cfg = { org: "ACME", soc: "soc@acme.test", freq: "Weekly", portal: "https://p", pname: "P" };
 
   const catalog = context.App.NewsletterBuilder.getTemplateCatalog();
-  assert.equal(catalog.length, 38);
+  assert.equal(catalog.length, 37);
 
   for (const t of catalog) {
     const html = context.App.NewsletterBuilder.build(t.id, cfg, arts, { useLinks: false, usePoster: false, useQR: false, useIllus: false });
@@ -451,13 +451,13 @@ test("normalizeTranslatedTextSegment strips echoed <source>/<target> wrappers + 
   assert.equal(m.normalizeTranslatedTextSegment("Find the source of the alert", "Find the source of the alert"), "Find the source of the alert");
 });
 
-test("NewsletterBuilder catalog exposes 38 accessible template definitions", () => {
+test("NewsletterBuilder catalog exposes 37 accessible template definitions", () => {
   const context = createContext();
   loadScript(context, "js/newsletter_builder.js");
   loadScript(context, "js/newsletter/bank_page.js");
   loadScript(context, "js/newsletter/core_templates.js");
   const catalog = context.App.NewsletterBuilder.getTemplateCatalog();
-  assert.equal(catalog.length, 38);
+  assert.equal(catalog.length, 37);
   assert.ok(catalog.every((t) => t.id && t.name));
   assert.ok(catalog.every((t) => t.accessibility.contrastSafe));
 });
@@ -490,6 +490,49 @@ test("NewsletterBuilder poster1 screen-safe output contains keyframes", () => {
     { renderChannel: "screen-safe", useLinks: false, usePoster: false, useQR: false, useIllus: false }
   );
   assert.ok(html.includes("@keyframes nlFadeIn"), "screen-safe poster1 must inject animations");
+});
+
+test("NewsletterBuilder.isPosterTemplate identifies single-subject posters", () => {
+  const context = createContext();
+  loadScript(context, "js/newsletter_builder.js");
+  loadScript(context, "js/newsletter/bank_page.js");
+  loadScript(context, "js/newsletter/core_templates.js");
+  const NB = context.App.NewsletterBuilder;
+  // Posters (catalog tag 'poster-first' or 'poster') are single-subject — the UI caps them at one article.
+  for (const id of ["poster1", "poster5", "infographic", "quicktips", "redflags", "stoplook", "gen_strong_passwords", "gen_vishing", "gen_social_engineering", "gen_security_digest"]) {
+    assert.equal(NB.isPosterTemplate(id), true, `${id} should be a poster (1 article)`);
+  }
+  // Newsletters / bulletins are NOT posters — they keep multi-article selection.
+  for (const id of ["poster", "newspaper", "bankpage1_dynamic", "phishingbrief", "gen_chase_email", "gen_cybershield", "dodont", "spotlight"]) {
+    assert.equal(NB.isPosterTemplate(id), false, `${id} should not be a poster`);
+  }
+  assert.equal(NB.isPosterTemplate("does_not_exist"), false);
+});
+
+test("bankpage1_static is fully removed from the catalog", () => {
+  const context = createContext();
+  loadScript(context, "js/newsletter_builder.js");
+  loadScript(context, "js/newsletter/bank_page.js");
+  loadScript(context, "js/newsletter/core_templates.js");
+  const catalog = context.App.NewsletterBuilder.getTemplateCatalog();
+  assert.ok(!catalog.some((t) => t.id === "bankpage1_static"), "bankpage1_static must not be in the catalog");
+});
+
+test("gen_strong_passwords renders cfg.nlStrongPwTips into its tiles, over watchouts", () => {
+  const context = createContext();
+  loadScript(context, "js/newsletter_builder.js");
+  loadScript(context, "js/newsletter/bank_page.js");
+  loadScript(context, "js/newsletter/core_templates.js");
+  const cfg = {
+    org: "ACME", soc: "soc@acme.test", freq: "Weekly", portal: "https://p", pname: "P",
+    nlStrongPwTips: ["AI tile alpha", "AI tile bravo", "AI tile charlie"],
+  };
+  const arts = [{ type: "Password & MFA", title: "T", summary: "s", source: "Src", url: "https://x", watchouts: ["WATCHOUT_SHOULD_NOT_SHOW"] }];
+  const html = context.App.NewsletterBuilder.build("gen_strong_passwords", cfg, arts, { useLinks: false, usePoster: false, useQR: false, useIllus: false });
+  assert.ok(html.includes("AI tile alpha"), "tile 1 must use the AI slot");
+  assert.ok(html.includes("AI tile bravo"), "tile 2 must use the AI slot");
+  assert.ok(html.includes("AI tile charlie"), "tile 3 must use the AI slot");
+  assert.ok(!html.includes("WATCHOUT_SHOULD_NOT_SHOW"), "AI tiles take precedence over watchouts");
 });
 
 test("NewsletterBuilder newspaper (Cyber Gazette) renders 3-article broadsheet", () => {

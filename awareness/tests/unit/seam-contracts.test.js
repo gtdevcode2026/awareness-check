@@ -535,7 +535,7 @@ test("Seam: bank-page ensemble routes its 9 log POSTs through App.AILogger and p
     bullets: [longBullet("x"), longBullet("y"), longBullet("z")]
   });
 
-  ctx.App.AILogger.beginBuild({ templateId: "bankpage1_static" });
+  ctx.App.AILogger.beginBuild({ templateId: "bankpage1_dynamic" });
   await ctx.App.AIBankPageEnsemble.aiFillBankPageSlots([
     { title: "T1", type: "phishing", summary: "S1", source: "x" },
     { title: "T2", type: "phishing", summary: "S2", source: "y" }

@@ -41,7 +41,6 @@ function buildBankPages() {
   return {
     phishingbrief: NB.build("phishingbrief", cfg, arts, opts),
     dynamic: NB.build("bankpage1_dynamic", cfg, arts, opts),
-    static: NB.build("bankpage1_static", cfg, arts, opts),
   };
 }
 
