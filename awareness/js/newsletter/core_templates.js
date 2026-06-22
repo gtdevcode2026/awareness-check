@@ -2920,8 +2920,10 @@ ${redFlagsRowsHtml}
         `<tr><td width="16" valign="top" style="font-size:13px;font-weight:bold;color:#C09010;line-height:1.6;${NLFF}">&rsaquo;</td>`
         + `<td valign="top" style="font-size:12.5px;color:#333333;line-height:1.6;${i < list2.length - 1 ? 'padding-bottom:7px;' : ''}${NLFF}">${escapeHtml(b)}</td></tr>`
       ).join('');
-      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;border-top:1px solid #E4E2DC;">`
-        + `<tr><td style="padding-top:11px;"><span style="font-size:9px;font-weight:bold;letter-spacing:2px;color:#999999;text-transform:uppercase;${NLFF}">What it means for you</span></td></tr>`
+      // Heading styled to match the "PRECAUTIONARY MEASURES" badge below: a gold
+      // (#D4A420) uppercase label on a black (#0A0A0A) bar, same size/weight/tracking.
+      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;">`
+        + `<tr><td bgcolor="#0A0A0A" style="background-color:#0A0A0A;padding:9px 14px;"><span style="font-size:10px;font-weight:bold;letter-spacing:2.5px;color:#D4A420;text-transform:uppercase;${NLFF}">What it means for you</span></td></tr>`
         + `<tr><td style="padding-top:8px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table></td></tr>`
         + `</table>`;
     };
