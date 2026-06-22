@@ -84,6 +84,17 @@
     _hl.setAttribute('data-nl-ed-inject', '1');
     document.head.appendChild(_hl);
 
+    // Unlock everything: this editor honours no "locked asset". Strip the lock
+    // markers from the content so every block can be selected, edited, moved and
+    // dragged. Runs at load and again whenever the parent replaces body content.
+    function unlockAll() {
+      try {
+        var lk = document.querySelectorAll('[data-nl-lock]');
+        for (var i = 0; i < lk.length; i++) lk[i].removeAttribute('data-nl-lock');
+      } catch (e) {}
+    }
+    unlockAll();
+
     function setHl(el, on) {
       if (!el) return;
       if (on) el.setAttribute('data-nl-sel', '1');
@@ -435,7 +446,6 @@
         var w = findBulletWrapper(el);
         if (!w || w === document.body) w = el;
         if (!w || seen.has(w)) return;
-        if (w.getAttribute && w.getAttribute('data-nl-lock') === '1') return;
         seen.add(w); out.push(w);
       }
       if (_sel) push(_sel);
@@ -713,7 +723,6 @@
     document.addEventListener('dblclick', function (e) {
       var t = e.target;
       if (!t || t === document.body) return;
-      if (t.getAttribute('data-nl-lock') === '1') return;
       e.preventDefault();
       if (_selSet.size > 1) clearMultiSet();
       doSelect(t, false);
