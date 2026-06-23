@@ -11,7 +11,7 @@
   W.App = W.App || {};
 
   const fn = function () {
-    var _sel = null, _edEl = null, _dragEl = null, _dropLine = null, _hoverEl = null, _insideTarget = null;
+    var _sel = null, _edEl = null, _dragEl = null, _dropLine = null, _hoverEl = null;
     // Extra wrappers (shift-multi) that should land beside _dragEl on drop.
     var _dragEntourage = [];
     var _selSet = new Set();
@@ -366,7 +366,6 @@
         textFull: el.textContent || ''
       });
       if (_sel) post('select', getProps(_sel));
-      armDirectDrag();   // re-arm grab-drag once text editing ends
     }
 
     // After removing a node, walk UP and prune any ancestor that became
@@ -540,10 +539,11 @@
       return out;
     }
 
-    // Direct grab-drag (Wix-style): when a block is selected, arm it as draggable
-    // so the user can just grab and drag it to reorder — no separate "Drag" button
-    // needed. Only the resolved movable block is armed, and arming is skipped while
-    // editing text so a drag can never hijack the contenteditable caret/selection.
+    // Drag is opt-in: a block becomes draggable ONLY after the user clicks the
+    // "Drag" button (the 'enableDrag' message calls armDirectDrag below). A plain
+    // click never arms drag — it disarms instead — so nothing can be moved unless
+    // the user explicitly asked for it. Arming is skipped while editing text so a
+    // drag can never hijack the contenteditable caret/selection.
     function disarmDrag() {
       if (_dragEl) { try { _dragEl.removeAttribute('draggable'); _dragEl.classList.remove('nl-drag-ghost'); } catch (e) {} }
       _dragEntourage.forEach(function (n) { try { n.classList.remove('nl-drag-ghost'); } catch (e) {} });
@@ -671,6 +671,7 @@
     document.body.appendChild(_dropLine);
 
     document.addEventListener('dragstart', function (e) {
+      if (!_dragEl) { e.preventDefault(); return; }   // Drag button not clicked → nothing is draggable
       if (e.target !== _dragEl) return;
       e.dataTransfer.effectAllowed = 'move';
       e.dataTransfer.setData('text/plain', '1');
@@ -679,53 +680,51 @@
     });
 
     document.addEventListener('dragover', function (e) {
-      if (!_dragEl) return;
+      if (!_dragEl || !_dragEl.parentNode) return;
       e.preventDefault(); e.dataTransfer.dropEffect = 'move';
-      var t = e.target;
-      while (t && t !== document.body && t === _dragEl) t = t.parentNode;
-      if (t && t !== _dragEl && !_dragEl.contains(t)) {
-        if (_insideTarget) _insideTarget.removeAttribute('data-nl-drop-inside');
-        var rect = t.getBoundingClientRect();
-        var zoneTop = rect.top + rect.height * 0.25;
-        var zoneBottom = rect.top + rect.height * 0.75;
-        if (e.clientY >= zoneTop && e.clientY <= zoneBottom && t !== document.body) {
-          _insideTarget = t;
-          t.setAttribute('data-nl-drop-inside', '1');
-          _dropLine.style.display = 'none';
-        } else {
-          _insideTarget = null;
-          _dropLine.style.display = '';
-          if (e.clientY < rect.top + rect.height / 2) t.parentNode.insertBefore(_dropLine, t);
-          else t.parentNode.insertBefore(_dropLine, t.nextSibling);
-        }
-      }
+      // Reorder is sibling-only: walk up from the hovered node to the direct child
+      // of the dragged block's OWN container, and place the drop line before/after
+      // that sibling. We never reparent or nest the block inside another element —
+      // that "drop inside" path was what corrupted the table layout (a row dropped
+      // inside a cell, a block dropped into an inner wrapper, etc.).
+      var container = _dragEl.parentNode;
+      var sib = e.target;
+      while (sib && sib.parentNode !== container) sib = sib.parentNode;
+      if (!sib || sib === _dragEl || sib === _dropLine) return;
+      var rect = sib.getBoundingClientRect();
+      if (e.clientY < rect.top + rect.height / 2) container.insertBefore(_dropLine, sib);
+      else container.insertBefore(_dropLine, sib.nextSibling);
+      _dropLine.style.display = '';
     });
 
     document.addEventListener('drop', function (e) {
       if (!_dragEl) return;
       e.preventDefault();
-      if (_insideTarget && _insideTarget !== _dragEl && !_dragEl.contains(_insideTarget)) {
-        _insideTarget.appendChild(_dragEl);
-      } else if (_dropLine.parentNode) {
-        _dropLine.parentNode.insertBefore(_dragEl, _dropLine);
+      var container = _dragEl.parentNode;
+      // Commit the move only when the drop line landed inside the block's own
+      // container (a valid sibling slot). Otherwise leave the block where it was —
+      // a no-op is always preferable to a structure-breaking reparent.
+      if (container && _dropLine.parentNode === container) {
+        container.insertBefore(_dragEl, _dropLine);
       }
-      // Tow the rest of the multi-selection in document order directly after
-      // the dropped primary so a shift-drag keeps the group contiguous.
+      // Tow the rest of a multi-selection directly after the primary, but only
+      // blocks that are siblings of the same kind, so the group stays valid.
       var anchor = _dragEl;
       _dragEntourage.forEach(function (n) {
         try {
-          if (n === anchor || anchor.contains(n)) return;
+          if (!n || n === anchor || anchor.contains(n) || n.contains(anchor)) return;
+          if (n.parentNode !== container || n.tagName !== _dragEl.tagName) return;
           n.classList.remove('nl-drag-ghost');
           anchor.parentNode.insertBefore(n, anchor.nextSibling);
           anchor = n;
         } catch (err) {}
       });
       _dragEntourage = [];
-      if (_insideTarget) _insideTarget.removeAttribute('data-nl-drop-inside');
-      _insideTarget = null;
       _dragEl.classList.remove('nl-drag-ghost');
       _dragEl.removeAttribute('draggable');
-      _dragEl = null; _dropLine.style.display = 'none';
+      _dragEl = null;
+      _dropLine.style.display = 'none';
+      if (_dropLine.parentNode !== document.body) document.body.appendChild(_dropLine);
       reportHeight(); post('moved', {});
     });
 
@@ -733,9 +732,8 @@
       if (_dragEl) { _dragEl.classList.remove('nl-drag-ghost'); _dragEl.removeAttribute('draggable'); _dragEl = null; }
       _dragEntourage.forEach(function (n) { n.classList.remove('nl-drag-ghost'); });
       _dragEntourage = [];
-      if (_insideTarget) _insideTarget.removeAttribute('data-nl-drop-inside');
-      _insideTarget = null;
       _dropLine.style.display = 'none';
+      if (_dropLine.parentNode !== document.body) document.body.appendChild(_dropLine);
     });
 
     document.addEventListener('click', function (e) {
@@ -745,7 +743,7 @@
       if (_edEl && _edEl.contains(t)) return;
       if (_edEl && !_edEl.contains(t)) stopEdit();
       doSelect(t, !!(e.ctrlKey || e.metaKey)); // Ctrl (Win/Linux) / Cmd (Mac) = additive multi-select
-      armDirectDrag();   // arm the just-selected block for grab-drag (Wix-style)
+      disarmDrag();   // a plain click never arms drag — it's opt-in via the Drag button
     }, true);
 
     document.addEventListener('dblclick', function (e) {
@@ -796,6 +794,19 @@
       if (!el.contains(range.commonAncestorContainer)) return null;
       return range;
     }
+    // Nearest block-ish ancestor — used to stop a styled text range from spanning
+    // across separate blocks/cells, where re-wrapping would scramble the template.
+    function blockAncestor(node) {
+      var n = (node && node.nodeType === 3) ? node.parentNode : node;
+      while (n && n.tagName) {
+        var tag = n.tagName;
+        if (tag === 'TD' || tag === 'TH' || tag === 'TR' || tag === 'TABLE' || tag === 'LI' ||
+            tag === 'UL' || tag === 'OL' || tag === 'P' || tag === 'DIV' || tag === 'BLOCKQUOTE' ||
+            tag === 'BODY') return n;
+        n = n.parentNode;
+      }
+      return n;
+    }
     function wrapRangeWithStyle(range, styles) {
       if (!range) return null;
       var doc = range.startContainer.ownerDocument || document;
@@ -806,6 +817,11 @@
       });
       try { range.surroundContents(span); }
       catch (err) {
+        // surroundContents only fails when the range crosses element boundaries.
+        // If those boundaries sit in different blocks, extracting + re-inserting
+        // would rip content across blocks/cells and break the layout — so bail and
+        // leave the document untouched. Within a single block the extract is safe.
+        if (blockAncestor(range.startContainer) !== blockAncestor(range.endContainer)) return null;
         var frag = range.extractContents();
         span.appendChild(frag);
         range.insertNode(span);
@@ -837,13 +853,27 @@
           if (_sel) {
             var rngS = getActiveRangeInside(_sel);
             if (rngS) {
-              // Enlarging a sub-selection (e.g. a drop-cap first letter) must NOT
-              // add any spacing. line-height:0 makes the wrapper contribute zero
-              // height to the line box, so the line never grows — the big glyph
-              // simply overflows upward instead of pushing the lines apart.
-              wrapRangeWithStyle(rngS, { fontSize: d.v + 'px', lineHeight: '0' });
+              // A SINGLE-glyph sub-selection (a drop-cap first letter) keeps
+              // line-height:0 so the big letter overflows upward instead of growing
+              // the line box. For any longer selection, forcing line-height:0 would
+              // collapse the lines on top of each other and visually wreck the
+              // block — so those use natural line-height.
+              var oneGlyph = rngS.toString().replace(/\s+/g, '').length <= 1;
+              wrapRangeWithStyle(rngS, oneGlyph
+                ? { fontSize: d.v + 'px', lineHeight: '0' }
+                : { fontSize: d.v + 'px' });
             } else {
+              var newSz = parseInt(d.v, 10) || 0;
               _sel.style.fontSize = d.v + 'px';
+              // Guard against overlap: many email templates pin a FIXED px
+              // line-height on text blocks. Once the font grows past that height
+              // the lines collide and the block looks "broken". Relax to a
+              // proportional line-height only when the current one is too short.
+              try {
+                var view = _sel.ownerDocument.defaultView || window;
+                var lh = parseFloat(view.getComputedStyle(_sel).lineHeight);
+                if (newSz && !isNaN(lh) && lh < newSz) _sel.style.lineHeight = '1.25';
+              } catch (e) {}
             }
             post('select', getProps(_sel));
           }
@@ -927,11 +957,8 @@
           }
           break;
         case 'enableDrag': {
-          var dragTargets = collectMovableBlocks();
-          if (dragTargets.length) {
-            _dragEl = dragTargets[0];
-            _dragEntourage = dragTargets.slice(1);
-            _dragEl.setAttribute('draggable', 'true');
+          armDirectDrag();                       // arm the current selection for one drag
+          if (_dragEl) {
             _dragEntourage.forEach(function (n) { n.classList.add('nl-drag-ghost'); });
             post('dragReady', {});
           }

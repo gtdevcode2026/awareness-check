@@ -330,7 +330,7 @@ App.Editor = (function () {
           <div class="ed-prop">
             <label>Font Size</label>
             <div class="ed-prop-row">
-              <input type="range" id="prop-size-range" min="8" max="80" value="16" oninput="App.Editor._propSize(this.value)">
+              <input type="range" id="prop-size-range" min="8" max="200" value="16" oninput="App.Editor._propSize(this.value)">
               <input type="number" class="ed-num" id="prop-size" min="4" max="200" value="16" oninput="App.Editor._propSize(this.value)">
             </div>
           </div>
@@ -1474,7 +1474,7 @@ App.Editor = (function () {
     if (pBgH) pBgH.value = props.bgColor || '';
     const sz = parseInt(props.fontSize) || 14;
     const pSz = document.getElementById('prop-size'), pSzR = document.getElementById('prop-size-range');
-    if (pSz) pSz.value = sz; if (pSzR) pSzR.value = Math.min(sz, 80);
+    if (pSz) pSz.value = sz; if (pSzR) pSzR.value = sz;
     const pW = document.getElementById('prop-width'), pPad = document.getElementById('prop-padding');
     if (pW) pW.value = props.width || '';
     if (pPad) pPad.value = props.padding || '';
@@ -1492,9 +1492,9 @@ App.Editor = (function () {
       const imgN = document.getElementById('prop-img-width');
       if (imgN) imgN.value = curW || '';
       if (imgR) {
-        const max = Math.max(640, Math.round((nW || curW) * 1.5) || 640);
+        const max = Math.min(2000, Math.max(640, curW, Math.round((nW || curW) * 1.5)));
         imgR.max = String(max);
-        imgR.value = String(Math.min(curW || 200, max));
+        imgR.value = String(Math.min(curW || 200, max));   // max now >= curW, so no snap-back
       }
       const hint = document.getElementById('ed-img-hint');
       if (hint) hint.textContent = (nW && nH) ? `Original ${nW} × ${nH}px · scales proportionally` : 'Scales proportionally';
@@ -1759,7 +1759,7 @@ App.Editor = (function () {
   function _propSize(val) {
     const sz = parseInt(val); if (!sz || sz < 4) return;
     const ps = document.getElementById('prop-size'), psr = document.getElementById('prop-size-range');
-    if (ps) ps.value = sz; if (psr) psr.value = Math.min(sz, 80);
+    if (ps) ps.value = sz; if (psr) psr.value = sz;
     if (!_selectedProps) return;
     _pushUndo(); _post('size', sz); _dirty = true; _status('Unsaved changes');
   }
@@ -1793,7 +1793,11 @@ App.Editor = (function () {
     const imgR = document.getElementById('prop-img-range');
     const imgN = document.getElementById('prop-img-width');
     if (imgN) imgN.value = w;
-    if (imgR) imgR.value = String(Math.min(w, parseInt(imgR.max, 10) || 640));
+    if (imgR) {
+      const mx = parseInt(imgR.max, 10) || 640;
+      if (w > mx) imgR.max = String(Math.min(2000, w));
+      imgR.value = String(Math.min(w, parseInt(imgR.max, 10) || 2000));
+    }
     _dirty = true; _status('Unsaved changes');
   }
 
