@@ -18,7 +18,7 @@ const { JSDOM } = require("jsdom");
 
 const rootDir = path.resolve(__dirname, "../..");
 
-function loadSourcesWithFetch(fetchImpl) {
+function loadSourcesWithFetch(fetchImpl, appExtras) {
   const dom = new JSDOM("<!DOCTYPE html><html></html>", { url: "https://example.test/" });
   const context = {
     window: {},
@@ -30,7 +30,9 @@ function loadSourcesWithFetch(fetchImpl) {
     fetch: fetchImpl || (async () => { throw new Error("no network in unit test"); }),
   };
   context.window = context;
-  context.App = {};
+  // appExtras lets a test inject e.g. App.RSSFetcher (the seam advisory_sources reads
+  // for the org-configured CORS proxy).
+  context.App = Object.assign({}, appExtras || {});
   const ctx = vm.createContext(context);
   vm.runInContext(readFileSync(path.join(rootDir, "js/advisory_sources.js"), "utf8"), ctx, {
     filename: path.join(rootDir, "js/advisory_sources.js"),
@@ -382,5 +384,59 @@ test.describe("fetchNvd proxy resilience", () => {
       () => AS.fetchAdvisories({ source: "nvd", cveCode: "CVE-2026-0001" }),
       /unreachable|proxy/i
     );
+  });
+
+  // NVD's REST API sends `access-control-allow-origin: *`, so the browser can fetch it
+  // DIRECTLY (verified; works from file:// too). Direct-first removes the dependency on
+  // public CORS proxies, which restricted/corporate networks often block — the symptom
+  // that took NVD offline at a client site while it worked on a home laptop.
+  test("fetches NVD directly first (NVD sends CORS) — no proxy when the direct call works", async () => {
+    const calls = [];
+    const AS = loadSourcesWithFetch(async (url) => {
+      calls.push(String(url));
+      if (String(url).startsWith("https://services.nvd.nist.gov/")) return nvdResponse(ONE);
+      throw new Error("proxy should not be needed when the direct call works");
+    });
+    const items = await AS.fetchAdvisories({ source: "nvd", cveCode: "CVE-2026-0001" });
+    assert.equal(items.length, 1);
+    assert.equal(items[0].cveId, "CVE-2026-0001");
+    assert.ok(calls[0] && calls[0].startsWith("https://services.nvd.nist.gov/"),
+      `first network call must be the direct NVD URL, got: ${calls[0]}`);
+    assert.ok(!calls.some((u) => /allorigins|codetabs|corsproxy/.test(u)),
+      "no CORS proxy is contacted when the direct call succeeds");
+  });
+
+  test("falls back to proxies when the direct NVD call is blocked", async () => {
+    // Direct call hangs/blocked (throws); only a proxy returns valid NVD JSON.
+    const AS = loadSourcesWithFetch(async (url) => {
+      if (String(url).startsWith("https://services.nvd.nist.gov/")) throw new Error("blocked");
+      if (String(url).includes("codetabs")) return nvdResponse(ONE);
+      throw new Error("proxy down");
+    });
+    const items = await AS.fetchAdvisories({ source: "nvd", cveCode: "CVE-2026-0001" });
+    assert.equal(items.length, 1);
+    assert.equal(items[0].cveId, "CVE-2026-0001");
+  });
+
+  // Phase 2: on a network that blocks both direct NVD and the public proxies, an org can
+  // set its own CORS proxy in Config. advisory_sources reads it via the App.RSSFetcher
+  // seam and tries it BEFORE the public pool.
+  test("uses the org-configured CORS proxy first (before the public pool) when one is set", async () => {
+    const calls = [];
+    const AS = loadSourcesWithFetch(
+      async (url) => {
+        calls.push(String(url));
+        if (String(url).startsWith("https://services.nvd.nist.gov/")) throw new Error("direct blocked");
+        if (String(url).startsWith("https://my-proxy.example/")) return nvdResponse(ONE);
+        throw new Error("public proxy should not be needed");
+      },
+      { RSSFetcher: { getConfiguredProxy: () => (u) => "https://my-proxy.example/?url=" + encodeURIComponent(u) } }
+    );
+    const items = await AS.fetchAdvisories({ source: "nvd", cveCode: "CVE-2026-0001" });
+    assert.equal(items.length, 1);
+    assert.equal(items[0].cveId, "CVE-2026-0001");
+    const proxyCalls = calls.filter((u) => !u.startsWith("https://services.nvd.nist.gov/"));
+    assert.ok(proxyCalls[0] && proxyCalls[0].startsWith("https://my-proxy.example/"),
+      `configured proxy must be tried first in the fallback, got: ${proxyCalls[0]}`);
   });
 });

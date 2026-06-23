@@ -189,10 +189,31 @@ App.RSSFetcher = (() => {
     url => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
   ];
 
+  // Optional org-configurable CORS proxy. Restricted/corporate networks often block the
+  // public proxies above; an org can point this at a proxy their network allows (a free
+  // Cloudflare Worker, or a route on their own server) via Config. Persisted in
+  // localStorage (a proxy URL is not a secret). Contract: if the value contains `{url}`
+  // the encoded target is substituted, else the encoded target is appended. Shared by the
+  // RSS feeds here AND the NVD JSON fallback (advisory_sources.js reads getConfiguredProxy).
+  const CORS_PROXY_URL_KEY = 'awareness_cors_proxy_url_v1';
+  function buildConfiguredProxyUrl(template, targetUrl) {
+    const enc = encodeURIComponent(String(targetUrl || ''));
+    const t = String(template || '');
+    return t.includes('{url}') ? t.replace(/\{url\}/g, enc) : (t + enc);
+  }
+  function getConfiguredProxy() {
+    let t = '';
+    try { t = String(localStorage.getItem(CORS_PROXY_URL_KEY) || '').trim(); } catch (_e) { t = ''; }
+    if (!t || !/^https?:\/\//i.test(t)) return null; // only http(s); ignore unset/junk
+    return url => buildConfiguredProxyUrl(t, url);
+  }
+
   async function fetchXmlViaProxies(url, maxRetries = 2, timeoutMs = 10000) {
     const headers = { 'Accept': 'application/rss+xml, application/xml, text/xml, */*' };
+    const configured = getConfiguredProxy();
+    const proxies = configured ? [configured, ...CORS_PROXIES] : CORS_PROXIES;
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      const settled = await Promise.allSettled(CORS_PROXIES.map(async mkUrl => {
+      const settled = await Promise.allSettled(proxies.map(async mkUrl => {
         const ctrl = new AbortController();
         const tid = setTimeout(() => ctrl.abort(), timeoutMs);
         try {
@@ -501,6 +522,8 @@ App.RSSFetcher = (() => {
     isRelevantForEmployees: isPrivacyAwarenessRelevant,
     // Exposed for App.AdvisorySources (Tenable/Qualys RSS via the same CORS
     // proxies, with rss2json as the same fallback the main fetcher uses).
-    fetchXmlViaProxies, fetchRss2Json
+    fetchXmlViaProxies, fetchRss2Json,
+    // Org-configurable CORS proxy (read by advisory_sources for the NVD fallback too).
+    getConfiguredProxy, buildConfiguredProxyUrl
   };
 })();

@@ -344,11 +344,14 @@ App.AdvisorySources = (() => {
   }
 
   // ── Network ──
-  // NVD is a JSON REST API a browser can't call directly (CORS), so requests go
-  // through public CORS proxies. The old path used ONE proxy with no fallback, so a
-  // single proxy outage took NVD fully offline (while the RSS feeds, which race
-  // several proxies, kept working). We now race a small pool and retry — same
-  // resilience as App.RSSFetcher.fetchXmlViaProxies — with NO API key.
+  // NVD's REST API sends `Access-Control-Allow-Origin: *`, so the browser can fetch it
+  // DIRECTLY (verified — works from file:// too, as a preflight-free simple GET). We try
+  // direct FIRST: it's faster and, crucially, removes the dependency on public CORS
+  // proxies that restricted/corporate networks routinely block — when those proxy
+  // requests are blocked they hang until our AbortController fires, which surfaces as
+  // "signal is aborted without reason". The proxy pool below stays ONLY as a fallback
+  // for a network that blocks services.nvd.nist.gov directly (the RSS sources, which
+  // have no CORS, still need it). NO API key either way.
   const JSON_PROXIES = [
     (url) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
     (url) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
@@ -368,39 +371,61 @@ App.AdvisorySources = (() => {
     return text;
   }
 
-  // Fetch NVD JSON through the proxy pool: race them, first VALID NVD payload wins,
-  // retried a couple of times. Throws only when every proxy fails on every attempt,
-  // so the caller can tell "proxies down" apart from "genuinely no results".
+  // Parse + validate one NVD response (shared by the direct call and the proxies). A
+  // direct response is raw JSON; a proxy /get response is wrapped — unwrapProxyBody
+  // handles both. Reject proxy error/HTML pages: a real NVD payload carries these keys.
+  async function readNvdPayload(resp) {
+    if (!resp || !resp.ok) throw new Error(`HTTP ${resp && resp.status}`);
+    const json = JSON.parse(unwrapProxyBody(await resp.text()));
+    if (!json || (json.vulnerabilities === undefined && json.totalResults === undefined)) {
+      throw new Error('Not an NVD payload');
+    }
+    return json;
+  }
+
+  // One timed fetch → validated NVD payload. Each call gets its own AbortController so a
+  // slow/blocked endpoint can't outlive timeoutMs.
+  async function fetchNvdAt(fetchUrl, timeoutMs) {
+    const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+    const tid = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
+    const opts = { headers: { Accept: 'application/json' } };
+    if (ctrl) opts.signal = ctrl.signal;
+    try {
+      return await readNvdPayload(await fetch(fetchUrl, opts));
+    } finally {
+      if (tid) clearTimeout(tid);
+    }
+  }
+
+  // The proxy fallback list: the org-configured CORS proxy (if set in Config) first, then
+  // the public pool. Lets a restricted network that blocks both direct NVD and the public
+  // proxies still reach NVD through a proxy it allows. App.RSSFetcher owns the setting.
+  function nvdProxyList() {
+    const RF = (typeof window !== 'undefined') && window.App && window.App.RSSFetcher;
+    const configured = (RF && typeof RF.getConfiguredProxy === 'function') ? RF.getConfiguredProxy() : null;
+    return configured ? [configured, ...JSON_PROXIES] : JSON_PROXIES;
+  }
+
+  // Fetch NVD JSON: try the API directly first (it supports CORS), then fall back to
+  // racing the CORS proxy pool, retried a couple of times. Throws only when the direct
+  // call AND every proxy fail, so the caller can tell "unreachable" apart from
+  // "genuinely no results".
   async function fetchNvdJson(url, maxRetries = 2, timeoutMs = 10000) {
-    const hasAbort = typeof AbortController !== 'undefined';
     let lastErr = null;
+    try {
+      return await fetchNvdAt(url, timeoutMs);
+    } catch (e) { lastErr = e; }
+    const proxies = nvdProxyList();
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      const settled = await Promise.allSettled(JSON_PROXIES.map(async (mk) => {
-        const ctrl = hasAbort ? new AbortController() : null;
-        const tid = ctrl ? setTimeout(() => ctrl.abort(), timeoutMs) : null;
-        const opts = { headers: { Accept: 'application/json' } };
-        if (ctrl) opts.signal = ctrl.signal;
-        try {
-          const resp = await fetch(mk(url), opts);
-          if (!resp || !resp.ok) throw new Error(`HTTP ${resp && resp.status}`);
-          const json = JSON.parse(unwrapProxyBody(await resp.text()));
-          // Reject proxy error/HTML pages: a real NVD payload carries these keys.
-          if (!json || (json.vulnerabilities === undefined && json.totalResults === undefined)) {
-            throw new Error('Not an NVD payload');
-          }
-          return json;
-        } finally {
-          if (tid) clearTimeout(tid);
-        }
-      }));
+      const settled = await Promise.allSettled(proxies.map((mk) => fetchNvdAt(mk(url), timeoutMs)));
       const ok = settled.find((r) => r.status === 'fulfilled');
       if (ok) return ok.value;
       lastErr = (settled.find((r) => r.status === 'rejected') || {}).reason || lastErr;
       if (attempt < maxRetries) await new Promise((r) => setTimeout(r, 250 * attempt));
     }
-    throw new Error('NVD unreachable: every CORS proxy failed' +
+    throw new Error('NVD unreachable: direct fetch and every CORS proxy failed' +
       (lastErr && lastErr.message ? ` (${lastErr.message})` : '') +
-      ' — the public proxy may be down; try again shortly.');
+      ' — a network or firewall may be blocking services.nvd.nist.gov and the public proxies.');
   }
 
   async function fetchNvd({ severities, cveCode, fast } = {}) {

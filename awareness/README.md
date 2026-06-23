@@ -59,6 +59,41 @@ Turn **live security news** into **employee-ready awareness content** in minutes
 
 ---
 
+## Downloads & the “this file might be harmful” warning
+
+When you use **Download All**, the app bundles your per-language newsletter pages into a single `.zip` **inside your browser** and saves it to your computer. At that moment some browsers — most often **Chrome** and **Microsoft Edge** on Windows — show a caution prompt such as *“This file isn’t commonly downloaded,”* *“… might be harmful — Keep / Discard,”* or Edge’s *“blocked because it could harm your device.”*
+
+**This is expected, and the file is safe.** The ZIP only contains the HTML newsletter pages you just generated — nothing else.
+
+### Why it happens (in plain terms)
+
+The browser doesn’t open the file to inspect it — it decides based on **reputation**, and a freshly-exported zip fails every check it relies on:
+
+- The ZIP is **built new every time you export**, so it’s a file the browser has **never seen before** and can’t recognize.
+- **`.zip` is a file type browsers treat cautiously**, because zips are a common way malware gets passed around.
+- It isn’t **signed by a known publisher** and didn’t arrive from a well-known website, so there’s **no one for the browser to “vouch” for it**.
+
+Put together — a brand-new, unrecognized zip with no track record — the browser plays it safe and asks you to confirm. It’s an *“I don’t recognize this”* prompt, **not** a *“this is a virus”* finding. (Note: code-signing wouldn’t remove this — signing applies to installable programs, and the prompt is a reputation check, not a signature check.)
+
+### How to get the file (the right-click / keep steps)
+
+1. **At the download prompt, keep the file.** In **Chrome**, click the **⋮** next to the flagged download (or right-click it) and choose **Keep**. In **Edge**, hover the item, click **…**, then **Keep → Keep anyway**.
+2. **If Windows warns when you open the extracted pages** (a separate *“this file came from another computer”* notice): **right-click the downloaded `.zip` → Properties →** tick **Unblock** (near the bottom of the *General* tab) **→ OK**, then extract. This clears the “downloaded from elsewhere” tag (Windows’ *Mark of the Web*) so the HTML files open without further prompts.
+
+> Prefer to avoid the prompt entirely? Use **Download HTML** (one language at a time) instead of **Download All** — single HTML files generally don’t trigger the zip warning.
+
+---
+
+## Advisories on a restricted / corporate network
+
+The Advisory feature pulls CVE data from **NVD** (fetched **directly** — no proxy needed) and, optionally, **Tenable/Qualys** RSS (which have no CORS, so they go through public CORS proxies). On a locked-down network you may see *"NVD unreachable… signal is aborted without reason"* — that's the public proxies being **blocked by a firewall/web filter**, not down.
+
+- **NVD** works as long as the network allows `services.nvd.nist.gov` (it usually does).
+- For **Tenable/Qualys** behind such a filter, set **Config → Advisory CORS Proxy** to a proxy your network allows (a free Cloudflare Worker, or a route on your own server). Use `{url}` where the target goes, e.g. `https://your-proxy.example/?url={url}`.
+- Alternatively, ask IT to allow the public proxy domains (`api.allorigins.win`, `corsproxy.io`, `api.codetabs.com`, `api.rss2json.com`).
+
+---
+
 ## Positioning (one-liner)
 
 **“Credible sources → filtered for real people → ready-to-send awareness — in one screen.”**
