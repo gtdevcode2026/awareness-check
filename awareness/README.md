@@ -89,8 +89,7 @@ Put together — a brand-new, unrecognized zip with no track record — the brow
 The Advisory feature pulls CVE data from **NVD** (fetched **directly** — no proxy needed) and, optionally, **Tenable/Qualys** RSS (which have no CORS, so they go through public CORS proxies). On a locked-down network you may see *"NVD unreachable… signal is aborted without reason"* — that's the public proxies being **blocked by a firewall/web filter**, not down.
 
 - **NVD** works as long as the network allows `services.nvd.nist.gov` (it usually does).
-- For **Tenable/Qualys** behind such a filter, set **Config → Advisory CORS Proxy** to a proxy your network allows (a free Cloudflare Worker, or a route on your own server). Use `{url}` where the target goes, e.g. `https://your-proxy.example/?url={url}`.
-- Alternatively, ask IT to allow the public proxy domains (`api.allorigins.win`, `corsproxy.io`, `api.codetabs.com`, `api.rss2json.com`).
+- For **Tenable/Qualys** behind such a filter, ask IT to allow the public proxy domains (`api.allorigins.win`, `corsproxy.io`, `api.codetabs.com`, `api.rss2json.com`).
 
 ---
 

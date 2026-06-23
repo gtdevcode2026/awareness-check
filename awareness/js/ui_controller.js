@@ -31,11 +31,6 @@ App.UI = (() => {
   // IndexedDB. Mirrors AI_KEY_SESSION_STORAGE_KEY.
   const SMTP_PASSWORD_SESSION_STORAGE_KEY = 'awareness_smtp_password_session_v1';
   const AI_EXPERIMENT_CONTROL_STORAGE_KEY = 'awareness_ai_experiment_control_v1';
-  // Optional org CORS proxy for advisory fetches (Tenable/Qualys + NVD fallback). Not a
-  // secret, so it persists in localStorage. Mirrored here from the central config bundle
-  // so App.RSSFetcher.getConfiguredProxy() (read by rss_fetcher + advisory_sources) finds
-  // it under a simple, schema-free key.
-  const CORS_PROXY_URL_STORAGE_KEY = 'awareness_cors_proxy_url_v1';
   const CENTRAL_CONFIG_STORAGE_KEY = 'awareness_central_config_v1';
   const WORKFLOW_STATES = ['draft', 'review', 'approved', 'sent', 'archived'];
   const WORKFLOW_LABELS = {
@@ -1295,8 +1290,7 @@ App.UI = (() => {
       max: parseInt(document.getElementById('cfg-max')?.value || '2', 10),
       org: document.getElementById('cfg-org')?.value?.trim() || 'ABC Corp',
       portal: document.getElementById('cfg-portal')?.value?.trim() || 'https://security.abc.com/awareness',
-      pname: document.getElementById('cfg-pname')?.value?.trim() || 'ABC Security Awareness Portal',
-      corsProxy: document.getElementById('cfg-cors-proxy')?.value?.trim() || ''
+      pname: document.getElementById('cfg-pname')?.value?.trim() || 'ABC Security Awareness Portal'
     };
   }
 
@@ -1311,7 +1305,6 @@ App.UI = (() => {
     if (cfg.org != null) set('cfg-org', cfg.org);
     if (cfg.portal != null) set('cfg-portal', cfg.portal);
     if (cfg.pname != null) set('cfg-pname', cfg.pname);
-    if (cfg.corsProxy != null) set('cfg-cors-proxy', cfg.corsProxy);
   }
 
   function getOptions() {
@@ -1397,9 +1390,6 @@ App.UI = (() => {
       const bundle = getCentralConfigFromUI();
       const payload = { ...bundle, savedAt: new Date().toISOString() };
       localStorage.setItem(CENTRAL_CONFIG_STORAGE_KEY, JSON.stringify(payload));
-      // Mirror the CORS proxy to its own schema-free key so rss_fetcher / advisory_sources
-      // (which don't know the central-config shape) can read it via getConfiguredProxy().
-      try { localStorage.setItem(CORS_PROXY_URL_STORAGE_KEY, bundle.config?.corsProxy || ''); } catch (_e) {}
       clearUnsavedChanges();
       if (!silent) showToast('Configuration settings saved.');
       document.dispatchEvent(new CustomEvent('awareness:config-saved', { detail: payload }));

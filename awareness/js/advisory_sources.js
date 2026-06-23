@@ -397,27 +397,17 @@ App.AdvisorySources = (() => {
     }
   }
 
-  // The proxy fallback list: the org-configured CORS proxy (if set in Config) first, then
-  // the public pool. Lets a restricted network that blocks both direct NVD and the public
-  // proxies still reach NVD through a proxy it allows. App.RSSFetcher owns the setting.
-  function nvdProxyList() {
-    const RF = (typeof window !== 'undefined') && window.App && window.App.RSSFetcher;
-    const configured = (RF && typeof RF.getConfiguredProxy === 'function') ? RF.getConfiguredProxy() : null;
-    return configured ? [configured, ...JSON_PROXIES] : JSON_PROXIES;
-  }
-
   // Fetch NVD JSON: try the API directly first (it supports CORS), then fall back to
-  // racing the CORS proxy pool, retried a couple of times. Throws only when the direct
-  // call AND every proxy fail, so the caller can tell "unreachable" apart from
+  // racing the public CORS proxy pool, retried a couple of times. Throws only when the
+  // direct call AND every proxy fail, so the caller can tell "unreachable" apart from
   // "genuinely no results".
   async function fetchNvdJson(url, maxRetries = 2, timeoutMs = 10000) {
     let lastErr = null;
     try {
       return await fetchNvdAt(url, timeoutMs);
     } catch (e) { lastErr = e; }
-    const proxies = nvdProxyList();
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      const settled = await Promise.allSettled(proxies.map((mk) => fetchNvdAt(mk(url), timeoutMs)));
+      const settled = await Promise.allSettled(JSON_PROXIES.map((mk) => fetchNvdAt(mk(url), timeoutMs)));
       const ok = settled.find((r) => r.status === 'fulfilled');
       if (ok) return ok.value;
       lastErr = (settled.find((r) => r.status === 'rejected') || {}).reason || lastErr;

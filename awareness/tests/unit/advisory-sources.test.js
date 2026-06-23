@@ -18,7 +18,7 @@ const { JSDOM } = require("jsdom");
 
 const rootDir = path.resolve(__dirname, "../..");
 
-function loadSourcesWithFetch(fetchImpl, appExtras) {
+function loadSourcesWithFetch(fetchImpl) {
   const dom = new JSDOM("<!DOCTYPE html><html></html>", { url: "https://example.test/" });
   const context = {
     window: {},
@@ -30,9 +30,7 @@ function loadSourcesWithFetch(fetchImpl, appExtras) {
     fetch: fetchImpl || (async () => { throw new Error("no network in unit test"); }),
   };
   context.window = context;
-  // appExtras lets a test inject e.g. App.RSSFetcher (the seam advisory_sources reads
-  // for the org-configured CORS proxy).
-  context.App = Object.assign({}, appExtras || {});
+  context.App = {};
   const ctx = vm.createContext(context);
   vm.runInContext(readFileSync(path.join(rootDir, "js/advisory_sources.js"), "utf8"), ctx, {
     filename: path.join(rootDir, "js/advisory_sources.js"),
@@ -416,27 +414,5 @@ test.describe("fetchNvd proxy resilience", () => {
     const items = await AS.fetchAdvisories({ source: "nvd", cveCode: "CVE-2026-0001" });
     assert.equal(items.length, 1);
     assert.equal(items[0].cveId, "CVE-2026-0001");
-  });
-
-  // Phase 2: on a network that blocks both direct NVD and the public proxies, an org can
-  // set its own CORS proxy in Config. advisory_sources reads it via the App.RSSFetcher
-  // seam and tries it BEFORE the public pool.
-  test("uses the org-configured CORS proxy first (before the public pool) when one is set", async () => {
-    const calls = [];
-    const AS = loadSourcesWithFetch(
-      async (url) => {
-        calls.push(String(url));
-        if (String(url).startsWith("https://services.nvd.nist.gov/")) throw new Error("direct blocked");
-        if (String(url).startsWith("https://my-proxy.example/")) return nvdResponse(ONE);
-        throw new Error("public proxy should not be needed");
-      },
-      { RSSFetcher: { getConfiguredProxy: () => (u) => "https://my-proxy.example/?url=" + encodeURIComponent(u) } }
-    );
-    const items = await AS.fetchAdvisories({ source: "nvd", cveCode: "CVE-2026-0001" });
-    assert.equal(items.length, 1);
-    assert.equal(items[0].cveId, "CVE-2026-0001");
-    const proxyCalls = calls.filter((u) => !u.startsWith("https://services.nvd.nist.gov/"));
-    assert.ok(proxyCalls[0] && proxyCalls[0].startsWith("https://my-proxy.example/"),
-      `configured proxy must be tried first in the fallback, got: ${proxyCalls[0]}`);
   });
 });
