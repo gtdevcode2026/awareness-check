@@ -171,8 +171,23 @@
       'data-nl-nav="nl-cta" bgcolor="#0A0A0A" style="padding:24px 35px;background-color:#0A0A0A;border-left:4px solid #C09010;border-top:1px solid #5C4A10;"'
     );
 
+    // ABI masthead — shared ABInBev brand bar (gold gradient rule + black bar with the
+    // ABInBev logo on the left and the awareness tagline on the right), matching the other
+    // ABInBev bulletins/posters. Replaces the bare gold rule that used to top the header;
+    // the dark hero ("Stay Safe Online") follows directly so the two black bands read as
+    // one masthead with the logo above the headline.
+    const abiMasthead =
+      tbc('&nbsp;', 'bgcolor="#D4A420" style="background:linear-gradient(135deg,#C09010,#D4A420);background-color:#D4A420;height:6px;line-height:6px;font-size:0;"')
+      + tbc(
+        `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#0A0A0A" style="background:#0A0A0A;"><tr>`
+        + `<td valign="middle" align="left" style="padding:16px 26px 14px;vertical-align:middle;"><img src="${assetSrc('ABI.png')}" alt="ABInBev" height="34" style="height:34px;width:auto;display:block;border:0;"></td>`
+        + `<td valign="middle" align="right" style="padding:16px 26px 14px;vertical-align:middle;text-align:right;"><div style="${NLFF};font-weight:700;font-size:12px;letter-spacing:3px;color:#D4A420;text-transform:uppercase;">Security &amp; Compliance Awareness</div><div style="${NLFF};font-weight:600;font-size:10px;letter-spacing:3px;color:#888888;text-transform:uppercase;margin-top:3px;">Corporate Security Bulletin</div></td>`
+        + `</tr></table>`,
+        'bgcolor="#0A0A0A" style="padding:0;background:#0A0A0A;background-color:#0A0A0A;"'
+      );
+
     return `${nlOuterOpen()}${tbl()}`
-      + tbc('', 'height="5" style="height:5px;line-height:5px;font-size:1px;background:linear-gradient(135deg,#C09010,#D4A420);background-color:#D4A420;"')
+      + abiMasthead
       // Dark header — ref: padding:2.2rem 2.5rem 1.8rem = 35px 40px 29px
       + tbc(
           `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
