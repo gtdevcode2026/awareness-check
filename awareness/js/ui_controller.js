@@ -2178,25 +2178,40 @@ App.UI = (() => {
     if (fetchEl) fetchEl.textContent = 'Loading…';
     if (areaEl) areaEl.innerHTML = skeleton(3);
     try {
-      let dbArts = await App.DB.getAllArticles();
+      let dbArts = [];
+      try { dbArts = await App.DB.getAllArticles(); } catch (e) { dbArts = []; }
       let usedBaselineFallback = dbArts.length > 0 && dbArts.every(article =>
         article?.fallback || article?.sourceId === 'baseline' || String(article?.url || '').includes('baseline.local')
       );
+      let usedSeedFallback = false;
       state.allArticles = dbArts;
       if (!dbArts.length) {
-        const baseline = getBaselineArticles();
-        if (!baseline.length) {
-          if (fetchEl) fetchEl.textContent = 'No stored articles yet. Fetch live news.';
-          renderArticles([]);
-          renderTypeChart();
-          renderDBStats();
-          return;
+        // Prefer the committed starter seed (article-seed/articles.js) over the
+        // tiny baseline set. This is also what makes a double-clicked index.html
+        // work when the browser blocks IndexedDB on file:// — the DB read came
+        // back empty (or threw), so render the seed straight from memory.
+        const seed = Array.isArray(window.App.ArticleSeed) ? window.App.ArticleSeed : [];
+        if (seed.length) {
+          dbArts = seed.slice();
+          usedSeedFallback = true;
+          state.allArticles = dbArts;
+          log(`📰 ${dbArts.length} starter articles loaded from the committed seed`, 'log-ok');
+          try { await App.DB.upsertArticles(dbArts); } catch (e) {}
+        } else {
+          const baseline = getBaselineArticles();
+          if (!baseline.length) {
+            if (fetchEl) fetchEl.textContent = 'No stored articles yet. Fetch live news.';
+            renderArticles([]);
+            renderTypeChart();
+            renderDBStats();
+            return;
+          }
+          dbArts = baseline;
+          usedBaselineFallback = true;
+          state.allArticles = dbArts;
+          log('No stored articles found. Loaded baseline fallback articles to keep workflow unblocked.', 'log-err');
+          try { await App.DB.upsertArticles(dbArts); } catch (e) {}
         }
-        dbArts = baseline;
-        usedBaselineFallback = true;
-        state.allArticles = dbArts;
-        log('No stored articles found. Loaded baseline fallback articles to keep workflow unblocked.', 'log-err');
-        try { await App.DB.upsertArticles(dbArts); } catch (e) {}
       }
       log(`💾 ${dbArts.length} articles from database`, 'log-ok');
 
@@ -2218,7 +2233,9 @@ App.UI = (() => {
       if (fetchEl) {
         fetchEl.textContent = usedBaselineFallback
           ? `Loaded ${filtered.length} baseline fallback articles`
-          : `Restored ${filtered.length} articles from previous fetch`;
+          : usedSeedFallback
+            ? `Loaded ${filtered.length} starter articles`
+            : `Restored ${filtered.length} articles from previous fetch`;
       }
       renderArticles(filtered);
       renderTypeChart();
@@ -3318,7 +3335,11 @@ Now translate the content inside <source> into ${targetLanguageName} following a
       // that don't load article_seed.js. Never let a seed failure block the load.
       try { await App.seedArticleLibrary?.(); } catch (e) {}
       loadFromDB();
-    }).catch(() => {});
+    }).catch(() => {
+      // IndexedDB unavailable (e.g. a browser that blocks it on file://). Don't
+      // leave the page blank — loadFromDB falls back to the committed seed.
+      try { loadFromDB(); } catch (e) {}
+    });
     try { G.particleBackground('sidebar'); } catch(e) {}
     renderArticleStats([], []);
     renderAIRollbackBanner();
