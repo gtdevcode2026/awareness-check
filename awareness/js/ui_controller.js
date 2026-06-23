@@ -3311,7 +3311,12 @@ Now translate the content inside <source> into ${targetLanguageName} following a
     }).catch(() => {});
     const maxSel = document.getElementById('cfg-max');
     if (maxSel) { maxSel.addEventListener('change', () => { const ml = document.getElementById('max-lbl'); if (ml) ml.textContent = maxSel.value; }); }
-    App.DB.open().then(() => {
+    App.DB.open().then(async () => {
+      // Seed the committed starter article set into a fresh DB BEFORE the first
+      // read, so a freshly-cloned repo shows the same library with zero action.
+      // Idempotent (a localStorage marker skips it once applied); a no-op on pages
+      // that don't load article_seed.js. Never let a seed failure block the load.
+      try { await App.seedArticleLibrary?.(); } catch (e) {}
       loadFromDB();
     }).catch(() => {});
     try { G.particleBackground('sidebar'); } catch(e) {}

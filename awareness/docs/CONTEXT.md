@@ -52,7 +52,7 @@ Important modules:
 
 ## Storage
 
-IndexedDB database: `SecurityAwareness`, version `4`.
+IndexedDB database: `SecurityAwareness`, version `5`.
 
 Stores:
 
@@ -62,6 +62,16 @@ Stores:
 - `projects`
 - `smtpProfiles`
 - `deliveryLogs`
+- `images`
+
+**Article seed.** `articles` records carry an optional `seeded` flag. The committed
+starter set lives in `article-seed/articles.js` (a generated `window.App.ArticleSeed`
+bundle loaded via `<script>` after `js/db.js`); on the home page `App.UI.init()` awaits
+`App.seedArticleLibrary()` (in `js/article_seed.js`) right after `App.DB.open()` and
+before the first `loadFromDB()`, so a freshly-cloned repo shows the same library with no
+user action. Seeded rows are saved with `{ seeded: true }`, de-duplicated by `urlHash`,
+and exempt from the 90-day `cleanup()`. Regenerate the file with `App.DB.exportArticleSeed()`
+(see `article-seed/README.md`); the seam is locked by `tests/unit/article-seed-bundle.test.js`.
 
 Important browser storage keys:
 

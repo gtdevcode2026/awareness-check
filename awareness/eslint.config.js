@@ -82,5 +82,21 @@ module.exports = [
       "no-useless-assignment": "off",
     },
   },
+  {
+    // Generated browser data bundles loaded via <script> (assets/image-library/library.js,
+    // article-seed/articles.js). Need browser globals; not hand-written source.
+    files: ["assets/**/*.js", "article-seed/**/*.js"],
+    languageOptions: {
+      ecmaVersion: 2022,
+      sourceType: "script",
+      globals: {
+        ...globals.browser,
+        App: "readonly",
+      },
+    },
+    rules: {
+      "no-unused-vars": "off",
+    },
+  },
 ];
 
