@@ -64,3 +64,44 @@ test("buildArticleSeedBundle on empty / non-array input yields an empty seed", (
   assert.match(DB.buildArticleSeedBundle([]), /window\.App\.ArticleSeed = \[\];/);
   assert.match(DB.buildArticleSeedBundle(undefined), /window\.App\.ArticleSeed = \[\];/);
 });
+
+// Secret shapes that must never reach a committed, public seed file.
+const SECRET_RE = /(?:sk|pk|rk)-(?:proj-|live-|test-)?[A-Za-z0-9_-]{40,}|gh[posu]_[A-Za-z0-9]{30,}|AKIA[A-Z0-9]{16}|xox[baprs]-[A-Za-z0-9-]{20,}|AIza[A-Za-z0-9_-]{30,}/;
+const FAKE_KEY = "sk-proj-" + "A1b2C3d4".repeat(20); // 168 chars, key-shaped
+
+test("buildArticleSeedBundle coerces aiProcessed to a boolean (never a leaked key)", () => {
+  const DB = loadDB();
+  // Regression: a past data bug wrote the API key into aiProcessed; the export
+  // must serialize a boolean, never the key string.
+  const bundle = DB.buildArticleSeedBundle([{ ...RECORD, aiProcessed: FAKE_KEY }]);
+  assert.doesNotMatch(bundle, SECRET_RE, "no API-key shape survives in the bundle");
+  const a = arrayFromBundle(bundle)[0];
+  assert.equal(typeof a.aiProcessed, "boolean", "aiProcessed is a boolean");
+  assert.equal(a.aiProcessed, true, "a present (truthy) value means it was processed");
+  // false / empty / null collapse to false; an explicit boolean is preserved
+  assert.equal(arrayFromBundle(DB.buildArticleSeedBundle([{ ...RECORD, aiProcessed: "false" }]))[0].aiProcessed, false);
+  assert.equal(arrayFromBundle(DB.buildArticleSeedBundle([{ ...RECORD, aiProcessed: "" }]))[0].aiProcessed, false);
+});
+
+test("buildArticleSeedBundle scrubs key-shaped strings from any field", () => {
+  const DB = loadDB();
+  const bundle = DB.buildArticleSeedBundle([{
+    ...RECORD,
+    description: `leaked ${FAKE_KEY} here`,
+    summary: FAKE_KEY,
+    watchouts: [`token ${FAKE_KEY}`],
+  }]);
+  assert.doesNotMatch(bundle, SECRET_RE, "no secret survives in any field");
+  assert.match(bundle, /\[REDACTED\]/, "matches are redacted, not silently dropped");
+  // A short "sk-…"-style URL slug is NOT a secret and must be preserved verbatim.
+  const slug = "https://example.test/sk-breach-exposes-dev-pipeline-risk";
+  const kept = arrayFromBundle(DB.buildArticleSeedBundle([{ ...RECORD, url: slug }]))[0];
+  assert.equal(kept.url, slug, "legitimate sk-… slugs are not touched");
+});
+
+test("the committed article-seed/articles.js contains no secrets", () => {
+  // Guards the real shipped file (public repo) — the actual leak that triggered this.
+  const seed = readFileSync(path.join(rootDir, "article-seed/articles.js"), "utf8");
+  const m = seed.match(new RegExp(SECRET_RE, "g"));
+  assert.equal(m, null, `committed seed must not contain secrets, found: ${m && m.length}`);
+});
