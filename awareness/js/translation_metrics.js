@@ -100,7 +100,7 @@ App.TranslationMetrics = (() => {
    */
   function splitDecorativeLead(text) {
     const s = String(text ?? '');
-    const m = s.match(/^([\u203A›✓✗✔✖→•·])\s*(.*)$/su);
+    const m = s.match(/^([\u203A›✓✗✔✖→•·●⚠])\s*(.*)$/su);
     if (!m) return { deco: '', rest: s };
     return { deco: m[1], rest: m[2] };
   }

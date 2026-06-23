@@ -471,18 +471,70 @@ Now translate the content inside <source> into ${targetLanguageName} following a
     // Whole-phrase units (hero headline, action strip). Translate each as ONE fragment so the
     // model has full context — reusing translateOne (same validator + retry path). There are only
     // a few per document, so run sequentially with one re-attempt if the first stays English.
+    // The model is told to keep inline tags verbatim, but on a whole-innerHTML swap it often
+    // drops the gold <span>/<br> markup anyway — silently wrecking the styling (gold accents
+    // vanish, line breaks collapse, text falls back to a default colour). Guard against that:
+    // only accept the wholesale swap when the inline-markup skeleton is unchanged; otherwise
+    // translate the unit's text nodes in place, which can never drop an element or its inline
+    // style. The markup skeleton is the order-independent multiset of {tag|style} for every
+    // descendant element, so a legitimate reordering still passes but a dropped span fails.
+    const markupSkeleton = (htmlStr) => {
+      const d = document.createElement('div');
+      d.innerHTML = String(htmlStr || '');
+      const parts = [];
+      d.querySelectorAll('*').forEach((n) => parts.push(`${n.tagName.toLowerCase()}|${n.getAttribute('style') || ''}`));
+      return parts.sort().join('\n');
+    };
+    const translateUnitTextNodes = async (unitEl) => {
+      const w = document.createTreeWalker(unitEl, NodeFilter.SHOW_TEXT, {
+        acceptNode(node) {
+          if (!node.nodeValue || !node.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+          const pt = node.parentElement && node.parentElement.tagName;
+          if (pt === 'STYLE' || pt === 'SCRIPT') return NodeFilter.FILTER_REJECT;
+          if (node.parentElement && node.parentElement.closest('[data-nl-keep], [translate="no" i]')) return NodeFilter.FILTER_REJECT;
+          return TranslationMetrics.hasTranslatableLetters(node.nodeValue) ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+        }
+      });
+      const tns = []; let cur;
+      while ((cur = w.nextNode())) tns.push(cur);
+      let changedAny = false;
+      for (const tn of tns) {
+        const orig = tn.nodeValue;
+        try {
+          const t = await translateOne(orig, describeRole(tn));
+          tn.nodeValue = t;
+          if (TranslationMetrics.hasMeaningfulTextChange(orig, t)) changedAny = true;
+        } catch (e) { lastErr = e; tn.nodeValue = orig; }
+      }
+      return changedAny;
+    };
+
     const unitResults = [];
     for (const el of unitEls) {
       const original = el.innerHTML;
+      const origSkeleton = markupSkeleton(original);
       const r = { attempted: true, translatable: true, failed: false, changed: false };
+      let applied = false;
       for (let pass = 0; pass < 2; pass++) {
         try {
           const translated = await translateOne(original, '');
-          el.innerHTML = translated;
-          r.changed = TranslationMetrics.hasMeaningfulTextChange(original, el.innerHTML);
+          if (markupSkeleton(translated) === origSkeleton) {
+            el.innerHTML = translated;
+            r.changed = TranslationMetrics.hasMeaningfulTextChange(original, el.innerHTML);
+            r.failed = false;
+            applied = true;
+            if (r.changed) break;
+          }
+        } catch (e) { lastErr = e; r.failed = true; }
+      }
+      if (!applied) {
+        // Model dropped/altered the inline markup — keep the original structure and
+        // translate just its text nodes, so the gold styling + line breaks survive.
+        el.innerHTML = original;
+        try {
+          r.changed = await translateUnitTextNodes(el);
           r.failed = false;
-          if (r.changed) break;
-        } catch (e) { lastErr = e; el.innerHTML = original; r.failed = true; }
+        } catch (e) { lastErr = e; r.failed = true; }
       }
       unitResults.push(r);
     }

@@ -427,6 +427,12 @@ test("TranslationMetrics coverage denominator, glossary-aware diff, and classify
     assert.equal(a.deco, "›");
     assert.equal(a.rest, "Verify");
   }
+  {
+    // Gold section-label circle (U+25CF) must be held stable across locales, like ›/✓/•.
+    const a = m.splitDecorativeLead("● What's the threat?");
+    assert.equal(a.deco, "●");
+    assert.equal(a.rest, "What's the threat?");
+  }
 });
 
 test("normalizeTranslatedTextSegment strips echoed <source>/<target> wrappers + code fences (no raw markup leaks)", () => {
