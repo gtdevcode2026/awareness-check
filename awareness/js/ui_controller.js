@@ -968,6 +968,33 @@ App.UI = (() => {
     // the SHARED .eml/.msg/send output never exposes Outlook to screen-only animation styles
     // that were deliberately guarded against it.
     const styleTag = css ? `<!--[if !mso]><!-- --><style data-nl-variant-style>${css}</style><!-- <![endif]-->` : '';
+    // Email dark-mode hardening (shared by .eml/.msg/send + the ZIP HTML). Outlook.com /
+    // new Outlook / Outlook mobile auto-flip an intentionally-dark email so black
+    // backgrounds turn white. The color-scheme meta tags tell Apple Mail / iOS not to
+    // invert; Outlook stamps each recoloured element with its ORIGINAL value in
+    // data-ogsb (background) / data-ogsc (text), so re-asserting those exact palette
+    // values keeps the dark design intact. The rules only match inside Outlook dark mode,
+    // so light mode and the classic (mso) Word engine are untouched.
+    const darkModeHead =
+      '<meta name="color-scheme" content="light dark">' +
+      '<meta name="supported-color-schemes" content="light dark">' +
+      '<!--[if !mso]><!-- --><style data-nl-darkmode>' +
+      ':root{color-scheme:light dark;supported-color-schemes:light dark;}' +
+      '[data-ogsb="#0a0a0a" i]{background-color:#0a0a0a!important}' +
+      '[data-ogsb="#0d0d0d" i]{background-color:#0d0d0d!important}' +
+      '[data-ogsb="#0f0f0f" i]{background-color:#0f0f0f!important}' +
+      '[data-ogsb="#141414" i]{background-color:#141414!important}' +
+      '[data-ogsb="#1a1a1a" i]{background-color:#1a1a1a!important}' +
+      '[data-ogsb="#272214" i]{background-color:#272214!important}' +
+      '[data-ogsc="#ffffff" i]{color:#ffffff!important}' +
+      '[data-ogsc="#f4efe7" i]{color:#f4efe7!important}' +
+      '[data-ogsc="#bbbbbb" i]{color:#bbbbbb!important}' +
+      '[data-ogsc="#9a9a9a" i]{color:#9a9a9a!important}' +
+      '[data-ogsc="#888888" i]{color:#888888!important}' +
+      '[data-ogsc="#d4a420" i]{color:#d4a420!important}' +
+      '[data-ogsc="#d4af37" i]{color:#d4af37!important}' +
+      '[data-ogsc="#c9a84c" i]{color:#c9a84c!important}' +
+      '</style><!-- <![endif]-->';
     const flatten = (App.Utils && typeof App.Utils.flattenEmailColors === 'function')
       ? App.Utils.flattenEmailColors
       : (h => h);
@@ -984,16 +1011,15 @@ App.UI = (() => {
     // but re-inject the variant CSS into its <head> (fallbacks: before <body>, else prepend).
     if (/^\s*(?:<!doctype html>\s*)?<html[\s>]/i.test(bodyHtml)) {
       let doc = bodyHtml;
-      if (styleTag) {
-        if (/<\/head>/i.test(doc)) doc = doc.replace(/<\/head>/i, `${styleTag}</head>`);
-        else if (/<body[^>]*>/i.test(doc)) doc = doc.replace(/(<body[^>]*>)/i, `$1${styleTag}`);
-        else doc = styleTag + doc;
-      }
+      const headInject = darkModeHead + styleTag;
+      if (/<\/head>/i.test(doc)) doc = doc.replace(/<\/head>/i, `${headInject}</head>`);
+      else if (/<body[^>]*>/i.test(doc)) doc = doc.replace(/(<body[^>]*>)/i, `$1${headInject}`);
+      else doc = headInject + doc;
       return emailSafe(anchorEmailWidthForMobile(doc));
     }
     const bodyStyle =
       'margin:0;padding:20px;background-color:#C5BEAF;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;';
-    const fragDoc = `<!DOCTYPE html><html lang="${langId}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Newsletter - ${getLanguageLabel(langId)}</title>${styleTag}</head><body style="${bodyStyle}">${bodyHtml}</body></html>`;
+    const fragDoc = `<!DOCTYPE html><html lang="${langId}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Newsletter - ${getLanguageLabel(langId)}</title>${darkModeHead}${styleTag}</head><body style="${bodyStyle}">${bodyHtml}</body></html>`;
     return emailSafe(anchorEmailWidthForMobile(fragDoc));
   }
 
