@@ -137,6 +137,53 @@ test("toStandaloneHtml stamps text-size-adjust on a full-doc body (stops iOS Mai
   assert.ok(out.includes("Hi there"), "body preserved");
 });
 
+// Outlook.com / new Outlook / Outlook mobile auto-flip an intentionally-dark email so
+// its black backgrounds turn white. The export re-asserts each colour via data-ogsb
+// (background) / data-ogsc (text) overrides. The override set MUST be derived from the
+// colours the email actually uses — the earlier hardcoded palette (#0a0a0a…) missed the
+// #111111/#000000 body fills and the #c09010 gold the templates ship, so those kept
+// rendering white in Outlook dark mode.
+test("toStandaloneHtml derives Outlook dark-mode overrides from the email's OWN palette (keeps a dark template dark)", () => {
+  const internals = loadInternals();
+  const darkDoc =
+    '<!DOCTYPE html><html><head><meta charset="utf-8"></head>' +
+    '<body style="margin:0;background:#111111;">' +
+    '<table bgcolor="#111111" style="background:#111111;"><tr>' +
+    '<td bgcolor="#000000" style="background-color:#000000;color:#ffffff;">Hi</td>' +
+    '<td style="color:#C09010;">Gold</td>' +
+    // an arbitrary dark fill that was never in any hardcoded list — proves the set is
+    // derived from the document, not a fixed palette.
+    '<td bgcolor="#1B2A3C" style="background-color:#1B2A3C;">x</td>' +
+    '</tr></table></body></html>';
+  const out = internals.toStandaloneHtml({ html: darkDoc, css: "" }, "en");
+  const head = headOf(out);
+  assert.match(head, /\[data-ogsb="#111111" i\]\{background-color:#111111!important\}/i,
+    "#111111 body/table fill is re-asserted (was turning white)");
+  assert.match(head, /\[data-ogsb="#000000" i\]\{background-color:#000000!important\}/i,
+    "#000000 section background is re-asserted");
+  assert.match(head, /\[data-ogsb="#1b2a3c" i\]\{background-color:#1b2a3c!important\}/i,
+    "an arbitrary dark fill is re-asserted — the override set is derived, not hardcoded");
+  assert.match(head, /\[data-ogsc="#c09010" i\]\{color:#c09010!important\}/i,
+    "the #C09010 gold text is re-asserted (was absent from the old hardcoded palette)");
+  assert.match(head, /\[data-ogsc="#ffffff" i\]\{color:#ffffff!important\}/i,
+    "white body text is re-asserted");
+  assert.match(head, /name="color-scheme" content="light dark"/i,
+    "color-scheme meta keeps Apple Mail / iOS from inverting");
+  assert.ok(out.includes("[if !mso]"),
+    "dark-mode overrides stay behind the MSO guard so the classic Word engine is untouched");
+});
+
+test("toStandaloneHtml normalizes shorthand hex (#111 → #111111) so the override matches Outlook's stamped value", () => {
+  const internals = loadInternals();
+  const out = internals.toStandaloneHtml(
+    { html: '<table bgcolor="#111" style="background:#111;"><tr><td style="color:#fff">Hi</td></tr></table>', css: "" }, "en");
+  const head = headOf(out);
+  assert.match(head, /\[data-ogsb="#111111" i\]\{background-color:#111111!important\}/i,
+    "#111 is expanded to #111111");
+  assert.match(head, /\[data-ogsc="#ffffff" i\]\{color:#ffffff!important\}/i,
+    "#fff is expanded to #ffffff");
+});
+
 // The bundled index.html viewer and "HOW TO OPEN" guide were removed from the ZIP
 // export, so their builders (buildLanguageIndexHtml / buildOpenHelpText) no longer
 // exist and are no longer tested.

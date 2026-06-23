@@ -953,6 +953,49 @@ App.UI = (() => {
     } catch (e) { return raw; }
   }
 
+  // --- Email dark-mode hardening ------------------------------------------------
+  // Outlook.com / new Outlook / Outlook mobile auto-flip an intentionally-dark email
+  // so its black backgrounds turn white. When they recolour an element they stamp its
+  // ORIGINAL background in data-ogsb and original text colour in data-ogsc; re-asserting
+  // those exact values pins the design back. An earlier fix hardcoded a fixed palette
+  // (#0a0a0a…), so any template colour outside that list (the #111111/#000000 body fills,
+  // the #c09010 gold, …) had no override and kept rendering white. We now derive the
+  // override set from the colours ACTUALLY present in the exported document, so it can
+  // never drift out of sync with the templates. color-scheme meta tags stop Apple Mail /
+  // iOS from inverting; everything lives behind [if !mso] so the classic Word engine
+  // (which doesn't do this auto-flip) is untouched.
+  function collectDocumentHexColors(html) {
+    const set = new Set();
+    const re = /#([0-9a-fA-F]{6}|[0-9a-fA-F]{3})\b/g;
+    let m;
+    while ((m = re.exec(String(html || ''))) !== null) {
+      let hex = m[1].toLowerCase();
+      // Expand #abc → #aabbcc so the selector matches Outlook's 6-digit stamped value.
+      if (hex.length === 3) hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+      set.add('#' + hex);
+    }
+    return set;
+  }
+  function buildEmailDarkModeHead(html) {
+    const meta =
+      '<meta name="color-scheme" content="light dark">' +
+      '<meta name="supported-color-schemes" content="light dark">';
+    let rules = ':root{color-scheme:light dark;supported-color-schemes:light dark;}';
+    for (const c of collectDocumentHexColors(html)) {
+      // data-ogsb only matches where the colour was a background; data-ogsc only where it
+      // was text — so emitting both per colour is safe and complete.
+      rules += `[data-ogsb="${c}" i]{background-color:${c}!important}`;
+      rules += `[data-ogsc="${c}" i]{color:${c}!important}`;
+    }
+    return meta + `<!--[if !mso]><!-- --><style data-nl-darkmode>${rules}</style><!-- <![endif]-->`;
+  }
+  function injectEmailDarkModeHead(html) {
+    const head = buildEmailDarkModeHead(html);
+    if (/<\/head>/i.test(html)) return html.replace(/<\/head>/i, `${head}</head>`);
+    if (/<body[^>]*>/i.test(html)) return html.replace(/(<body[^>]*>)/i, `$1${head}`);
+    return head + html;
+  }
+
   function toStandaloneHtml(variant, langId) {
     const v = stripEditorChromeForExport(normalizeVariant(variant));
     const cfg = getMergedConfigForExport();
@@ -968,33 +1011,6 @@ App.UI = (() => {
     // the SHARED .eml/.msg/send output never exposes Outlook to screen-only animation styles
     // that were deliberately guarded against it.
     const styleTag = css ? `<!--[if !mso]><!-- --><style data-nl-variant-style>${css}</style><!-- <![endif]-->` : '';
-    // Email dark-mode hardening (shared by .eml/.msg/send + the ZIP HTML). Outlook.com /
-    // new Outlook / Outlook mobile auto-flip an intentionally-dark email so black
-    // backgrounds turn white. The color-scheme meta tags tell Apple Mail / iOS not to
-    // invert; Outlook stamps each recoloured element with its ORIGINAL value in
-    // data-ogsb (background) / data-ogsc (text), so re-asserting those exact palette
-    // values keeps the dark design intact. The rules only match inside Outlook dark mode,
-    // so light mode and the classic (mso) Word engine are untouched.
-    const darkModeHead =
-      '<meta name="color-scheme" content="light dark">' +
-      '<meta name="supported-color-schemes" content="light dark">' +
-      '<!--[if !mso]><!-- --><style data-nl-darkmode>' +
-      ':root{color-scheme:light dark;supported-color-schemes:light dark;}' +
-      '[data-ogsb="#0a0a0a" i]{background-color:#0a0a0a!important}' +
-      '[data-ogsb="#0d0d0d" i]{background-color:#0d0d0d!important}' +
-      '[data-ogsb="#0f0f0f" i]{background-color:#0f0f0f!important}' +
-      '[data-ogsb="#141414" i]{background-color:#141414!important}' +
-      '[data-ogsb="#1a1a1a" i]{background-color:#1a1a1a!important}' +
-      '[data-ogsb="#272214" i]{background-color:#272214!important}' +
-      '[data-ogsc="#ffffff" i]{color:#ffffff!important}' +
-      '[data-ogsc="#f4efe7" i]{color:#f4efe7!important}' +
-      '[data-ogsc="#bbbbbb" i]{color:#bbbbbb!important}' +
-      '[data-ogsc="#9a9a9a" i]{color:#9a9a9a!important}' +
-      '[data-ogsc="#888888" i]{color:#888888!important}' +
-      '[data-ogsc="#d4a420" i]{color:#d4a420!important}' +
-      '[data-ogsc="#d4af37" i]{color:#d4af37!important}' +
-      '[data-ogsc="#c9a84c" i]{color:#c9a84c!important}' +
-      '</style><!-- <![endif]-->';
     const flatten = (App.Utils && typeof App.Utils.flattenEmailColors === 'function')
       ? App.Utils.flattenEmailColors
       : (h => h);
@@ -1009,18 +1025,22 @@ App.UI = (() => {
     // them again nests two <html>/<body> pairs, which Outlook/Gmail sanitizers
     // collapse — dropping the inner <head>. Pass a full document through unwrapped,
     // but re-inject the variant CSS into its <head> (fallbacks: before <body>, else prepend).
+    let out;
     if (/^\s*(?:<!doctype html>\s*)?<html[\s>]/i.test(bodyHtml)) {
       let doc = bodyHtml;
-      const headInject = darkModeHead + styleTag;
-      if (/<\/head>/i.test(doc)) doc = doc.replace(/<\/head>/i, `${headInject}</head>`);
-      else if (/<body[^>]*>/i.test(doc)) doc = doc.replace(/(<body[^>]*>)/i, `$1${headInject}`);
-      else doc = headInject + doc;
-      return emailSafe(anchorEmailWidthForMobile(doc));
+      if (/<\/head>/i.test(doc)) doc = doc.replace(/<\/head>/i, `${styleTag}</head>`);
+      else if (/<body[^>]*>/i.test(doc)) doc = doc.replace(/(<body[^>]*>)/i, `$1${styleTag}`);
+      else doc = styleTag + doc;
+      out = emailSafe(anchorEmailWidthForMobile(doc));
+    } else {
+      const bodyStyle =
+        'margin:0;padding:20px;background-color:#C5BEAF;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;';
+      const fragDoc = `<!DOCTYPE html><html lang="${langId}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Newsletter - ${getLanguageLabel(langId)}</title>${styleTag}</head><body style="${bodyStyle}">${bodyHtml}</body></html>`;
+      out = emailSafe(anchorEmailWidthForMobile(fragDoc));
     }
-    const bodyStyle =
-      'margin:0;padding:20px;background-color:#C5BEAF;font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%;';
-    const fragDoc = `<!DOCTYPE html><html lang="${langId}"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>Newsletter - ${getLanguageLabel(langId)}</title>${darkModeHead}${styleTag}</head><body style="${bodyStyle}">${bodyHtml}</body></html>`;
-    return emailSafe(anchorEmailWidthForMobile(fragDoc));
+    // Dark-mode hardening LAST, derived from the email's own palette (the colours now
+    // include any rgba→hex flattening done by emailSafe). See buildEmailDarkModeHead.
+    return injectEmailDarkModeHead(out);
   }
 
   function refreshLanguageControls() {
