@@ -2436,78 +2436,9 @@ App.UI = (() => {
     }
   }
 
-  // Landing page placed at the ZIP root so the user opens ONE file (index.html) and sees the
-  // rendered newsletter for every language — each card opens a fully-styled, standalone .html.
-  function buildLanguageIndexHtml(entries, title) {
-    const safeTitle = escapeHtml(title || 'Security Awareness Newsletter');
-    const cards = entries.map((e) => (
-      `<a class="card" href="./${escapeHtml(e.file)}" target="_blank" rel="noopener" aria-label="Open the ${escapeHtml(e.label)} newsletter in a new tab">` +
-        `<span class="name">${escapeHtml(e.label)}</span>` +
-        `<span class="code" aria-hidden="true">${escapeHtml(e.id)}</span>` +
-        `<span class="go" aria-hidden="true">Open newsletter &rarr;</span>` +
-      `</a>`
-    )).join('');
-    return `<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8">` +
-      `<meta name="viewport" content="width=device-width,initial-scale=1">` +
-      `<title>${safeTitle} — all languages</title><style>` +
-      `*{box-sizing:border-box}body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#0A0A0A;color:#F4EFE7;padding:32px}` +
-      `h1{font-size:20px;margin:0 0 4px}.sub{color:#9a9a9a;font-size:13px;margin:0 0 24px}` +
-      `.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}` +
-      `.card{display:block;text-decoration:none;color:#F4EFE7;background:#141414;border:1px solid #2a2a2a;border-radius:10px;padding:18px 20px;transition:border-color .15s,transform .15s}` +
-      `.card:hover{border-color:#D4A420;transform:translateY(-2px)}` +
-      `.name{display:block;font-size:16px;font-weight:700}` +
-      `.code{display:block;font-size:11px;color:#8a8a8a;text-transform:uppercase;letter-spacing:1px;margin-top:2px}` +
-      `.go{display:block;font-size:12px;color:#D4A420;margin-top:14px;font-weight:700}` +
-      `.hint{color:#7a7a7a;font-size:12px;margin-top:24px}</style></head><body>` +
-      `<h1>${safeTitle}</h1>` +
-      `<p class="sub">This is the start page · ${entries.length} language${entries.length === 1 ? '' : 's'} — click any card to open that fully-styled newsletter in a new tab.</p>` +
-      `<div class="grid">${cards}</div>` +
-      `<p class="hint">Each <code>newsletter-&lt;lang&gt;.html</code> file is self-contained — you can also open or print any of them directly in a browser.</p>` +
-      `</body></html>`;
-  }
-
-  // Plain-text guide bundled at the ZIP root. A browser-downloaded ZIP carries Windows'
-  // Mark-of-the-Web, so Explorer's extractor blocks the .html pages inside it with
-  // "Your Internet security settings prevented one or more files from being opened." Nothing in the
-  // ZIP's contents can remove that flag — the user clears it once on the ZIP. This .txt is NOT a
-  // blocked type, so it always opens and explains how. CRLF line endings so Notepad renders it.
-  function buildOpenHelpText(title) {
-    const name = (title && String(title).trim()) || 'Security Awareness Newsletter';
-    return [
-      'HOW TO OPEN THIS NEWSLETTER',
-      '===========================',
-      '',
-      name,
-      '',
-      'Windows may block the HTML pages inside this ZIP because the ZIP was',
-      'downloaded from the internet. You will see the message:',
-      '',
-      '    "Your Internet security settings prevented one or more files',
-      '     from being opened."',
-      '',
-      'The files are completely safe -- this is just a standard Windows prompt',
-      'for any archive downloaded from a browser. Clear it once and everything',
-      'opens normally:',
-      '',
-      'EASIEST (about 10 seconds):',
-      '  1. Right-click the downloaded .zip file  ->  Properties',
-      '  2. At the bottom of the General tab, tick the "Unblock" checkbox',
-      '  3. Click Apply  ->  OK',
-      '  4. Now extract the ZIP and open index.html',
-      '     (or any of the newsletter-<language>.html pages)',
-      '',
-      'ALTERNATIVE:',
-      '  Extract the ZIP with 7-Zip or WinRAR instead of the built-in Windows',
-      '  extractor -- those do not carry the block. Then open index.html.',
-      '',
-      'Each newsletter-<language>.html is a complete, self-contained page, so',
-      'you can open or print any of them directly in a web browser.',
-      '',
-    ].join('\r\n');
-  }
-
-  // "Download All": a ZIP of SEPARATE per-language .html pages plus an index.html viewer and a
-  // plain-text "how to open" guide. Each newsletter-<lang>.html is fully self-contained and styled.
+  // "Download All": a ZIP of SEPARATE per-language .html pages. Each
+  // newsletter-<lang>.html is fully self-contained and styled — no index page
+  // or "how to open" guide is bundled.
   async function downloadAllHTML() {
     if (!state.newsletterWorkspace?.variants) return showToast('Generate newsletter first.', true);
     if (typeof JSZip === 'undefined') {
@@ -2516,25 +2447,20 @@ App.UI = (() => {
     }
     try {
       const zip = new JSZip();
-      const entries = [];
+      let count = 0;
       NEWSLETTER_LANGUAGES.forEach(l => {
         const variant = normalizeVariant(state.newsletterWorkspace.variants[l.id]);
         if (!variant.html) return;
         const html = toStandaloneHtml(variant, l.id);
-        const file = `newsletter-${l.id}.html`;
-        zip.file(file, html);                                  // self-contained, styled, at the ZIP root
-        entries.push({ id: l.id, label: getLanguageLabel(l.id), file });
+        zip.file(`newsletter-${l.id}.html`, html);             // self-contained, styled, at the ZIP root
+        count++;
       });
-      if (!entries.length) return showToast('No language files to export.', true);
-      const title = (getMetadata && getMetadata().title) || '';
-      zip.file('index.html', buildLanguageIndexHtml(entries, title));   // viewer landing page
-      // "HOW TO OPEN" sorts ahead of index.html / newsletter-*.html so the user sees it first.
-      zip.file('HOW TO OPEN - read me first.txt', buildOpenHelpText(title));
+      if (!count) return showToast('No language files to export.', true);
       const blob = await zip.generateAsync({ type: 'blob', compression: 'DEFLATE' });
       const stamp = new Date().toISOString().slice(0, 10);
       const name = `newsletter-export-${stamp}.zip`;
       downloadBlob(name, blob);
-      showToast(`Downloaded ${name}. If Windows blocks the pages, right-click the zip → Properties → Unblock (see "HOW TO OPEN" inside).`);
+      showToast(`Downloaded ${name}.`);
     } catch (e) {
       showToast('Could not build ZIP export.', true);
     }
@@ -3536,7 +3462,7 @@ Now translate the content inside <source> into ${targetLanguageName} following a
     flagUnsavedChanges, clearUnsavedChanges,
     // Preview + export
     currentPreviewVariant, renderVariantHtml,
-    toStandaloneHtml, buildLanguageIndexHtml, buildOpenHelpText,
+    toStandaloneHtml,
     // Constants
     NEWSLETTER_LANGUAGES,
     AI_EXPERIMENT_CONTROL_STORAGE_KEY,

@@ -206,7 +206,7 @@ App.Editor = (function () {
         <button type="button" class="ed-tbtn ed-tbtn--save" onclick="void App.Editor.saveToWorkspaceAndProject()" title="Save this language from the canvas to the workspace, then store the full project (every language variant) in IndexedDB">Save</button>
         <button type="button" class="ed-tbtn ed-tbtn--export" onclick="void App.Editor.downloadCurrentLanguage()" title="Save canvas, then download this language as one HTML file">Single file</button>
         <button type="button" class="ed-tbtn ed-tbtn--export" onclick="void App.Editor.downloadCurrentEml()" title="Save canvas, then download a send-ready .eml — double-click it to open in Outlook with images inline, add recipients and Send (no relay needed)">Send-ready (.eml)</button>
-        <button type="button" class="ed-tbtn ed-tbtn--export" onclick="void App.Editor.downloadAllLanguages()" title="Save canvas, then download a ZIP of separate per-language HTML pages. If Windows blocks them, right-click the zip → Properties → Unblock — see HOW TO OPEN inside the zip">All files</button>
+        <button type="button" class="ed-tbtn ed-tbtn--export" onclick="void App.Editor.downloadAllLanguages()" title="Save canvas, then download a ZIP of separate per-language HTML pages. If Windows blocks them, right-click the zip → Properties → Unblock.">All files</button>
       </div>
       <button type="button" class="ed-tbtn ed-tbtn--close" onclick="App.Editor.close()" title="Close editor">&#x2715;</button>
     </div>

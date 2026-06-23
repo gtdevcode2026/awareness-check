@@ -2,10 +2,6 @@
 //   - toStandaloneHtml must re-inject the variant's stylesheet (variant.css) so the
 //     downloaded .html renders styled (the preview splits CSS out of the body into
 //     variant.css; without re-injecting it the file looked like unstyled plain text).
-//   - buildLanguageIndexHtml produces a viewer landing page linking every language file.
-//   - buildOpenHelpText is the plain-text guide bundled in the ZIP that tells the user how to
-//     clear Windows' Mark-of-the-Web block ("Your Internet security settings prevented one or
-//     more files from being opened") on the downloaded archive.
 const assert = require("node:assert/strict");
 const { readFileSync } = require("node:fs");
 const path = require("node:path");
@@ -35,9 +31,8 @@ function loadInternals() {
     vm.runInContext(readFileSync(path.join(rootDir, f), "utf8"), ctx);
   }
   const internals = ctx.App && ctx.App.UI && ctx.App.UI._internals;
-  assert.ok(internals && internals.toStandaloneHtml && internals.buildLanguageIndexHtml
-    && internals.buildOpenHelpText,
-    "ui_controller did not expose toStandaloneHtml/buildLanguageIndexHtml/buildOpenHelpText on _internals");
+  assert.ok(internals && internals.toStandaloneHtml,
+    "ui_controller did not expose toStandaloneHtml on _internals");
   return internals;
 }
 
@@ -142,48 +137,6 @@ test("toStandaloneHtml stamps text-size-adjust on a full-doc body (stops iOS Mai
   assert.ok(out.includes("Hi there"), "body preserved");
 });
 
-test("buildLanguageIndexHtml produces a viewer linking every language file", () => {
-  const internals = loadInternals();
-  const entries = [
-    { id: "en", label: "English", file: "newsletter-en.html" },
-    { id: "fr", label: "French", file: "newsletter-fr.html" },
-    { id: "ko", label: "Korean", file: "newsletter-ko.html" },
-  ];
-  const idx = internals.buildLanguageIndexHtml(entries, "Weekly Security Brief");
-  assert.match(idx, /^\s*<!DOCTYPE html>/i, "index is a complete document");
-  for (const e of entries) {
-    assert.ok(idx.includes(`href="./${e.file}"`), `links ${e.file}`);
-    assert.ok(idx.includes(`>${e.label}<`), `shows label ${e.label}`);
-  }
-  assert.ok(idx.includes("Weekly Security Brief"), "shows the newsletter title");
-  assert.ok(idx.includes("3 languages"), "shows the language count");
-});
-
-test("buildLanguageIndexHtml escapes a malicious title/label (no HTML injection)", () => {
-  const internals = loadInternals();
-  const idx = internals.buildLanguageIndexHtml(
-    [{ id: "en", label: "<img src=x onerror=alert(1)>", file: "newsletter-en.html" }],
-    "<script>bad()</script>");
-  assert.ok(!idx.includes("<script>bad()"), "title is escaped");
-  assert.ok(!idx.includes("<img src=x onerror"), "label is escaped");
-  assert.ok(idx.includes("&lt;script&gt;") || idx.includes("&lt;img"), "dangerous markup is entity-encoded");
-});
-
-test("buildOpenHelpText gives the Mark-of-the-Web unblock steps, with CRLF for Notepad", () => {
-  const internals = loadInternals();
-  const txt = internals.buildOpenHelpText("Weekly Security Brief");
-  assert.ok(txt.includes("Weekly Security Brief"), "names the newsletter");
-  assert.match(txt, /Internet security settings prevented one or more files/i,
-    "quotes the exact Windows message so the user recognizes it");
-  assert.match(txt, /right-click[\s\S]*Properties/i, "tells them to right-click -> Properties");
-  assert.match(txt, /\bUnblock\b/, 'tells them to tick "Unblock"');
-  assert.match(txt, /7-Zip|WinRAR/i, "offers the extract-with-a-real-tool alternative");
-  assert.ok(txt.includes("\r\n"), "uses CRLF line endings so Windows Notepad renders the guide");
-});
-
-test("buildOpenHelpText falls back to a sensible title when none is given", () => {
-  const internals = loadInternals();
-  const txt = internals.buildOpenHelpText("");
-  assert.ok(txt.includes("Security Awareness Newsletter"), "has a default name");
-  assert.match(txt, /HOW TO OPEN/i, "still carries the heading");
-});
+// The bundled index.html viewer and "HOW TO OPEN" guide were removed from the ZIP
+// export, so their builders (buildLanguageIndexHtml / buildOpenHelpText) no longer
+// exist and are no longer tested.
