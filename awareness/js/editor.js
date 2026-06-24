@@ -1663,6 +1663,14 @@ App.Editor = (function () {
       case 'editing':  _status('Editing text\u2026'); _textEditActive = true; break;
       case 'deleted':  _dirty = true; _status('Unsaved changes'); _selectedProps = null; _showIdle(); _commit(); break;
       case 'moved':    _dirty = true; _status('Unsaved changes'); _commit(); break;
+      case 'sectionHint': {
+        // A lone heading was nudged. Moving it alone would split it from its
+        // points, so the move was blocked — tell the user how to move the whole
+        // section instead.
+        _status('Hold Ctrl, select the heading + its points, then press Up/Down');
+        try { alert('To move a whole section, hold Ctrl (⌘ on Mac) and click the heading together with its points to select them, then press Up or Down.'); } catch (e) {}
+        break;
+      }
       case 'added':    _dirty = true; _status('Unsaved changes'); _commit(); break;
       case 'dragReady': _status('Drag the element in the canvas \u2014 drop to reorder'); break;
       case 'selectionTexts':

@@ -568,7 +568,171 @@
       return s;
     }
 
+    // Exchange two sibling blocks WITHOUT disturbing the nodes between them.
+    // The invisible spacer rows that create the gap between sections live
+    // between `a` and `b`; a plain insertBefore would carry the content row
+    // across the spacer and leave the spacer stranded against the section's
+    // top/bottom edge — visible as extra padding once a block reaches the edge.
+    // Two markers let us swap a and b in place while every spacer between them
+    // stays exactly where it renders, so the gap follows the sections.
+    function swapBlocksKeepingBetween(a, b) {
+      var p = a.parentNode;
+      if (!p || b.parentNode !== p) return;
+      var m1 = document.createComment('nl-swap');
+      var m2 = document.createComment('nl-swap');
+      p.insertBefore(m1, a);
+      p.insertBefore(m2, b);
+      p.insertBefore(b, m1);
+      p.insertBefore(a, m2);
+      p.removeChild(m1);
+      p.removeChild(m2);
+      swapTrailingSpacing(a, b);
+    }
+
+    // The element that holds a block's trailing vertical spacing. Bank-page
+    // bullet rows bake it onto the row's own cell (padding:0 0 24px on the LAST
+    // bullet to gap off the next section); list-style blocks put it on
+    // themselves. Returns whichever level actually carries a bottom gap.
+    function spacingCarrier(block) {
+      var first = block.firstElementChild;
+      if (first && (first.style.paddingBottom || first.style.marginBottom)) return first;
+      if (block.style.paddingBottom || block.style.marginBottom) return block;
+      return first || block;
+    }
+
+    // Trailing vertical spacing is POSITIONAL — the bottom item of a list gets a
+    // bigger gap to separate it from what follows. After swapping two blocks,
+    // swap their bottom spacing back so the gap stays with the SLOT, never riding
+    // along with the moved row (which would strand a big gap mid-list — the
+    // "extra padding" seen when a bullet reaches the top/bottom of its section).
+    // When both slots share the same spacing (the common case) this is a no-op.
+    function swapTrailingSpacing(a, b) {
+      var ca = spacingCarrier(a), cb = spacingCarrier(b);
+      if (ca === cb) return;
+      var pb = ca.style.paddingBottom, mb = ca.style.marginBottom;
+      ca.style.paddingBottom = cb.style.paddingBottom;
+      ca.style.marginBottom = cb.style.marginBottom;
+      cb.style.paddingBottom = pb;
+      cb.style.marginBottom = mb;
+    }
+
+    // ---- Whole-section move (Hybrid) -------------------------------------
+    // A bank-page "section" is a heading block (the gold <p>How to spot) plus the
+    // sibling content that follows it (its bullets <table>) — no wrapping element.
+    // When the user Ctrl-selects a heading together with its points and hits
+    // Up/Down, move the ENTIRE section as a unit, swapping it with the adjacent
+    // section. A plain single selection still moves just one block (below).
+    function lowestCommonAncestor(nodes) {
+      if (!nodes.length) return null;
+      var anc = nodes[0];
+      for (var i = 1; i < nodes.length; i++) {
+        while (anc && !anc.contains(nodes[i])) anc = anc.parentNode;
+      }
+      return anc;
+    }
+    function childOfAncestor(node, ancestor) {
+      var n = node;
+      while (n && n.parentNode !== ancestor) n = n.parentNode;
+      return n;  // the direct child of `ancestor` that contains `node`, or null
+    }
+    // Resolve the current multi-selection to a section run: the contiguous
+    // top-level siblings (heading + its content) the selection occupies. Returns
+    // null for a single selection, a selection with no explicit heading, or a
+    // homogeneous group (e.g. two bullets) — those fall through to per-block.
+    function resolveSectionRun() {
+      var sel = [];
+      if (_sel) sel.push(_sel);
+      _selSet.forEach(function (e) { if (e !== _sel) sel.push(e); });
+      if (sel.length < 2) return null;
+      var lca = lowestCommonAncestor(sel);
+      if (!lca || lca === document.body || lca === document.documentElement) return null;
+      var topSet = new Set();
+      var headingNode = null;
+      for (var i = 0; i < sel.length; i++) {
+        var c = childOfAncestor(sel[i], lca);
+        if (!c) continue;
+        topSet.add(c);
+        if (sel[i] === c) headingNode = c;  // a selected element that is itself a top node = the heading
+      }
+      if (!headingNode || topSet.size < 2) return null;
+      var children = Array.prototype.slice.call(lca.children);
+      var idxs = [];
+      topSet.forEach(function (c) { var k = children.indexOf(c); if (k >= 0) idxs.push(k); });
+      if (idxs.length < 2) return null;
+      var lo = Math.min.apply(null, idxs), hi = Math.max.apply(null, idxs);
+      if (children.indexOf(headingNode) !== lo) return null;  // heading must lead the run
+      var headingTag = headingNode.tagName;
+      var run = children.slice(lo, hi + 1);
+      // Require real heading+content (mixed tags); a homogeneous run (TR,TR) is a
+      // bullet group, not a section — let it fall through to per-block.
+      if (!run.some(function (n) { return n.tagName !== headingTag; })) return null;
+      return { children: children, lo: lo, hi: hi, run: run, headingTag: headingTag };
+    }
+    // The adjacent section's run, delimited by the same heading tag; null at the edge.
+    function adjacentSectionRun(info, dir) {
+      var children = info.children, tag = info.headingTag;
+      if (dir === 'up') {
+        var end = info.lo - 1;
+        if (end < 0) return null;
+        var start = end;
+        while (start > 0 && children[start].tagName !== tag) start--;
+        if (children[start].tagName !== tag) return null;  // no heading above → at the top
+        return children.slice(start, end + 1);
+      }
+      var s = info.hi + 1;
+      if (s >= children.length || children[s].tagName !== tag) return null;  // nothing below
+      var e = s + 1;
+      while (e < children.length && children[e].tagName !== tag) e++;
+      return children.slice(s, e);
+    }
+    // Swap two contiguous sibling runs in place, keeping any nodes between them
+    // (spacers) exactly where they render — so no new padding appears.
+    function swapRunsKeepingBetween(runA, runB) {
+      var p = runA[0].parentNode;
+      var mA = document.createComment('nl-swap');
+      var mB = document.createComment('nl-swap');
+      p.insertBefore(mA, runA[0]);
+      p.insertBefore(mB, runB[0]);
+      runB.forEach(function (n) { p.insertBefore(n, mA); });
+      runA.forEach(function (n) { p.insertBefore(n, mB); });
+      p.removeChild(mA);
+      p.removeChild(mB);
+    }
+
+    // A section heading: a top-level child that delimits sections (one of several
+    // same-tag siblings, e.g. the gold <p>s) and is immediately followed by
+    // content of a different tag (its bullets). Used to catch a lone-heading move.
+    function isSectionHeading(el) {
+      if (!el || !el.parentNode || !el.tagName) return false;
+      var kids = Array.prototype.slice.call(el.parentNode.children);
+      var idx = kids.indexOf(el);
+      if (idx < 0 || kids.length < 2) return false;
+      var tag = el.tagName, sameTag = 0;
+      for (var i = 0; i < kids.length; i++) if (kids[i].tagName === tag) sameTag++;
+      if (sameTag < 2) return false;                       // not a repeating delimiter
+      var next = kids[idx + 1];
+      return !!(next && next.tagName !== tag);             // heads content of a different tag
+    }
+
     function doMove(dir) {
+      // Hybrid: a multi-selection spanning a whole section moves section-wise.
+      var section = resolveSectionRun();
+      if (section) {
+        var adj = adjacentSectionRun(section, dir);
+        if (!adj) return;  // already the top/bottom section — silent
+        if (dir === 'up') swapRunsKeepingBetween(adj, section.run);
+        else swapRunsKeepingBetween(section.run, adj);
+        try { section.run[0].scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch (e) {}
+        reportHeight(); post('moved', {});
+        return;
+      }
+      // Single-selecting a section heading and moving it alone would tear the
+      // heading off its points and mangle the layout. Block it and tell the user
+      // to Ctrl-select the heading + its points to move the whole section.
+      if (_sel && _selSet.size <= 1 && isSectionHeading(_sel)) {
+        post('sectionHint', {});
+        return;
+      }
       var targets = collectMovableBlocks();
       if (!targets.length) return;  // nothing reorderable under the selection
       var anyMoved = false;
@@ -578,8 +742,9 @@
         var t = seq[i];
         var sib = adjacentContentSibling(t, dir);
         if (!sib) continue;  // already at the edge — stay silent
-        if (dir === 'up') t.parentNode.insertBefore(t, sib);
-        else t.parentNode.insertBefore(sib, t);
+        // Swap the block with its neighbour in place; spacers between them keep
+        // their position so the gap stays between the two sections, never at the edge.
+        swapBlocksKeepingBetween(t, sib);
         anyMoved = true;
       }
       if (!anyMoved) return;  // every target already at its edge — silent

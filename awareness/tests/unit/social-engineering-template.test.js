@@ -47,6 +47,20 @@ test('the headline falls back to "Scams & Social Engineering" when the article h
   assert.ok(html.includes('Scams &amp; Social Engineering'), 'fallback headline present');
 });
 
+test('red-flag rows top-align the tip text with the icon (even, consistent spacing)', () => {
+  // The icon cell is valign="top". The text cell must match so a short tip's text
+  // starts on the same line as its icon instead of floating to the icon's centre —
+  // middle-aligned text made the tips sit at inconsistent heights ("uneven spacing").
+  const html = build({ portal: 'https://p.example.com', nlSocEngRedFlags: [
+    'Urgency.',
+    'A request that bypasses your normal verification process and pressures you to act immediately without checking anything.',
+    'Caller refuses a callback.'
+  ] }, ART);
+  // The flag text cell is the one carrying style="padding:0 0 …" (icon cells use padding:0 16px …).
+  assert.ok(!/valign="middle"\s+style="padding:0 0 /.test(html), 'flag text cells must NOT be middle-aligned (causes the floating/uneven look)');
+  assert.ok(/valign="top"\s+style="padding:0 0 /.test(html), 'flag text cells are top-aligned with the icon');
+});
+
 test('the 3 red-flag icons render as raster <img> (Outlook/Gmail drop inline SVG)', () => {
   const html = build({ portal: 'https://p.example.com' }, ART);
   const iconCount = (html.match(/redflag_ico\.png/g) || []).length;

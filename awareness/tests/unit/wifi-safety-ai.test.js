@@ -58,6 +58,44 @@ test("gen_wifi_safety with no AI returns {} so the authored replica renders unch
   assert.equal(Object.keys(slots).length, 0, "no-AI must return no slots → the static Wi-Fi poster keeps its authored design + copy");
 });
 
+test("gen_wifi_safety: the poster flip-form theme becomes the Wi-Fi heading verbatim (like How to Spot Shield)", async () => {
+  const AIS = loadAISummarizer(aiContext());
+  const slots = await AIS.fillNewsletterTextSlots("gen_wifi_safety", ARTS, { forceLocal: true, tipTheme: "Public Wi-Fi Risks" });
+  assert.equal(slots.nlWifiHeading, "Public Wi-Fi Risks", "the chosen flip-form theme drives the heading verbatim");
+  // With AI off and a theme chosen, ONLY the heading is injected — the rest of the
+  // authored poster (intro + tips) stays untouched.
+  assert.deepEqual(Object.keys(slots).sort(), ["nlWifiHeading"], "no other slots are added with AI off");
+});
+
+test("gen_wifi_safety with no AI and NO theme still returns {} (byte-identical design preserved)", async () => {
+  const AIS = loadAISummarizer(aiContext());
+  const slots = await AIS.fillNewsletterTextSlots("gen_wifi_safety", ARTS, { forceLocal: true });
+  assert.equal(Object.keys(slots).length, 0, "no theme + no AI → no slots, so the authored poster is unchanged");
+});
+
+// The 5 tips render as a 3-up row + a 2-up row. Those rows previously lived in
+// separate tables with DIFFERENT cell padding (top row 0 9px 26px, bottom row
+// 0 16px 18px), so the bottom two tips were spaced wider apart and gapped
+// differently than the top three — uneven spacing between tips. All five tip
+// cells must share one padding.
+function wifiTipPaddings() {
+  const html = readFileSync(path.join(rootDir, "templates/reference/pipeline/wifi_safety_replica.html"), "utf8");
+  const pads = [];
+  for (let n = 1; n <= 5; n++) {
+    const idx = html.indexOf(`id="nl-wifi-tip${n}"`);
+    const tdStart = html.lastIndexOf("<td", idx);
+    const tdTag = html.slice(tdStart, html.indexOf(">", tdStart));
+    const m = tdTag.match(/padding:([^;"]+)/);
+    pads.push(m ? m[1].trim() : null);
+  }
+  return pads;
+}
+
+test("all 5 Wi-Fi tip cells share one padding so spacing between tips is even", () => {
+  const pads = wifiTipPaddings();
+  assert.equal(new Set(pads).size, 1, `tip cell paddings must be uniform; got ${JSON.stringify(pads)}`);
+});
+
 test("the Wi-Fi replica HTML carries the injection hooks (heading + intro + 5 tips)", () => {
   const html = readFileSync(path.join(rootDir, "templates/reference/pipeline/wifi_safety_replica.html"), "utf8");
   assert.ok(html.includes('id="nl-wifi-heading"'), "heading hook present (topic derived from the article)");

@@ -2732,12 +2732,15 @@ ${redFlagsRowsHtml}
     const portalName = escapeHtml((c.pname || c.title || '').trim()) || 'Security &amp; Compliance Awareness Portal';
     const portalHref = escAttr(normalizeWebUrl((c.portal || c.portalUrl || '').trim()) || (c.soc ? 'mailto:' + String(c.soc).trim() : '#'));
 
-    // One red-flag row = raster flag icon (left) + recognition line (right). The
-    // bottom padding collapses on the last row so the block sits flush.
+    // One red-flag row = raster flag icon (left) + recognition line (right). Both
+    // cells are valign="top" so the tip text starts on the same line as its icon —
+    // middle-aligned text made short tips float to the icon's centre, so tips sat
+    // at inconsistent heights and the spacing looked uneven. The bottom padding
+    // collapses on the last row so the block sits flush.
     const flagRow = (slot, pad) =>
       `<tr>`
       + `<td width="84" valign="top" align="center" style="padding:0 16px ${pad} 0;"><img src="${assetSrc('redflag_ico.png')}" alt="Red flag" width="56" height="56" style="display:block;width:56px;height:56px;border:0;"></td>`
-      + `<td valign="middle" style="padding:0 0 ${pad};"><div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#3A3A3A;">${slot}</div></td>`
+      + `<td valign="top" style="padding:0 0 ${pad};"><div style="font-family:Arial,Helvetica,sans-serif;font-size:15px;line-height:1.5;color:#3A3A3A;">${slot}</div></td>`
       + `</tr>`;
 
     let HTML = `${nlOuterOpen()}<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#FFFFFF" style="background:#FFFFFF;">`

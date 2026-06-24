@@ -3070,8 +3070,13 @@ Keep each point to max ${SD_POINT_MAX_CHARS} chars.${tipThemeClause(theme)}`;
     if (formatId === 'gen_wifi_safety') {
       // AI on → article-driven Wi-Fi copy injected into the poster's text hooks.
       // AI off → {} so the authored replica renders unchanged (design preserved).
-      if (useAI) return aiFillWifiSafety(list, mode, 0, tipTheme);
-      return {};
+      const slots = useAI ? ((await aiFillWifiSafety(list, mode, 0, tipTheme)) || {}) : {};
+      // Poster flip-form theme drives the visible Wi-Fi heading verbatim (exact picked
+      // text), mirroring How to Spot Shield (gen_vishing). Absent when no theme is
+      // chosen, so the heading stays AI/authored and an AI-off build with no theme
+      // stays byte-identical ({}).
+      if (tipTheme) slots.nlWifiHeading = tipTheme;
+      return slots;
     }
     if (formatId === 'gen_horizontal_brief') {
       // AI on → the article's own headline as the heading, plus AI intro + tips.
