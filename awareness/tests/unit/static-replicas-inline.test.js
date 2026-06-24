@@ -50,10 +50,12 @@ test('a static replica renders inline (no fetch) — works from a zip via file:/
   assert.ok(html.includes('srcdoc='), 'iframe carries the inlined poster as srcdoc');
 });
 
-test('all 5 static replicas are inlined and render without fetch', () => {
+test('all 4 verbatim static replicas are inlined and render without fetch', () => {
+  // gen_wifi_safety / gen_horizontal_brief / gen_security_digest are now AI-wired
+  // dynamic posters that render inline (not iframed) — see dynamic-posters-inline.test.js.
   const ids = [
     'gen_phonescam', 'gen_right_message',
-    'gen_spear_phishing', 'gen_weakest_link', 'gen_wifi_safety',
+    'gen_spear_phishing', 'gen_weakest_link',
   ];
   for (const id of ids) {
     const html = buildStaticReplica(id);

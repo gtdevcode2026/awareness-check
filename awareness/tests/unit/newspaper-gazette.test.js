@@ -222,14 +222,24 @@ test.describe("buildCyberGazette renders the broadsheet from up to 3 articles", 
     assert.equal((html.match(/What it means for you/g) || []).length, 0, "no what-it-means blocks remain");
   });
 
-  test("big lead image uses genhts; small secondary windows use temp_img", () => {
+  test("lead incident uses genhts; later incidents use feelnoways", () => {
     const NB = loadBuilder(builderContext());
     const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test" }, ARTS3, OPTS);
     const imgCount = (html.match(/<img\b/g) || []).length;
     assert.ok(imgCount >= 3, `expected at least 3 image slots, found ${imgCount}`);
-    // Lead (big) image is genhts; both secondary (small window) images are temp_img.
-    assert.ok(html.includes("genhts.jpeg"), "big lead image → genhts");
-    assert.equal((html.match(/temp_img\.jpeg/g) || []).length, 2, "both small windows → temp_img");
+    // Incident 1 (lead) → genhts; incidents 2 & 3 → feelnoways.
+    assert.ok(html.includes("genhts.jpeg"), "lead incident → genhts");
+    assert.equal((html.match(/feelnoways\.jpeg/g) || []).length, 2, "later incidents → feelnoways");
+    assert.ok(!html.includes("temp_img.jpeg"), "old temp_img default no longer used");
+  });
+
+  test("the masthead, the section nameplate, and numbered incident kickers all render", () => {
+    const NB = loadBuilder(builderContext());
+    const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test" }, ARTS3, OPTS);
+    assert.ok(html.includes("The Cyber Gazette"), "ABI masthead kept");
+    assert.ok(html.includes("Incidents from Around The World"), "section nameplate added above the stories");
+    assert.ok(html.includes("Incident 01") && html.includes("Incident 02") && html.includes("Incident 03"),
+      "each story carries its numbered INCIDENT 0N kicker");
   });
 
   test("an article's own image URL fills its slot instead of the default", () => {
@@ -242,7 +252,7 @@ test.describe("buildCyberGazette renders the broadsheet from up to 3 articles", 
     const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test" }, arts, OPTS);
     assert.ok(html.includes('src="https://cdn.example/lead.jpg"'), "lead uses its own image");
     assert.ok(html.includes('src="https://cdn.example/two.png"'), "secondary uses its own imageUrl");
-    assert.ok(html.includes("temp_img.jpeg"), "third article (no own image) falls back to the temp_img default");
+    assert.ok(html.includes("feelnoways.jpeg"), "third article (no own image) falls back to the feelnoways default");
   });
 
   test("QR cell renders at 90x90 when useQR is on", () => {

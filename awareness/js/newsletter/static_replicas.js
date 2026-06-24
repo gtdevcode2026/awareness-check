@@ -66,6 +66,38 @@
     return String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
   }
 
+  // These three posters are AI-wired (article-driven copy injected into their
+  // #nl-* hooks) AND must be translatable + editable. The remaining four are
+  // verbatim static designs that stay in an isolated iframe. The replicas are
+  // pure inline-styled tables (no <head>/<style>/class dependency), so rendering
+  // the <body> contents DIRECTLY in the document is visually identical to the
+  // iframe — but the text now lives in the main DOM, so the per-fragment
+  // translator and the editor reach it, and it survives .eml export (iframes do
+  // not). For the other four, the iframe stays (no AI text, design isolation).
+  const INLINE_IDS = new Set(['gen_wifi_safety', 'gen_horizontal_brief', 'gen_security_digest']);
+
+  // Return a replica's <body> inner HTML (a self-contained, centered email-safe
+  // table) for inline rendering. In Node (no DOMParser, unit tests) the HTML is
+  // returned unchanged — the inline path is a browser-runtime concern.
+  function inlineBody(html) {
+    if (typeof DOMParser === 'undefined') return html;
+    try {
+      const doc = new DOMParser().parseFromString(html, 'text/html');
+      if (doc && doc.body) {
+        // Rendered inline (not iframed), these anchors live in the main app
+        // document — without the iframe's <base target="_blank"> a click would
+        // navigate the whole app away. Force every link to open in a new tab.
+        const links = doc.body.querySelectorAll('a[href]');
+        for (let i = 0; i < links.length; i++) {
+          links[i].setAttribute('target', '_blank');
+          links[i].setAttribute('rel', 'noopener noreferrer');
+        }
+        return doc.body.innerHTML;
+      }
+    } catch (e) { /* fall through */ }
+    return html;
+  }
+
   // Real, scannable QR as a PNG data-URI (mirrors ui_controller.generateQrDataUriSync).
   // Gives the static posters the same working #nl-qr the ready templates render,
   // instead of the placeholder SVG shipped in the file. Returns '' if the QRCode
@@ -360,6 +392,9 @@
       // gen_security_digest: AI heading + intro + 4 points (no-op for every other
       // replica and when no AI slots are present).
       raw = injectSdText(raw, cfg);
+      // The three AI-wired posters render INLINE (translatable / editable / email-
+      // exportable); the four verbatim designs stay in an isolated iframe.
+      if (INLINE_IDS.has(id)) return inlineBody(raw);
       return '<iframe title="' + id + '" scrolling="no" '
         + 'style="width:100%;border:0;display:block;background:#FFFFFF;" '
         + 'srcdoc="' + escSrcdoc(raw) + '" '

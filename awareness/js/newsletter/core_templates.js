@@ -1158,7 +1158,7 @@
     const colWidth = Math.floor(100 / Math.max(colArts.length, 1));
     const cols = colArts.map((a, i) => {
       const colSum  = escapeHtml((a.summary || a.description || '').split('.').slice(0, 2).join('.').trim().replace(/\.+$/, '') + '.');
-      const readLink = (lk && a.url) ? `<br><br><a href="${escAttr(a.url)}" style="font-size:10px;color:#C09010;font-weight:bold;text-decoration:none;letter-spacing:2px;text-transform:uppercase;${NLFF}">READ FULL DISPATCH &rsaquo;</a>` : '';
+      const readLink = (lk && a.url) ? `<br><br><a href="${escAttr(a.url)}" target="_blank" rel="noopener noreferrer" style="font-size:10px;color:#C09010;font-weight:bold;text-decoration:none;letter-spacing:2px;text-transform:uppercase;${NLFF}">READ FULL DISPATCH &rsaquo;</a>` : '';
       return `<td valign="top" width="${colWidth}%" style="padding:20px 18px;${i < colArts.length - 1 ? 'border-right:1px solid #DDDDDD;' : ''}">
         <span style="font-size:9px;letter-spacing:2px;text-transform:uppercase;color:#C09010;font-weight:bold;${NLFF}">${escapeHtml((a.type || 'Security').toUpperCase())}</span><br><br>
         <span style="font-size:17px;font-weight:bold;color:#0A0A0A;line-height:1.22;${NLFF_SERIF}">${escapeHtml(a.title)}</span>
@@ -1987,7 +1987,7 @@
                 <td valign="top" style="font-family:Arial,Helvetica,sans-serif;">
                   <p style="font-family:Arial,Helvetica,sans-serif; font-size:18px; font-weight:700; font-style:italic; color:#dddddd; line-height:1.5; margin:0 0 12px;">&#8220;{{ARTICLE1_DIALOGUE}}&#8221;</p>
                   <div style="font-family:Arial,Helvetica,sans-serif; font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:#666666; margin:0 0 14px;">Source: <span data-nl-keep>{{ARTICLE1_SOURCE}}</span></div>
-                  <a href="{{ARTICLE1_LINK}}" class="btn-link" style="font-family:Arial,Helvetica,sans-serif; font-size:13px; font-weight:700; color:#C9A84C; text-decoration:none; letter-spacing:1.5px; text-transform:uppercase; border-bottom:1.5px solid #A07C30; padding-bottom:3px; display:inline-block;">Read article &rarr;</a>
+                  <a href="{{ARTICLE1_LINK}}" target="_blank" rel="noopener noreferrer" class="btn-link" style="font-family:Arial,Helvetica,sans-serif; font-size:13px; font-weight:700; color:#C9A84C; text-decoration:none; letter-spacing:1.5px; text-transform:uppercase; border-bottom:1.5px solid #A07C30; padding-bottom:3px; display:inline-block;">Read article &rarr;</a>
                 </td>
               </tr>
             </table>
@@ -2002,7 +2002,7 @@
                 <td valign="top" style="font-family:Arial,Helvetica,sans-serif;">
                   <p style="font-family:Arial,Helvetica,sans-serif; font-size:18px; font-weight:700; font-style:italic; color:#dddddd; line-height:1.5; margin:0 0 12px;">&#8220;{{ARTICLE2_DIALOGUE}}&#8221;</p>
                   <div style="font-family:Arial,Helvetica,sans-serif; font-size:10px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:#666666; margin:0 0 14px;">Source: <span data-nl-keep>{{ARTICLE2_SOURCE}}</span></div>
-                  <a href="{{ARTICLE2_LINK}}" class="btn-link" style="font-family:Arial,Helvetica,sans-serif; font-size:13px; font-weight:700; color:#C9A84C; text-decoration:none; letter-spacing:1.5px; text-transform:uppercase; border-bottom:1.5px solid #A07C30; padding-bottom:3px; display:inline-block;">Read article &rarr;</a>
+                  <a href="{{ARTICLE2_LINK}}" target="_blank" rel="noopener noreferrer" class="btn-link" style="font-family:Arial,Helvetica,sans-serif; font-size:13px; font-weight:700; color:#C9A84C; text-decoration:none; letter-spacing:1.5px; text-transform:uppercase; border-bottom:1.5px solid #A07C30; padding-bottom:3px; display:inline-block;">Read article &rarr;</a>
                 </td>
                 <td class="story-icon" valign="top" width="96" style="width:96px; padding-left:20px;">
                   <img class="story-icon-img" src="${assetSrc('mascot_mug.png')}" alt="" width="96" height="64" style="width:96px; height:64px; display:block; border:0;">
@@ -2366,7 +2366,7 @@ ${redFlagsRowsHtml}
                       <div style="font-family:Arial,Helvetica,sans-serif; font-size:13px; font-weight:700; color:#ffffff; line-height:1.45; height:57px; max-height:57px; overflow:hidden; margin:0 0 10px;">{{ARTICLE1_TITLE}}</div>
                       <div style="font-family:Arial,Helvetica,sans-serif; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#575757; margin:0 0 10px;">Source: <span data-nl-keep>{{ARTICLE1_SOURCE}}</span></div>
                       ${article1DateHtml}
-                      <a href="{{ARTICLE1_LINK}}" style="font-family:Arial,Helvetica,sans-serif; font-size:12px; font-weight:700; color:#D4AF37; text-decoration:none;">Read article &rarr;</a>
+                      <a href="{{ARTICLE1_LINK}}" target="_blank" rel="noopener noreferrer" style="font-family:Arial,Helvetica,sans-serif; font-size:12px; font-weight:700; color:#D4AF37; text-decoration:none;">Read article &rarr;</a>
                     </td></tr>
                   </table>
                 </td>
@@ -2377,7 +2377,7 @@ ${redFlagsRowsHtml}
                       <div style="font-family:Arial,Helvetica,sans-serif; font-size:13px; font-weight:700; color:#ffffff; line-height:1.45; height:57px; max-height:57px; overflow:hidden; margin:0 0 10px;">{{ARTICLE2_TITLE}}</div>
                       <div style="font-family:Arial,Helvetica,sans-serif; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#575757; margin:0 0 10px;">Source: <span data-nl-keep>{{ARTICLE2_SOURCE}}</span></div>
                       ${article2DateHtml}
-                      <a href="{{ARTICLE2_LINK}}" style="font-family:Arial,Helvetica,sans-serif; font-size:12px; font-weight:700; color:#D4AF37; text-decoration:none;">Read article &rarr;</a>
+                      <a href="{{ARTICLE2_LINK}}" target="_blank" rel="noopener noreferrer" style="font-family:Arial,Helvetica,sans-serif; font-size:12px; font-weight:700; color:#D4AF37; text-decoration:none;">Read article &rarr;</a>
                     </td></tr>
                   </table>
                 </td>
@@ -2552,7 +2552,7 @@ ${redFlagsRowsHtml}
     const srcUrl   = String((a0 && a0.url) || '').trim();
     const sourceInner = srcLabel
       ? ((lk && srcUrl)
-          ? `Source: <a href="${escAttr(srcUrl)}" style="font-family:Arial,Helvetica,sans-serif;color:#C09010;font-weight:700;text-decoration:none;">${srcLabel}</a>`
+          ? `Source: <a href="${escAttr(srcUrl)}" target="_blank" rel="noopener noreferrer" style="font-family:Arial,Helvetica,sans-serif;color:#C09010;font-weight:700;text-decoration:none;">${srcLabel}</a>`
           : `Source: ${srcLabel}`)
       : '';
     const sourceRow = sourceInner
@@ -2821,16 +2821,15 @@ ${redFlagsRowsHtml}
   ];
   // Per-article image slots use fixed, on-brand, email-safe images (bundled as
   // data URIs in assets/template_assets.js via build-template-assets.mjs):
-  //   • big lead image      → genhts.jpeg    (data-grab illustration)
-  //   • small window images → temp_img.jpeg  (breach/threat composition)
+  //   • lead incident image    → genhts.jpeg     (data-grab illustration)
+  //   • later incident images  → feelnoways.jpeg (added via the image library)
   // An article's own image (a.image / a.imageUrl / a.img) overrides the default.
   const GAZETTE_LEAD_IMAGE = 'genhts.jpeg';
-  const GAZETTE_SECONDARY_IMAGE = 'temp_img.jpeg';
+  const GAZETTE_SECONDARY_IMAGE = 'feelnoways.jpeg';
 
   function buildCyberGazette(c, arts, wo, lk, poster, qr, illus) {
     const list = (Array.isArray(arts) ? arts : []).filter(Boolean);
     const lead = list[0] || { type: 'Security', title: 'Weekly Security Briefing', summary: 'Stay alert to this week’s threats and report anything suspicious to the security team.' };
-    const secondary = list.slice(1, 3); // 0, 1, or 2 supporting stories
 
     const orgEsc = escapeHtml((c.org || 'Your Organisation').trim());
     const d = new Date(c.issueDate || Date.now());
@@ -2912,49 +2911,47 @@ ${redFlagsRowsHtml}
       const url = String((a && a.url) || '').trim();
       if (!src) return `By the ${orgEsc} Security Desk &middot; ${artDateStr(a)}`;
       const srcHtml = (lk && url)
-        ? `<a href="${escAttr(url)}" style="font-style:normal;font-weight:bold;color:#C09010;text-decoration:none;${NLFF}">${src}</a>`
+        ? `<a href="${escAttr(url)}" target="_blank" rel="noopener noreferrer" style="font-style:normal;font-weight:bold;color:#C09010;text-decoration:none;${NLFF}">${src}</a>`
         : src;
       return `Source: ${srcHtml} &middot; ${artDateStr(a)}`;
     };
 
-    // Top of the lead: title + byline + summary sit in the right column beside
-    // the image.
-    const leadBodyTop =
-      `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td><span style="font-size:26px;font-weight:bold;color:#0A0A0A;line-height:1.16;${NLFF}">${escapeHtml(lead.title || '')}</span></td></tr></table>`
-      + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:8px;"><span style="font-size:10px;font-style:italic;letter-spacing:0.5px;color:#999999;${NLFF}">${bylineFor(lead)}</span></td></tr></table>`
-      + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:11px;"><span style="font-size:14px;color:#2A2A2A;line-height:1.72;${NLFF}">${cleanSummary(lead)}</span></td></tr></table>`;
-
-    // Lead: image slot on the LEFT, story body on the RIGHT (Honest Stories
-    // Teller layout). Stacks on narrow widths via the 100%-max image.
-    const leadStory = `${tbl()}${tbc(
+    // ── Section nameplate above the stories (kept the ABI masthead above; this
+    //    is the newspaper-style title row from the layout plan). ──
+    const sectionHeading = `${tbl()}${tbc(
       `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
-      + `<td width="232" valign="top" style="padding-right:22px;">${imgSlot(lead, 'width="232" style="display:block;width:232px;max-width:100%;height:auto;border:1px solid #0A0A0A;"', GAZETTE_LEAD_IMAGE)}</td>`
-      + `<td valign="top">${leadBodyTop}</td>`
+      + `<td valign="middle"><span style="font-size:23px;font-weight:bold;color:#0A0A0A;letter-spacing:1px;line-height:1.12;${NLFF}">Incidents from Around The World</span></td>`
+      + `<td width="80" valign="bottom" align="right"><div style="height:3px;background-color:#D4A420;line-height:3px;font-size:0;">&nbsp;</div></td>`
       + `</tr></table>`,
-      'bgcolor="#FFFFFF" style="padding:24px 28px 20px;background-color:#FFFFFF;"'
+      'bgcolor="#FCFBF7" style="padding:18px 28px 14px;background-color:#FCFBF7;border-bottom:2px solid #0A0A0A;"'
     )}${tblx()}`;
 
-    // ── Secondary stories (arts[1], arts[2]) ──
-    const secCol = (a, width, tdStyle) =>
-      `<td width="${width}" valign="top" style="${tdStyle}">`
-      + imgSlot(a, 'width="100%" style="display:block;width:100%;height:auto;border:1px solid #0A0A0A;"', GAZETTE_SECONDARY_IMAGE)
-      + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:11px;"><span style="font-size:26px;font-weight:bold;color:#0A0A0A;line-height:1.16;${NLFF}">${escapeHtml(a.title || '')}</span></td></tr></table>`
-      + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:6px;"><span style="font-size:10px;font-style:italic;letter-spacing:0.5px;color:#999999;${NLFF}">${bylineFor(a)}</span></td></tr></table>`
-      + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:8px;"><span style="font-size:12px;color:#3A3A3A;line-height:1.6;${NLFF}">${cleanSummary(a)}</span></td></tr></table>`
-      + `</td>`;
+    // ── Incidents: each selected article is a full-width story carrying a
+    //    numbered "INCIDENT 0N" kicker. The hero image alternates side —
+    //    incident 1 (lead) on the LEFT with the genhts hero, later incidents
+    //    mirror with the feelnoways hero on the RIGHT (the user's plan). An
+    //    article's own image still wins. Stacks on narrow widths (100%-max). ──
+    const incidentBody = (a, num) =>
+      `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td><span style="font-size:10px;font-weight:bold;letter-spacing:3px;color:#C09010;text-transform:uppercase;${NLFF}">Incident ${String(num).padStart(2, '0')}</span></td></tr></table>`
+      + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:6px;"><span style="font-size:24px;font-weight:bold;color:#0A0A0A;line-height:1.16;${NLFF}">${escapeHtml(a.title || '')}</span></td></tr></table>`
+      + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:8px;"><span style="font-size:10px;font-style:italic;letter-spacing:0.5px;color:#999999;${NLFF}">${bylineFor(a)}</span></td></tr></table>`
+      + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:11px;"><span style="font-size:14px;color:#2A2A2A;line-height:1.72;${NLFF}">${cleanSummary(a)}</span></td></tr></table>`;
 
-    let secondaryStory = '';
-    if (secondary.length >= 2) {
-      secondaryStory = `${tbl()}${tbc(
-        `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${secCol(secondary[0], '50%', 'padding-right:16px;border-right:1px solid #E4E2DC;')}${secCol(secondary[1], '50%', 'padding-left:16px;')}</tr></table>`,
-        'bgcolor="#FFFFFF" style="padding:20px 28px;background-color:#FFFFFF;border-top:2px solid #0A0A0A;"'
+    const incidentStory = (a, num) => {
+      const imageRight = num % 2 === 0;               // 1 → left, 2 → right, 3 → left …
+      const defaultFile = num === 1 ? GAZETTE_LEAD_IMAGE : GAZETTE_SECONDARY_IMAGE;
+      const imgCell = `<td width="232" valign="top" style="${imageRight ? 'padding-left:22px;' : 'padding-right:22px;'}">`
+        + imgSlot(a, 'width="232" style="display:block;width:232px;max-width:100%;height:auto;border:1px solid #0A0A0A;"', defaultFile)
+        + `</td>`;
+      const bodyCell = `<td valign="top">${incidentBody(a, num)}</td>`;
+      return `${tbl()}${tbc(
+        `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${imageRight ? bodyCell + imgCell : imgCell + bodyCell}</tr></table>`,
+        `bgcolor="#FFFFFF" style="padding:24px 28px 20px;background-color:#FFFFFF;${num > 1 ? 'border-top:2px solid #0A0A0A;' : ''}"`
       )}${tblx()}`;
-    } else if (secondary.length === 1) {
-      secondaryStory = `${tbl()}${tbc(
-        `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${secCol(secondary[0], '100%', '')}</tr></table>`,
-        'bgcolor="#FFFFFF" style="padding:20px 28px;background-color:#FFFFFF;border-top:2px solid #0A0A0A;"'
-      )}${tblx()}`;
-    }
+    };
+
+    const stories = (list.length ? list.slice(0, 3) : [lead]);
+    const incidents = stories.map((a, i) => incidentStory(a, i + 1)).join('');
 
     // ── PRECAUTIONARY MEASURES checklist (01–04) ──
     const measureItem = (num, line, side) =>
@@ -2999,7 +2996,7 @@ ${redFlagsRowsHtml}
       'bgcolor="#0A0A0A" style="background-color:#0A0A0A;padding:28px 36px 22px;"'
     )}${tblx()}` + goldLine;
 
-    return `${nlOuterOpen()}${masthead}${leadStory}${secondaryStory}${checklist}${reportCta}${portalFooter}${nlOuterClose()}`;
+    return `${nlOuterOpen()}${masthead}${sectionHeading}${incidents}${checklist}${reportCta}${portalFooter}${nlOuterClose()}`;
   }
 
   // ══════════════════════════════════════════════════

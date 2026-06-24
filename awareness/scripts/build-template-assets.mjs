@@ -27,9 +27,9 @@ const FILES = ['ABI.png', 'mascot_mug.png', '4.png', 'strong_passwords_hero.jpg'
   'vishing_ico_time.png', 'vishing_ico_emotion.png', 'vishing_ico_verify.png', 'vishing_ico_context.png',
   // gen_social_engineering: line-art hero figure + raster red-flag row icon.
   'social_engineering_hero.png', 'redflag_ico.png',
-  // newspaper (The Cyber Gazette): hero images for the per-article image slots
-  // (big lead image = temp_img; small secondary windows = genhts; image223 spare).
-  'image223.jpeg', 'temp_img.jpeg', 'genhts.jpeg',
+  // newspaper (The Cyber Gazette): hero images for the per-incident image slots
+  // (lead incident = genhts; later incidents = feelnoways; temp_img/image223 spare).
+  'image223.jpeg', 'temp_img.jpeg', 'genhts.jpeg', 'feelnoways.jpeg',
   // gen_microlearning: centre figure (person learning on a laptop, cropped from
   // the source infographic) for the ABI microlearning poster.
   'microlearning_figure.png'];
