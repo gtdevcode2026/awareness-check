@@ -58,13 +58,15 @@ test("gen_wifi_safety with no AI returns {} so the authored replica renders unch
   assert.equal(Object.keys(slots).length, 0, "no-AI must return no slots → the static Wi-Fi poster keeps its authored design + copy");
 });
 
-test("gen_wifi_safety: the poster flip-form theme becomes the Wi-Fi heading verbatim (like How to Spot Shield)", async () => {
+test("gen_wifi_safety: the flip-form theme drives a WHITE-SIDE tips heading, NOT the black article heading", async () => {
   const AIS = loadAISummarizer(aiContext());
   const slots = await AIS.fillNewsletterTextSlots("gen_wifi_safety", ARTS, { forceLocal: true, tipTheme: "Public Wi-Fi Risks" });
-  assert.equal(slots.nlWifiHeading, "Public Wi-Fi Risks", "the chosen flip-form theme drives the heading verbatim");
-  // With AI off and a theme chosen, ONLY the heading is injected — the rest of the
-  // authored poster (intro + tips) stays untouched.
-  assert.deepEqual(Object.keys(slots).sort(), ["nlWifiHeading"], "no other slots are added with AI off");
+  // The theme becomes the heading above the tips on the white side …
+  assert.equal(slots.nlWifiTipsHeading, "Public Wi-Fi Risks", "theme drives the white-side tips heading verbatim");
+  // … and must NOT touch the black-hero article heading (that stays the article topic).
+  assert.equal(slots.nlWifiHeading, undefined, "the article heading is not overridden by the theme");
+  // AI off + theme → only the white-side heading is injected; the authored poster is otherwise untouched.
+  assert.deepEqual(Object.keys(slots).sort(), ["nlWifiTipsHeading"], "no other slots are added with AI off");
 });
 
 test("gen_wifi_safety with no AI and NO theme still returns {} (byte-identical design preserved)", async () => {
@@ -99,6 +101,8 @@ test("all 5 Wi-Fi tip cells share one padding so spacing between tips is even", 
 test("the Wi-Fi replica HTML carries the injection hooks (heading + intro + 5 tips)", () => {
   const html = readFileSync(path.join(rootDir, "templates/reference/pipeline/wifi_safety_replica.html"), "utf8");
   assert.ok(html.includes('id="nl-wifi-heading"'), "heading hook present (topic derived from the article)");
+  assert.ok(html.includes('id="nl-wifi-tips-heading"'), "white-side theme heading hook present (above the tips)");
+  assert.ok(html.includes('id="nl-wifi-tips-heading-block"'), "white-side heading block is removable when no theme");
   assert.ok(html.includes('id="nl-wifi-intro"'), "intro hook present");
   for (let i = 1; i <= 5; i++) {
     assert.ok(html.includes(`id="nl-wifi-tip${i}"`), `tip${i} hook present`);
@@ -111,6 +115,7 @@ test("the Wi-Fi replica HTML carries the injection hooks (heading + intro + 5 ti
 test("the inlined static-replica bundle carries the hooks too (so runtime injection works)", () => {
   const bundle = readFileSync(path.join(rootDir, "js/newsletter/static_replicas_data.js"), "utf8");
   assert.ok(bundle.includes("nl-wifi-heading"), "bundle has the heading hook (regenerated after the HTML edit)");
+  assert.ok(bundle.includes("nl-wifi-tips-heading"), "bundle has the white-side theme heading hook");
   assert.ok(bundle.includes("nl-wifi-intro"), "bundle has the intro hook");
   assert.ok(bundle.includes("nl-wifi-tip5"), "bundle has the tip hooks");
 });

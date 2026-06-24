@@ -153,9 +153,22 @@
     const heading = cfg && typeof cfg.nlWifiHeading === 'string' ? cfg.nlWifiHeading.trim() : '';
     const intro = cfg && typeof cfg.nlWifiIntro === 'string' ? cfg.nlWifiIntro.trim() : '';
     const tips = cfg && Array.isArray(cfg.nlWifiTips) ? cfg.nlWifiTips : [];
-    if (!heading && !intro && !tips.some((t) => String(t || '').trim())) return fullHtml;
+    // White-side heading above the tips: the poster flip-form theme. Shown only when a
+    // theme was chosen; otherwise the whole block is removed so the poster is unchanged.
+    const tipsHeading = cfg && typeof cfg.nlWifiTipsHeading === 'string' ? cfg.nlWifiTipsHeading.trim() : '';
+    const hasTipsHeadingBlock = fullHtml.indexOf('nl-wifi-tips-heading-block') !== -1;
+    // Proceed if there is any AI copy, a theme to show, OR a theme block to strip.
+    if (!heading && !intro && !tipsHeading && !hasTipsHeadingBlock && !tips.some((t) => String(t || '').trim())) return fullHtml;
     try {
       const doc = new DOMParser().parseFromString(fullHtml, 'text/html');
+      const tipsHeadBlock = doc.querySelector('#nl-wifi-tips-heading-block');
+      if (tipsHeadBlock) {
+        if (tipsHeading) {
+          const el = doc.querySelector('#nl-wifi-tips-heading'); if (el) el.textContent = tipsHeading;
+        } else if (tipsHeadBlock.parentNode) {
+          tipsHeadBlock.parentNode.removeChild(tipsHeadBlock);  // no theme → no white-side heading
+        }
+      }
       if (heading) { const el = doc.querySelector('#nl-wifi-heading'); if (el) el.textContent = heading; }
       if (intro) { const el = doc.querySelector('#nl-wifi-intro'); if (el) el.textContent = intro; }
       for (let i = 0; i < 5; i++) {
