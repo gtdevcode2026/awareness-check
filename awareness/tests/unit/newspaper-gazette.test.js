@@ -136,7 +136,7 @@ test.describe("Cyber Gazette catalog placement", () => {
 });
 
 test.describe("buildCyberGazette renders the broadsheet from up to 3 articles", () => {
-  test("AI-filled slots are rendered verbatim in the lead bullets and the checklist", () => {
+  test("AI-filled checklist measures render verbatim (lead bullets no longer shown)", () => {
     const NB = loadBuilder(builderContext());
     const cfg = {
       org: "ACME", soc: "soc@acme.test", portal: "https://portal.example", pname: "Security Portal",
@@ -145,8 +145,9 @@ test.describe("buildCyberGazette renders the broadsheet from up to 3 articles", 
     };
     const html = NB.build("newspaper", cfg, ARTS3, OPTS);
     assert.ok(html.includes('data-template-id="newspaper"'), "template id stamped by the engine");
-    for (const b of cfg.nlNewspaperLeadBullets) assert.ok(html.includes(b), `lead bullet rendered: ${b}`);
     for (const m of cfg.nlNewspaperMeasures) assert.ok(html.includes(m), `checklist measure rendered: ${m}`);
+    // The "What it means for you" block was removed, so the lead bullets are not rendered.
+    for (const b of cfg.nlNewspaperLeadBullets) assert.ok(!html.includes(b), `lead bullet not rendered: ${b}`);
   });
 
   test("without AI slots, precautions fall back to the articles' watchouts", () => {
@@ -161,7 +162,7 @@ test.describe("buildCyberGazette renders the broadsheet from up to 3 articles", 
     const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test" }, ARTS3, OPTS);
     assert.ok(html.includes('alt="ABInBev"') && html.includes("The Cyber Gazette"), "ABI masthead (logo + publication name)");
     assert.ok(html.includes("Security &amp; Compliance Awareness"), "ABI awareness tagline");
-    assert.ok(html.includes("What it means for you"), "lead what-it-means block");
+    assert.ok(!html.includes("What it means for you"), "the what-it-means block is removed");
     assert.ok(html.includes("PRECAUTIONARY MEASURES"), "checklist section");
     assert.ok(html.includes("Invoice fraud hits finance teams"), "lead headline (arts[0])");
     assert.ok(html.includes("Crews steal before they encrypt"), "secondary headline (arts[1])");
@@ -194,10 +195,31 @@ test.describe("buildCyberGazette renders the broadsheet from up to 3 articles", 
     assert.ok(html.includes("By the ACME Security Desk"), "falls back to the desk line without a source");
   });
 
-  test("the lead and both secondary articles each carry a What it means for you block", () => {
+  test("each byline shows the article's OWN publish date, not one shared issue date", () => {
+    const NB = loadBuilder(builderContext());
+    const arts = [
+      { ...ARTS3[0], pubDate: "2026-06-04" },
+      { ...ARTS3[1], pubDate: "2026-05-02" },
+      { ...ARTS3[2], pubDate: "2026-04-09" },
+    ];
+    // issueDate is a DIFFERENT month: it must NOT drive the per-article bylines.
+    const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test", issueDate: "2026-07-15" }, arts, OPTS);
+    assert.match(html, /JUNE 2026/, "lead byline shows its own June date");
+    assert.match(html, /MAY 2026/, "secondary byline shows its own May date");
+    assert.match(html, /APRIL 2026/, "third byline shows its own April date");
+    assert.ok(!html.includes("JULY 2026"), "the shared issue-date month must not appear when articles carry their own dates");
+  });
+
+  test("a byline falls back to the issue date when its article has no pubDate", () => {
+    const NB = loadBuilder(builderContext());
+    const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test", issueDate: "2026-07-15" }, ARTS3, OPTS);
+    assert.match(html, /JULY 2026/, "no article pubDate → byline uses the issue date");
+  });
+
+  test("the 'What it means for you' blocks are removed from every story", () => {
     const NB = loadBuilder(builderContext());
     const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test" }, ARTS3, OPTS);
-    assert.equal((html.match(/What it means for you/g) || []).length, 3, "lead + 2 secondaries = 3 blocks");
+    assert.equal((html.match(/What it means for you/g) || []).length, 0, "no what-it-means blocks remain");
   });
 
   test("big lead image uses genhts; small secondary windows use temp_img", () => {

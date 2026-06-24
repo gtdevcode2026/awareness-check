@@ -558,7 +558,7 @@ test("NewsletterBuilder newspaper (Cyber Gazette) renders 3-article broadsheet",
     { useLinks: false, usePoster: false, useQR: false, useIllus: false }
   );
   assert.ok(html.includes('alt="ABInBev"') && html.includes("The Cyber Gazette"), "newspaper must have the ABI masthead");
-  assert.ok(html.includes("What it means for you"), "lead story must carry the what-it-means block");
+  assert.ok(!html.includes("What it means for you"), "the what-it-means block is removed");
   assert.ok(html.includes("PRECAUTIONARY MEASURES"), "newspaper must have the precautionary-measures checklist");
   assert.ok(html.includes("Staff targeted by invoice scam"), "lead headline must come from arts[0]");
   assert.ok(html.includes("Ransomware hits logistics sector"), "first secondary headline must come from arts[1]");

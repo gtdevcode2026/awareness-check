@@ -428,12 +428,25 @@ Now translate the content inside <source> into ${targetLanguageName} following a
     if (!workItems.length && !unitEls.length) return html;
     const concurrency = provider === 'openai' ? 3 : 4;
 
+    // A text node may carry leading/trailing whitespace that is the ONLY separator
+    // between it and an adjacent inline element — e.g. when bold/colour splits one
+    // node "Verify suspicious invoices" into "Verify suspicious " | <b>invoices</b> |
+    // " before paying". The model returns each fragment trimmed, so writing it back
+    // verbatim drops those edge spaces and the words visually JOIN. Re-attach the
+    // original node's leading/trailing whitespace around the (trimmed) translation.
+    const withEdgeWhitespace = (originalValue, translatedText) => {
+      const src = String(originalValue == null ? '' : originalValue);
+      const lead = (/^\s*/.exec(src) || [''])[0];
+      const trail = (/\s*$/.exec(src) || [''])[0];
+      return lead + String(translatedText == null ? '' : translatedText).replace(/^\s+|\s+$/g, '') + trail;
+    };
+
     // Translate one work item, recording the outcome on the item itself so later
     // passes can find and re-attempt the ones that stayed English.
     const attempt = async (item) => {
       try {
         const translated = await translateOne(item.original, describeRole(item.node));
-        item.node.nodeValue = translated;
+        item.node.nodeValue = withEdgeWhitespace(item.original, translated);
         item.result = { attempted: true, translatable: true, failed: false,
           changed: TranslationMetrics.hasMeaningfulTextChange(item.original, translated) };
       } catch (e) {
@@ -502,7 +515,7 @@ Now translate the content inside <source> into ${targetLanguageName} following a
         const orig = tn.nodeValue;
         try {
           const t = await translateOne(orig, describeRole(tn));
-          tn.nodeValue = t;
+          tn.nodeValue = withEdgeWhitespace(orig, t);
           if (TranslationMetrics.hasMeaningfulTextChange(orig, t)) changedAny = true;
         } catch (e) { lastErr = e; tn.nodeValue = orig; }
       }

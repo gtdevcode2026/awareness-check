@@ -2791,24 +2791,23 @@ ${redFlagsRowsHtml}
   //  Broadsheet rendered from templates/reference/pipeline/
   //  cyber_gazette_newspaper.html. Up to 3 selected articles drive it:
   //    arts[0]      → lead story: image slot on the LEFT, with headline, a
-  //                   source byline (linked to the article), the lead paragraph,
-  //                   and a "What it means for you" precaution block on the right
+  //                   source byline (linked to the article) and the lead paragraph
   //                   (image placement modelled on the user-supplied "Honest
   //                   Stories Teller" newspaper reference)
   //    arts[1..2]   → two secondary stories: image slot on TOP, then headline +
-  //                   source byline + summary + a "What it means for you" block
+  //                   source byline + summary
   //  Bylines show the article's source (linked when links are on), falling back
-  //  to the in-house "Security Desk" line when an article has no source.
+  //  to the in-house "Security Desk" line when an article has no source, and the
+  //  article's OWN publish date (a.pubDate), falling back to the issue date.
   //  Each article space carries an editor-swappable <img> slot with a fixed
   //  positional default from the asset bundle: the big lead image is genhts,
   //  the small secondary windows use temp_img. An article's own image (a.image /
   //  a.imageUrl / a.img) wins; authors can still swap via the editor.
   //  The PRECAUTIONARY MEASURES checklist (01–04) is drawn from the articles'
-  //  precautions, cycling [art0, art1, art2, art0] exactly like the reference
-  //  (item 01 = lead bullet 1, item 04 = lead bullet 2). Lead bullets and
-  //  measure lines come from the AI slot-fill (c.nlNewspaperLeadBullets /
-  //  c.nlNewspaperMeasures, filled by fillNewsletterTextSlots) when present,
-  //  otherwise they fall back to each article's curated watchouts. The SOC CTA
+  //  precautions, cycling [art0, art1, art2, art0] exactly like the reference.
+  //  Measure lines come from the AI slot-fill (c.nlNewspaperMeasures, filled by
+  //  fillNewsletterTextSlots) when present, otherwise they fall back to each
+  //  article's curated watchouts. The SOC CTA
   //  is the hardcoded "Report to SOC Now → soc-support@ab-inbev.com" button
   //  (matches the gen_* bulletins). The footer is a
   //  config-driven gold portal/QR block (matches the gen_* bulletin footer):
@@ -2843,6 +2842,23 @@ ${redFlagsRowsHtml}
     }
     dateStr = escapeHtml(dateStr);
 
+    // Each article's OWN publish date (its pubDate), formatted like the masthead
+    // date. Falls back to the issue date when an article carries no pubDate, so a
+    // byline always shows a sensible date instead of one shared hardcoded value.
+    const artDateStr = (a) => {
+      const raw = a && (a.pubDate || a.date || a.published);
+      if (!raw) return dateStr;
+      const ad = new Date(raw);
+      if (isNaN(ad.getTime())) return dateStr;
+      let s;
+      try {
+        s = ad.toLocaleDateString('en-GB', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' }).toUpperCase();
+      } catch {
+        s = String(fmtDate(ad)).toUpperCase();
+      }
+      return escapeHtml(s);
+    };
+
     const cleanSummary = (a) => escapeHtml(String((a && (a.summary || a.description)) || '').trim());
 
     // Editor-swappable image slot for an article space: the article's own image
@@ -2862,11 +2878,6 @@ ${redFlagsRowsHtml}
       while (out.length < 3) out.push(GAZETTE_DEFAULT_PRECAUTIONS[out.length] || GAZETTE_DEFAULT_PRECAUTIONS[0]);
       return out;
     };
-
-    // Lead "What it means for you" bullets: AI slot first, else lead watchouts.
-    const slotBullets = Array.isArray(c.nlNewspaperLeadBullets) ? c.nlNewspaperLeadBullets.filter(Boolean) : [];
-    const leadPre = artPre(lead);
-    const leadBullets = [0, 1, 2].map((i) => slotBullets[i] || leadPre[i]);
 
     // Checklist lines cycle [art0, art1, art2, art0] like the reference.
     const cycle = list.length ? list.slice(0, 3) : [lead];
@@ -2893,54 +2904,33 @@ ${redFlagsRowsHtml}
       )}${tblx()}`;
 
     // ── Lead story (arts[0]) ──
-    // Reusable "What it means for you" block — used by the lead and each secondary.
-    const whatItMeans = (bullets) => {
-      const list2 = (Array.isArray(bullets) ? bullets : []).filter(Boolean);
-      if (!list2.length) return '';
-      const rows = list2.map((b, i) =>
-        `<tr><td width="16" valign="top" style="font-size:13px;font-weight:bold;color:#C09010;line-height:1.6;${NLFF}">&rsaquo;</td>`
-        + `<td valign="top" style="font-size:12.5px;color:#333333;line-height:1.6;${i < list2.length - 1 ? 'padding-bottom:7px;' : ''}${NLFF}">${escapeHtml(b)}</td></tr>`
-      ).join('');
-      // Heading styled to match the "PRECAUTIONARY MEASURES" badge below: a gold
-      // (#D4A420) uppercase label on a black (#0A0A0A) bar, same size/weight/tracking.
-      return `<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:14px;">`
-        + `<tr><td bgcolor="#0A0A0A" style="background-color:#0A0A0A;padding:9px 14px;"><span style="font-size:10px;font-weight:bold;letter-spacing:2.5px;color:#D4A420;text-transform:uppercase;${NLFF}">What it means for you</span></td></tr>`
-        + `<tr><td style="padding-top:8px;"><table width="100%" cellpadding="0" cellspacing="0" border="0">${rows}</table></td></tr>`
-        + `</table>`;
-    };
-
     // Byline: the article's source (linked to its URL when links are on),
     // replacing the in-house "Security Desk" line. Falls back to the desk line
     // when an article carries no source.
     const bylineFor = (a) => {
       const src = escapeHtml(String((a && a.source) || '').trim());
       const url = String((a && a.url) || '').trim();
-      if (!src) return `By the ${orgEsc} Security Desk &middot; ${dateStr}`;
+      if (!src) return `By the ${orgEsc} Security Desk &middot; ${artDateStr(a)}`;
       const srcHtml = (lk && url)
         ? `<a href="${escAttr(url)}" style="font-style:normal;font-weight:bold;color:#C09010;text-decoration:none;${NLFF}">${src}</a>`
         : src;
-      return `Source: ${srcHtml} &middot; ${dateStr}`;
+      return `Source: ${srcHtml} &middot; ${artDateStr(a)}`;
     };
 
     // Top of the lead: title + byline + summary sit in the right column beside
-    // the image. The "What it means for you" block is pulled OUT of this column
-    // and rendered full-width below (see leadStory), so it spans left-to-right
-    // under the photo — filling the blank space beneath the image instead of
-    // stacking only on the right.
+    // the image.
     const leadBodyTop =
       `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td><span style="font-size:26px;font-weight:bold;color:#0A0A0A;line-height:1.16;${NLFF}">${escapeHtml(lead.title || '')}</span></td></tr></table>`
       + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:8px;"><span style="font-size:10px;font-style:italic;letter-spacing:0.5px;color:#999999;${NLFF}">${bylineFor(lead)}</span></td></tr></table>`
       + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:11px;"><span style="font-size:14px;color:#2A2A2A;line-height:1.72;${NLFF}">${cleanSummary(lead)}</span></td></tr></table>`;
 
     // Lead: image slot on the LEFT, story body on the RIGHT (Honest Stories
-    // Teller layout). The "What it means for you" block then spans the FULL
-    // width below both cells. Stacks on narrow widths via the 100%-max image.
+    // Teller layout). Stacks on narrow widths via the 100%-max image.
     const leadStory = `${tbl()}${tbc(
       `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr>`
       + `<td width="232" valign="top" style="padding-right:22px;">${imgSlot(lead, 'width="232" style="display:block;width:232px;max-width:100%;height:auto;border:1px solid #0A0A0A;"', GAZETTE_LEAD_IMAGE)}</td>`
       + `<td valign="top">${leadBodyTop}</td>`
-      + `</tr></table>`
-      + whatItMeans(leadBullets),
+      + `</tr></table>`,
       'bgcolor="#FFFFFF" style="padding:24px 28px 20px;background-color:#FFFFFF;"'
     )}${tblx()}`;
 
@@ -2951,7 +2941,6 @@ ${redFlagsRowsHtml}
       + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:11px;"><span style="font-size:26px;font-weight:bold;color:#0A0A0A;line-height:1.16;${NLFF}">${escapeHtml(a.title || '')}</span></td></tr></table>`
       + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:6px;"><span style="font-size:10px;font-style:italic;letter-spacing:0.5px;color:#999999;${NLFF}">${bylineFor(a)}</span></td></tr></table>`
       + `<table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td style="padding-top:8px;"><span style="font-size:12px;color:#3A3A3A;line-height:1.6;${NLFF}">${cleanSummary(a)}</span></td></tr></table>`
-      + whatItMeans(artPre(a).slice(0, 2))
       + `</td>`;
 
     let secondaryStory = '';

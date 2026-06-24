@@ -97,6 +97,20 @@ test("normal documents still translate every fragment (sanity)", async () => {
   assert.ok(out.includes("«Watch out for fake invoices.»"));
 });
 
+test("inline markup (bold/colour) split text nodes keep their separating spaces", async () => {
+  // Reported bug: bolding/colouring a word splits one text node into "foo " | "bar" |
+  // " baz". Each fragment was translated then written back TRIMMED, dropping the edge
+  // spaces, so the words joined: "«foo»«bar»«baz»". Each node's leading/trailing
+  // whitespace must be re-attached so the words stay separated.
+  const { ctx, window } = loadTranslation(() => null); // returns «source» (mock trims it)
+  const html = '<p>Verify suspicious <span style="font-weight:bold">invoices</span> before paying anyone</p>';
+  const out = await ctx.App.UITranslation.translateHtmlWithAI(html, "fr", "openai", "key");
+  const div = window.document.createElement("div");
+  div.innerHTML = out;
+  assert.equal(div.textContent, "«Verify suspicious» «invoices» «before paying anyone»",
+    `bold/colour-split words must not join after translation; got ${JSON.stringify(div.textContent)}`);
+});
+
 // End-to-end lock for the exact reported bug: a real bank-page build, translated through a
 // provider that fails the FIRST call for every fragment (the rate-limit storm), must still
 // ship ZERO English — the footer from the screenshot must not survive.
