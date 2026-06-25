@@ -586,6 +586,7 @@ App.UI = (() => {
     if (!ws.currentLanguage) ws.currentLanguage = 'en';
     ws.workflow = normalizeWorkflow(ws.workflow);
     healStaleAutoSlugInVariants(ws);
+    healDeadPortalCtaInVariants(ws);
   }
 
   // One-time HTML auto-heal: pre-fix renders of bank-page templates stored
@@ -618,6 +619,34 @@ App.UI = (() => {
     });
     if (healed > 0) {
       try { console.info('[awareness] healed stale auto-slug in', healed, 'variant(s) — pname:', pname); } catch {}
+    }
+  }
+
+  // One-time HTML auto-heal: the static-replica posters (gen_wifi_safety, …) shipped
+  // the footer "Visit Portal" button as a dead `<a href="#">` — the per-user portal
+  // URL was never wired in, so the button did nothing. NEW builds wire it at build
+  // time, but variant HTML frozen in a previously saved project / localStorage keeps
+  // the dead link. This repoints it at the configured portal (cfg.portal, else
+  // mailto:soc) so a restored project's button works. Idempotent + a safe no-op when
+  // there is no dead CTA or no portal — same defensive contract as the slug heal.
+  function healDeadPortalCtaInVariants(ws) {
+    if (!ws || !ws.variants) return;
+    const wire = window.App?.Utils?.wireVisitPortalCta;
+    if (typeof wire !== 'function') return;
+    const cfg = ws.cfg || {};
+    const portal = String(cfg.portal || cfg.portalUrl || '').trim();
+    const normalized = portal && App.Utils?.normalizeWebUrl ? App.Utils.normalizeWebUrl(portal) : portal;
+    const href = normalized || (cfg.soc ? `mailto:${String(cfg.soc).trim()}` : '');
+    if (!href) return;
+    let healed = 0;
+    Object.keys(ws.variants).forEach(langId => {
+      const v = ws.variants[langId];
+      if (!v || typeof v.html !== 'string' || !v.html) return;
+      const after = wire(v.html, href);
+      if (after !== v.html) { v.html = after; healed += 1; }
+    });
+    if (healed > 0) {
+      try { console.info('[awareness] wired dead Visit Portal CTA in', healed, 'variant(s)'); } catch {}
     }
   }
 
@@ -704,6 +733,8 @@ App.UI = (() => {
     const projectHasContent = hasRenderableHtml(project.languageVariants);
     if (projectHasContent) {
       state.newsletterWorkspace.variants = project.languageVariants;
+      // Repair the dead "Visit Portal" button in this saved project's frozen HTML.
+      healDeadPortalCtaInVariants(state.newsletterWorkspace);
     }
     state.newsletterWorkspace.workflow = normalizeWorkflow(project.workflow || state.newsletterWorkspace.workflow);
     state.newsletterWorkspace.currentLanguage = state.currentPreviewLanguage || 'en';
@@ -777,6 +808,8 @@ App.UI = (() => {
       // Heal the bank-page portal-name slot if a stale auto-slug is baked
       // into the stored variant HTML from a previous render.
       healStaleAutoSlugInVariants(state.newsletterWorkspace);
+      // Wire any dead "Visit Portal" button frozen in the stored poster HTML.
+      healDeadPortalCtaInVariants(state.newsletterWorkspace);
       state.currentPreviewLanguage = state.newsletterWorkspace.currentLanguage;
       state.translationCache = {};
       if (state.newsletterWorkspace.cfg) {

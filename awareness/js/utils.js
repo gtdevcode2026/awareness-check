@@ -644,6 +644,32 @@ App.Utils = (() => {
     return `https://${s.replace(/^\/+/, '')}`;
   }
 
+  // Wire a poster's footer "Visit Portal" call-to-action to the configured portal.
+  // The static-replica posters (gen_wifi_safety, gen_horizontal_brief, …) ship the
+  // CTA as a DEAD `<a href="#">Visit Portal</a>` because the real URL is per-user
+  // (cfg.portal), meant to be injected at build time — so the button did nothing.
+  // This rewrites that dead anchor to point at `href` and open in a new tab. It is
+  // a pure string op (no DOM), so it works both at build time AND when healing the
+  // variant HTML frozen inside a previously saved project (rendered before the CTA
+  // was wired). Only the "Visit Portal" anchor with an empty/`#` href is touched —
+  // anchors with a real href, or other dead links (e.g. the source "Read article"
+  // link), are left alone. No usable href → the HTML is returned unchanged.
+  function wireVisitPortalCta(html, href) {
+    if (typeof html !== 'string' || !html) return html;
+    const url = String(href || '').trim();
+    if (!url || url === '#') return html;
+    const safe = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+    return html.replace(
+      /<a\b([^>]*?)href="#?"([^>]*?)>([^<]*Visit Portal[^<]*)<\/a>/gi,
+      (full, pre, post, label) => {
+        const attrs = pre + post;
+        const tgt = /\btarget\s*=/i.test(attrs) ? '' : ' target="_blank"';
+        const rel = /\brel\s*=/i.test(attrs) ? '' : ' rel="noopener noreferrer"';
+        return `<a${pre}href="${safe}"${post}${tgt}${rel}>${label}</a>`;
+      }
+    );
+  }
+
   /** Remove legacy footer classification segment from saved newsletter HTML (workspace snapshots pre-removal). */
   function stripLegacyFooterClassification(html) {
     const s = String(html || '');
@@ -1082,7 +1108,7 @@ App.Utils = (() => {
     htmlToSvgExport, downloadSVG, downloadBlob, injectNlQrImageIntoHtml, inlineCidAttachments,
     inlineDataUriAttachments, buildEmlMime, combineHtmlBodies, emlFileName, compositeRgbaOverHex, flattenEmailColors, enforceEmailFont,
     showToast, skeleton, debounce, wait,
-    esc, stripTags, truncate, uid, normalizeWebUrl, stripLegacyFooterClassification,
+    esc, stripTags, truncate, uid, normalizeWebUrl, wireVisitPortalCta, stripLegacyFooterClassification,
     removeNewsletterNodeByBodyChildPath, removeNewsletterNodeByTemplateChildPath, removeNewsletterNodeByMirrorPath,
     updateNewsletterNodeTextByBodyChildPath, updateNewsletterNodeTextByTemplateChildPath, updateNewsletterNodeTextByMirrorPath,
     updateNewsletterNodeImageSrcByBodyChildPath, updateNewsletterNodeImageSrcByTemplateChildPath, updateNewsletterNodeImageSrcByMirrorPath

@@ -379,6 +379,14 @@
       // Fill the portal name + "Visit Portal" link from Config (no-op for
       // replicas without the #nl-portal-* hooks, e.g. the other five posters).
       raw = injectPortalDetails(raw, cfg);
+      // Wire the footer "Visit Portal" button to the configured portal — the
+      // replicas ship it as a dead href="#" (the URL is per-user). Falls back to
+      // mailto:soc when no portal is set, matching the ready templates' foot().
+      const U = window.App && window.App.Utils;
+      if (U && typeof U.wireVisitPortalCta === 'function') {
+        const portalCta = resolvePortal(cfg) || (cfg && cfg.soc ? 'mailto:' + String(cfg.soc).trim() : '');
+        if (portalCta) raw = U.wireVisitPortalCta(raw, portalCta);
+      }
       // Inject AI-generated Wi-Fi copy into the gen_wifi_safety hooks (no-op for
       // the other replicas, and when no AI slots are present).
       raw = injectWifiText(raw, cfg);
