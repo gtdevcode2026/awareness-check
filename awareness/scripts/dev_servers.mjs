@@ -13,6 +13,45 @@ const IMAGE_LIB_DIR = path.join(ROOT, LIBRARY_DIRNAME);
 const SAFE_NAME = /^[A-Za-z0-9._-]{1,80}$/;
 const MAX_IMAGE_BYTES = 2 * 1024 * 1024;
 
+// A single path segment safe to write inside LOG_DIR. SAFE_NAME alone is not
+// enough: '.' and '..' match it yet escape the base dir (session='..' resolves
+// to the app root), so reject them explicitly.
+function isSafeSegment(s) {
+  return SAFE_NAME.test(s) && s !== '.' && s !== '..';
+}
+
+// Confirm the resolved target really sits inside `base` (separator-aware so a
+// sibling like `<base>-evil` can't satisfy a naive startsWith check).
+function isInside(base, target) {
+  const resolved = path.resolve(target);
+  return resolved === base || resolved.startsWith(base + path.sep);
+}
+
+// Loopback-only CORS for the log/image writer. '*' previously let any website
+// the user visits drive these endpoints cross-origin. Reflect only same-machine
+// origins (any port) and file:// (Origin: null); no-Origin callers are
+// non-browser and need no ACAO. Concrete remote origins get no ACAO -> blocked.
+function allowedOrigin(origin) {
+  if (!origin) return null;
+  if (origin === 'null') return 'null';
+  try {
+    const u = new URL(origin);
+    if (['127.0.0.1', 'localhost', '[::1]', '::1'].includes(u.hostname)) return origin;
+  } catch { /* malformed Origin */ }
+  return null;
+}
+
+function corsHeaders(req) {
+  const headers = {
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Vary': 'Origin'
+  };
+  const allow = allowedOrigin(req?.headers?.origin);
+  if (allow) headers['Access-Control-Allow-Origin'] = allow;
+  return headers;
+}
+
 const MIME = {
   '.html': 'text/html; charset=utf-8',
   '.js': 'application/javascript; charset=utf-8',
@@ -36,7 +75,7 @@ function safeJoin(root, urlPath) {
   const decoded = decodeURIComponent(urlPath.split('?')[0]);
   const trimmed = decoded.replace(/^\/+/, '');
   const resolved = path.resolve(root, trimmed);
-  if (!resolved.startsWith(root)) return null;
+  if (resolved !== root && !resolved.startsWith(root + path.sep)) return null;
   return resolved;
 }
 
@@ -66,13 +105,8 @@ async function serveStatic(req, res) {
   }
 }
 
-function sendJson(res, status, body) {
-  res.writeHead(status, {
-    'Content-Type': 'application/json',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type'
-  });
+function sendJson(req, res, status, body) {
+  res.writeHead(status, { 'Content-Type': 'application/json', ...corsHeaders(req) });
   res.end(JSON.stringify(body));
 }
 
@@ -83,16 +117,12 @@ staticServer.listen(STATIC_PORT, HOST, () => {
 
 const logServer = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') {
-    res.writeHead(204, {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type'
-    });
+    res.writeHead(204, corsHeaders(req));
     res.end();
     return;
   }
   if (req.method !== 'POST' || (req.url !== '/save' && req.url !== '/save-image')) {
-    sendJson(res, 404, { error: 'not_found' });
+    sendJson(req, res, 404, { error: 'not_found' });
     return;
   }
   const route = req.url;
@@ -105,25 +135,30 @@ const logServer = http.createServer(async (req, res) => {
         // Persist an uploaded Replace-image into the project so it ships with the
         // zip/server. Dev-only (server binds to 127.0.0.1). Regenerates library.js.
         const { filename, mimeType, base64 } = data;
-        if (!isSafeImageName(filename)) { sendJson(res, 400, { error: 'bad_filename' }); return; }
-        if (mimeType && !ALLOWED_MIME.has(String(mimeType))) { sendJson(res, 400, { error: 'bad_mime' }); return; }
+        if (!isSafeImageName(filename)) { sendJson(req, res, 400, { error: 'bad_filename' }); return; }
+        if (mimeType && !ALLOWED_MIME.has(String(mimeType))) { sendJson(req, res, 400, { error: 'bad_mime' }); return; }
         const bytes = Buffer.from(String(base64 || ''), 'base64');
-        if (!bytes.length || bytes.length > MAX_IMAGE_BYTES) { sendJson(res, 400, { error: 'bad_size' }); return; }
+        if (!bytes.length || bytes.length > MAX_IMAGE_BYTES) { sendJson(req, res, 400, { error: 'bad_size' }); return; }
         await addImage(IMAGE_LIB_DIR, filename, bytes);
-        sendJson(res, 200, { ok: true, filename });
+        sendJson(req, res, 200, { ok: true, filename });
         return;
       }
       const { session, name, content } = data;
-      if (!SAFE_NAME.test(String(session || '')) || !SAFE_NAME.test(String(name || ''))) {
-        sendJson(res, 400, { error: 'bad_name' });
+      if (!isSafeSegment(String(session || '')) || !isSafeSegment(String(name || ''))) {
+        sendJson(req, res, 400, { error: 'bad_name' });
         return;
       }
       const dir = path.join(LOG_DIR, session);
+      const file = path.join(dir, name);
+      if (!isInside(LOG_DIR, file)) {
+        sendJson(req, res, 400, { error: 'bad_name' });
+        return;
+      }
       await mkdir(dir, { recursive: true });
-      await writeFile(path.join(dir, name), typeof content === 'string' ? content : JSON.stringify(content, null, 2), 'utf8');
-      sendJson(res, 200, { ok: true });
+      await writeFile(file, typeof content === 'string' ? content : JSON.stringify(content, null, 2), 'utf8');
+      sendJson(req, res, 200, { ok: true });
     } catch (err) {
-      sendJson(res, 500, { error: err.message });
+      sendJson(req, res, 500, { error: err.message });
     }
   });
 });

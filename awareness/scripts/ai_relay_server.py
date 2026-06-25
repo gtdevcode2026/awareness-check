@@ -72,6 +72,7 @@ import re
 import ssl
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -80,6 +81,23 @@ PORT = int(os.environ.get("AI_RELAY_PORT", "8799"))
 
 UPSTREAM_BASE = os.environ.get("OPENAI_BASE_URL", "").strip()
 UPSTREAM_KEY = os.environ.get("OPENAI_API_KEY", "").strip()
+
+
+def _allowed_origin(origin):
+    """Loopback-only CORS. The previous '*' let any website the user visited
+    drive this relay cross-origin — and, since the relay injects OPENAI_API_KEY
+    upstream, abuse the user's key/quota. Reflect only same-machine origins (any
+    port) and file:// (Origin: null); a concrete remote origin gets no header."""
+    if not origin:
+        return None
+    if origin == "null":
+        return "null"
+    try:
+        if urllib.parse.urlparse(origin).hostname in ("127.0.0.1", "localhost", "::1"):
+            return origin
+    except Exception:
+        pass
+    return None
 
 
 def insecure_skip_verify():
@@ -180,7 +198,10 @@ def forward_models(incoming_auth):
 
 class RelayHandler(BaseHTTPRequestHandler):
     def _cors(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
+        allow = _allowed_origin(self.headers.get("Origin"))
+        if allow:
+            self.send_header("Access-Control-Allow-Origin", allow)
+        self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization")
 

@@ -293,6 +293,14 @@ def _parse_atom(root):
 
 
 def parse_feed(xml_bytes):
+    # Defense-in-depth: xml.etree.ElementTree expands internal entities, so a
+    # hostile/compromised feed could mount a "billion laughs" expansion DoS.
+    # Legitimate RSS/Atom never declares a DOCTYPE or <!ENTITY>, so reject any
+    # feed that does before parsing. (No external dep like defusedxml needed.)
+    head = xml_bytes[:4096].lower() if isinstance(xml_bytes, (bytes, bytearray)) else b""
+    if b"<!doctype" in head or b"<!entity" in head:
+        print("  [WARN] Feed contains a DOCTYPE/ENTITY declaration — refusing to parse (possible XML entity-expansion attack).")
+        return []
     try:
         root = ET.fromstring(xml_bytes)
     except ET.ParseError as exc:

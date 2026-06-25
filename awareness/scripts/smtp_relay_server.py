@@ -51,9 +51,26 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.utils import formatdate
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+from urllib.parse import urlparse
 
 HOST = "127.0.0.1"
 PORT = int(os.environ.get("PORT", "8788"))
+
+
+def _allowed_origin(origin):
+    """Loopback-only CORS. The previous '*' let any website the user visited
+    POST to this relay. Reflect only same-machine origins (any port) and
+    file:// (Origin: null); a concrete remote origin gets no header -> blocked."""
+    if not origin:
+        return None
+    if origin == "null":
+        return "null"
+    try:
+        if urlparse(origin).hostname in ("127.0.0.1", "localhost", "::1"):
+            return origin
+    except Exception:
+        pass
+    return None
 
 
 def _str(v):
@@ -155,7 +172,10 @@ def send_via_smtp(payload):
 
 class RelayHandler(BaseHTTPRequestHandler):
     def _cors(self):
-        self.send_header("Access-Control-Allow-Origin", "*")
+        allow = _allowed_origin(self.headers.get("Origin"))
+        if allow:
+            self.send_header("Access-Control-Allow-Origin", allow)
+        self.send_header("Vary", "Origin")
         self.send_header("Access-Control-Allow-Methods", "POST, OPTIONS")
         self.send_header("Access-Control-Allow-Headers", "Content-Type")
 

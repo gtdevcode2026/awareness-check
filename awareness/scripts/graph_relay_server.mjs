@@ -132,14 +132,29 @@ function readBody(req) {
   });
 }
 
-function cors(res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
+// Loopback-only CORS. '*' previously let any website the user visited POST to
+// this relay. Reflect only same-machine origins (any port) and file://
+// (Origin: null); a concrete remote origin gets no header -> browser blocks it.
+function allowedOrigin(origin) {
+  if (!origin) return null;
+  if (origin === 'null') return 'null';
+  try {
+    const u = new URL(origin);
+    if (['127.0.0.1', 'localhost', '[::1]', '::1'].includes(u.hostname)) return origin;
+  } catch { /* malformed Origin */ }
+  return null;
+}
+
+function cors(req, res) {
+  const allow = allowedOrigin(req.headers.origin);
+  if (allow) res.setHeader('Access-Control-Allow-Origin', allow);
+  res.setHeader('Vary', 'Origin');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 }
 
 const server = http.createServer(async (req, res) => {
-  cors(res);
+  cors(req, res);
   if (req.method === 'OPTIONS') {
     res.writeHead(204);
     res.end();
