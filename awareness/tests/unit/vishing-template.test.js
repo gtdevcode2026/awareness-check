@@ -33,6 +33,27 @@ function build(cfg, arts) {
   return ctx.window.App.NewsletterBuilder.build('gen_vishing', cfg, arts, { useLinks: false, usePoster: false, useQR: false, useIllus: false });
 }
 
+// Same as build(), but DOES load the asset bundle (assets/template_assets.js) so
+// assetSrc inlines images as data URIs — exactly how the app generates the HTML a
+// user downloads. Used to prove the downloaded/standalone (file://) output has no
+// relative `assets/X.png` srcs left to break once the HTML leaves the project folder.
+function buildWithBundle(cfg, arts) {
+  const ctx = {
+    window: {}, document: { createElement: () => ({ style: {}, setAttribute() {}, appendChild() {} }), getElementById: () => null, querySelectorAll: () => [] },
+    console, navigator: {},
+  };
+  ctx.window.document = ctx.document; ctx.window.navigator = ctx.navigator;
+  ctx.window.App = ctx.window.App || {}; ctx.App = ctx.window.App;
+  vm.createContext(ctx);
+  const load = (rel) => vm.runInContext(readFileSync(path.join(rootDir, rel), 'utf8'), ctx, { filename: rel });
+  load('js/utils.js');
+  load('assets/template_assets.js');
+  load('js/newsletter_builder.js');
+  load('js/newsletter/bank_page.js');
+  load('js/newsletter/core_templates.js');
+  return ctx.window.App.NewsletterBuilder.build('gen_vishing', cfg, arts, { useLinks: false, usePoster: false, useQR: false, useIllus: false });
+}
+
 const ART = [{ title: 'Fake bank fraud team calls staff to extract OTPs', type: 'Social Engineering', summary: 'Caller poses as the bank fraud desk and pressures victims to read a one-time code.' }];
 
 test('gen_vishing builds its own template (not a poster fallback)', () => {
@@ -71,4 +92,14 @@ test('carries the hardcoded Report-to-SOC CTA and is Outlook-safe', () => {
   assert.ok(html.includes('Report to SOC'), 'SOC CTA label present');
   assert.ok(!html.includes('background:rgba('), 'no rgba backgrounds (Word drops them)');
   assert.ok(!/border:\dpx solid rgba\(/.test(html), 'no rgba borders');
+});
+
+test('every image inlines as a data URI when the asset bundle is loaded (no broken images in a downloaded zip)', () => {
+  const html = buildWithBundle({ portal: 'https://p.example.com' }, ART);
+  // Any surviving relative `assets/X.png` src breaks once the standalone HTML is
+  // opened outside the project folder (the symptom: the 4 tip icons not loading).
+  const relative = html.match(/src="assets\/[^"]*"/g) || [];
+  assert.deepEqual(relative, [], `all template images must be bundled as data URIs; missing from assets/template_assets.js: ${relative.join(', ')}`);
+  // And the tip-icon image specifically is present and inlined.
+  assert.ok(/src="data:image\/png;base64,/.test(html), 'tip icons render as inlined PNG data URIs');
 });

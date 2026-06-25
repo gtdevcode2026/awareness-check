@@ -25,6 +25,9 @@ const FILES = ['ABI.png', 'mascot_mug.png', '4.png', 'strong_passwords_hero.jpg'
   // Vishing poster icon badges (rasterized from SVG by build-vishing-icons.mjs;
   // raster so they render in Outlook/Gmail, where inline SVG is dropped).
   'vishing_ico_time.png', 'vishing_ico_emotion.png', 'vishing_ico_verify.png', 'vishing_ico_context.png',
+  // gen_vishing tip-card mascot (the 4 "How to Spot" symbol cards). Must be bundled
+  // or the icons fall back to a relative assets/ path and break in a downloaded zip.
+  'Masco_character_pose2 (3).png',
   // gen_social_engineering: line-art hero figure + raster red-flag row icon.
   'social_engineering_hero.png', 'redflag_ico.png',
   // newspaper (The Cyber Gazette): hero images for the per-incident image slots
