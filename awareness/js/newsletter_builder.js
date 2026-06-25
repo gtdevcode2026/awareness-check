@@ -12,8 +12,13 @@ App.NewsletterBuilder = (() => {
 
   /** Email-safe: Arial stack, no external fonts */
   const NLFF = 'font-family:Arial,Helvetica,sans-serif';
-  /** Email-safe serif for display headings — present in every email client */
-  const NLFF_SERIF = 'font-family:Georgia,"Times New Roman",Times,serif';
+  /**
+   * Display-heading font stack. Brand requirement: every generated deliverable
+   * renders in Arial only, so this deliberately resolves to the same Arial stack
+   * as NLFF (no serif anywhere). Kept as a named constant so the ~90 display-
+   * heading call sites stay readable and can never drift back to a serif family.
+   */
+  const NLFF_SERIF = NLFF;
 
   function tbl(attrs = '') {
     return `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation"${attrs ? ` ${attrs}` : ''}>`;
