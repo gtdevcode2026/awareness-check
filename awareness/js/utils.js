@@ -670,6 +670,27 @@ App.Utils = (() => {
     );
   }
 
+  // The "See something suspicious" capsule (Phishing-Maestro pill) shown above the
+  // Wi-Fi poster's Report-to-SOC button. Single source of truth so the template and
+  // the saved-project heal stay byte-identical.
+  const WIFI_SOC_CAPSULE =
+    '<table data-soc-capsule="1" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;margin:0 auto 24px;">'
+    + '<tr><td align="center" valign="middle" bgcolor="#231d0d" style="background-color:#231d0d;border:1px solid #5d4915;border-radius:20px;padding:6px 14px;text-align:center;">'
+    + '<span style="font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#D4A420;font-weight:700;letter-spacing:2px;text-transform:uppercase;">&#9679; See something suspicious</span>'
+    + '</td></tr></table>';
+
+  // Add the "See something suspicious" capsule above the Wi-Fi poster's Report-to-SOC
+  // button in variant HTML frozen in a previously saved project (new builds ship it).
+  // Scoped to Wi-Fi only (gated on the nl-wifi markers so other templates that share
+  // the SOC button are untouched) and idempotent (skips when data-soc-capsule exists).
+  // Anchors on the report cell's unique padding, so it survives a DOM round-trip.
+  function injectWifiSocCapsule(html) {
+    if (typeof html !== 'string' || !html) return html;
+    if (!/id="nl-wifi-tip/.test(html)) return html;     // Wi-Fi poster only
+    if (html.indexOf('data-soc-capsule') !== -1) return html; // already present
+    return html.replace(/(<td\b[^>]*padding:14px 30px 20px[^>]*>)/i, (m) => m + WIFI_SOC_CAPSULE);
+  }
+
   // Strip the near-black 1px framing border the Cyber Gazette incident hero images
   // used to ship (`border:1px solid #0A0A0A`). NEW builds no longer emit it, but
   // variant HTML frozen in a previously saved project keeps the black box until
@@ -1119,7 +1140,7 @@ App.Utils = (() => {
     htmlToSvgExport, downloadSVG, downloadBlob, injectNlQrImageIntoHtml, inlineCidAttachments,
     inlineDataUriAttachments, buildEmlMime, combineHtmlBodies, emlFileName, compositeRgbaOverHex, flattenEmailColors, enforceEmailFont,
     showToast, skeleton, debounce, wait,
-    esc, stripTags, truncate, uid, normalizeWebUrl, wireVisitPortalCta, stripGazetteIncidentImageBorder, stripLegacyFooterClassification,
+    esc, stripTags, truncate, uid, normalizeWebUrl, wireVisitPortalCta, stripGazetteIncidentImageBorder, injectWifiSocCapsule, stripLegacyFooterClassification,
     removeNewsletterNodeByBodyChildPath, removeNewsletterNodeByTemplateChildPath, removeNewsletterNodeByMirrorPath,
     updateNewsletterNodeTextByBodyChildPath, updateNewsletterNodeTextByTemplateChildPath, updateNewsletterNodeTextByMirrorPath,
     updateNewsletterNodeImageSrcByBodyChildPath, updateNewsletterNodeImageSrcByTemplateChildPath, updateNewsletterNodeImageSrcByMirrorPath

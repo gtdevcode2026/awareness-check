@@ -411,20 +411,31 @@ App.UI = (() => {
   }
 
   function normalizeVariant(variantLike) {
-    const stripLegacy = (html) =>
-      (App.Utils && typeof App.Utils.stripLegacyFooterClassification === 'function')
-        ? App.Utils.stripLegacyFooterClassification(html)
-        : html;
+    // Per-access HTML heals applied to every variant, however it was loaded
+    // (project snapshot, latest, localStorage restore, editor sync). This is the
+    // single chokepoint getLanguageVariant / currentPreviewVariant / the loaders
+    // all route through, so a heal here can't be bypassed by any one path.
+    const cleanHtml = (html) => {
+      const U = App.Utils || {};
+      let h = typeof U.stripLegacyFooterClassification === 'function' ? U.stripLegacyFooterClassification(html) : html;
+      // Strip the old Cyber Gazette incident-image black framing border from
+      // variant HTML frozen in a previously saved project (new builds omit it).
+      if (typeof U.stripGazetteIncidentImageBorder === 'function') h = U.stripGazetteIncidentImageBorder(h);
+      // Add the "See something suspicious" capsule above the Wi-Fi poster's SOC
+      // button for Wi-Fi variants saved before it shipped (Wi-Fi-only, idempotent).
+      if (typeof U.injectWifiSocCapsule === 'function') h = U.injectWifiSocCapsule(h);
+      return h;
+    };
     if (!variantLike) return makeVariant();
     if (typeof variantLike === 'string') {
       const tmp = document.createElement('div');
-      tmp.innerHTML = stripLegacy(variantLike);
+      tmp.innerHTML = cleanHtml(variantLike);
       let css = '';
       tmp.querySelectorAll('style').forEach(st => { css += `${st.textContent || ''}\n`; st.remove(); });
       return makeVariant(tmp.innerHTML, css.trim(), null);
     }
     if (typeof variantLike === 'object' && typeof variantLike.html === 'string') {
-      return makeVariant(stripLegacy(variantLike.html), variantLike.css || '', variantLike.projectData || null);
+      return makeVariant(cleanHtml(variantLike.html), variantLike.css || '', variantLike.projectData || null);
     }
     return makeVariant();
   }
@@ -587,7 +598,6 @@ App.UI = (() => {
     ws.workflow = normalizeWorkflow(ws.workflow);
     healStaleAutoSlugInVariants(ws);
     healDeadPortalCtaInVariants(ws);
-    healGazetteIncidentBorderInVariants(ws);
   }
 
   // One-time HTML auto-heal: pre-fix renders of bank-page templates stored
@@ -648,27 +658,6 @@ App.UI = (() => {
     });
     if (healed > 0) {
       try { console.info('[awareness] wired dead Visit Portal CTA in', healed, 'variant(s)'); } catch {}
-    }
-  }
-
-  // One-time HTML auto-heal: the Cyber Gazette incident hero images used to ship a
-  // near-black 1px framing border. NEW builds drop it, but variant HTML frozen in a
-  // previously saved project keeps the black box until regenerated. This strips it
-  // from the stored HTML so restored Gazette projects lose the box too. Idempotent +
-  // a safe no-op for every non-Gazette variant — same contract as the heals above.
-  function healGazetteIncidentBorderInVariants(ws) {
-    if (!ws || !ws.variants) return;
-    const strip = window.App?.Utils?.stripGazetteIncidentImageBorder;
-    if (typeof strip !== 'function') return;
-    let healed = 0;
-    Object.keys(ws.variants).forEach(langId => {
-      const v = ws.variants[langId];
-      if (!v || typeof v.html !== 'string' || !v.html) return;
-      const after = strip(v.html);
-      if (after !== v.html) { v.html = after; healed += 1; }
-    });
-    if (healed > 0) {
-      try { console.info('[awareness] removed Gazette incident image border in', healed, 'variant(s)'); } catch {}
     }
   }
 
@@ -755,10 +744,10 @@ App.UI = (() => {
     const projectHasContent = hasRenderableHtml(project.languageVariants);
     if (projectHasContent) {
       state.newsletterWorkspace.variants = project.languageVariants;
-      // Repair the dead "Visit Portal" button + Gazette image border in this saved
-      // project's frozen HTML.
+      // Repair the dead "Visit Portal" button in this saved project's frozen HTML.
+      // (The Gazette incident-image border is stripped in normalizeVariant, which
+      // every render of these variants routes through.)
       healDeadPortalCtaInVariants(state.newsletterWorkspace);
-      healGazetteIncidentBorderInVariants(state.newsletterWorkspace);
     }
     state.newsletterWorkspace.workflow = normalizeWorkflow(project.workflow || state.newsletterWorkspace.workflow);
     state.newsletterWorkspace.currentLanguage = state.currentPreviewLanguage || 'en';
@@ -832,10 +821,9 @@ App.UI = (() => {
       // Heal the bank-page portal-name slot if a stale auto-slug is baked
       // into the stored variant HTML from a previous render.
       healStaleAutoSlugInVariants(state.newsletterWorkspace);
-      // Wire any dead "Visit Portal" button frozen in the stored poster HTML, and
-      // strip the old Cyber Gazette incident-image black border.
+      // Wire any dead "Visit Portal" button frozen in the stored poster HTML.
+      // (The Gazette incident-image border is stripped in normalizeVariant.)
       healDeadPortalCtaInVariants(state.newsletterWorkspace);
-      healGazetteIncidentBorderInVariants(state.newsletterWorkspace);
       state.currentPreviewLanguage = state.newsletterWorkspace.currentLanguage;
       state.translationCache = {};
       if (state.newsletterWorkspace.cfg) {
