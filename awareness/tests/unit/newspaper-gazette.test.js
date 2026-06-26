@@ -233,6 +233,13 @@ test.describe("buildCyberGazette renders the broadsheet from up to 3 articles", 
     assert.ok(!html.includes("temp_img.jpeg"), "old temp_img default no longer used");
   });
 
+  test("incident hero images render without the black framing border", () => {
+    const NB = loadBuilder(builderContext());
+    const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test" }, ARTS3, OPTS);
+    // The 232px incident hero images must not carry a near-black 1px border box.
+    assert.ok(!/border:1px solid #0A0A0A/i.test(html), "no black framing border around incident images");
+  });
+
   test("the masthead, the section nameplate, and numbered incident kickers all render", () => {
     const NB = loadBuilder(builderContext());
     const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test" }, ARTS3, OPTS);

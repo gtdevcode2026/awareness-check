@@ -2941,7 +2941,7 @@ ${redFlagsRowsHtml}
       const imageRight = num % 2 === 0;               // 1 → left, 2 → right, 3 → left …
       const defaultFile = num === 1 ? GAZETTE_LEAD_IMAGE : GAZETTE_SECONDARY_IMAGE;
       const imgCell = `<td width="232" valign="top" style="${imageRight ? 'padding-left:22px;' : 'padding-right:22px;'}">`
-        + imgSlot(a, 'width="232" style="display:block;width:232px;max-width:100%;height:auto;border:1px solid #0A0A0A;"', defaultFile)
+        + imgSlot(a, 'width="232" style="display:block;width:232px;max-width:100%;height:auto;"', defaultFile)
         + `</td>`;
       const bodyCell = `<td valign="top">${incidentBody(a, num)}</td>`;
       return `${tbl()}${tbc(

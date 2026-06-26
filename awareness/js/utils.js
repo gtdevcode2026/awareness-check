@@ -670,6 +670,17 @@ App.Utils = (() => {
     );
   }
 
+  // Strip the near-black 1px framing border the Cyber Gazette incident hero images
+  // used to ship (`border:1px solid #0A0A0A`). NEW builds no longer emit it, but
+  // variant HTML frozen in a previously saved project keeps the black box until
+  // regenerated — this removes it from that stored HTML on load. The string is
+  // unique to that image style (no other template emits it), so the strip is safe
+  // to run over a whole variant. A safe no-op when the border isn't present.
+  function stripGazetteIncidentImageBorder(html) {
+    if (typeof html !== 'string' || !html) return html;
+    return html.replace(/border:1px solid #0A0A0A;?/gi, '');
+  }
+
   /** Remove legacy footer classification segment from saved newsletter HTML (workspace snapshots pre-removal). */
   function stripLegacyFooterClassification(html) {
     const s = String(html || '');
@@ -1108,7 +1119,7 @@ App.Utils = (() => {
     htmlToSvgExport, downloadSVG, downloadBlob, injectNlQrImageIntoHtml, inlineCidAttachments,
     inlineDataUriAttachments, buildEmlMime, combineHtmlBodies, emlFileName, compositeRgbaOverHex, flattenEmailColors, enforceEmailFont,
     showToast, skeleton, debounce, wait,
-    esc, stripTags, truncate, uid, normalizeWebUrl, wireVisitPortalCta, stripLegacyFooterClassification,
+    esc, stripTags, truncate, uid, normalizeWebUrl, wireVisitPortalCta, stripGazetteIncidentImageBorder, stripLegacyFooterClassification,
     removeNewsletterNodeByBodyChildPath, removeNewsletterNodeByTemplateChildPath, removeNewsletterNodeByMirrorPath,
     updateNewsletterNodeTextByBodyChildPath, updateNewsletterNodeTextByTemplateChildPath, updateNewsletterNodeTextByMirrorPath,
     updateNewsletterNodeImageSrcByBodyChildPath, updateNewsletterNodeImageSrcByTemplateChildPath, updateNewsletterNodeImageSrcByMirrorPath
