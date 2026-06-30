@@ -170,7 +170,7 @@ test.describe("buildCyberGazette renders the broadsheet from up to 3 articles", 
     // Attack-type category labels are removed from articles and the checklist
     // (the type "Ransomware" only ever appeared as an uppercase badge).
     assert.ok(!html.includes("RANSOMWARE"), "no attack-type category label");
-    assert.ok(html.includes("Report to SOC Now &rarr; soc-support@ab-inbev.com"), "hardcoded Report-to-SOC CTA before the footer");
+    assert.ok(html.includes("Report to SOC &rarr; soc-support@ab-inbev.com"), "hardcoded Report-to-SOC CTA before the footer");
     assert.ok(!html.includes("SEE SOMETHING SUSPICIOUS"), "old SEE SOMETHING SUSPICIOUS strip removed");
     assert.ok(!html.includes("EDITOR'S PICK"), "no leftover digest layout");
   });
@@ -240,6 +240,119 @@ test.describe("buildCyberGazette renders the broadsheet from up to 3 articles", 
     assert.ok(!/border:1px solid #0A0A0A/i.test(html), "no black framing border around incident images");
   });
 
+  test('the Report-to-SOC button drops "Now" and the footer is compact', () => {
+    const NB = loadBuilder(builderContext());
+    const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test", portal: "p.example", pname: "ACME Portal" }, ARTS3, OPTS);
+    assert.ok(html.includes("Report to SOC &rarr; soc-support@ab-inbev.com"), 'SOC button reads "Report to SOC" (no "Now")');
+    assert.ok(!/Report to SOC Now/.test(html), 'the word "Now" is gone from the SOC button');
+    // Footer shrunk: cell padding + portal-name font reduced.
+    assert.ok(html.includes("padding:16px 30px 14px"), "footer cell padding reduced");
+    assert.ok(/font-size:16px;color:#D4A420;font-weight:700;/.test(html), "portal name font reduced to 16px");
+    assert.ok(!/padding:28px 36px 22px/.test(html), "old large footer padding is gone");
+  });
+
+  test("compactGazetteFooter heals a previously generated gazette, gated to the gazette only", () => {
+    const ctx = vm.createContext({ window: {}, URL, Date, console, navigator: {} });
+    ctx.window = ctx; ctx.App = ctx.window.App = {};
+    loadScript(ctx, "js/utils.js");
+    const U = ctx.App.Utils;
+    const frozen = '<table data-template-id="newspaper"><tr><td bgcolor="#0A0A0A" style="background-color:#0A0A0A;padding:28px 36px 22px;">'
+      + '<p style="font-family:Arial,Helvetica,sans-serif;font-size:20px;color:#D4A420;font-weight:700;">Portal</p>'
+      + '<a href="mailto:x">Report to SOC Now &rarr; x</a>'
+      + '<td width="200" valign="top" align="center" style="padding-left:24px;"><table style="border:4px solid #C09010;background-color:#FFFFFF;"><tr><td style="padding:8px;" id="nl-qr" data-qr-size="90">'
+      + '<img src="data:image/png;base64,QQ==" alt="QR code" width="90" height="90" style="display:block;width:90px;height:90px;"></td></tr></table></td>'
+      + '</td></tr></table>';
+    const out = U.compactGazetteFooter(frozen);
+    assert.ok(!/Report to SOC Now/.test(out), '"Now" removed from a saved gazette');
+    assert.ok(out.includes("padding:16px 30px 14px"), "footer padding shrunk in a saved gazette");
+    assert.ok(out.includes("font-size:16px;color:#D4A420;font-weight:700;"), "portal name shrunk in a saved gazette");
+    // QR shrunk to the compact box (was the big 90px box in saved gazettes).
+    assert.ok(out.includes('data-qr-size="70"') && !/data-qr-size="90"/.test(out), "QR pixel size shrunk 90 -> 70");
+    assert.ok(out.includes('width="150" valign="top" align="center"'), "QR cell width shrunk 200 -> 150");
+    assert.ok(out.includes("border:3px solid #C09010"), "QR border thinned 4px -> 3px");
+    assert.ok(out.includes('padding:6px;" id="nl-qr"'), "QR inner padding shrunk 8px -> 6px");
+    // The baked-in 90px QR image is stripped so the EXPORT regenerates it at 70px.
+    assert.ok(!/width="90" height="90"/.test(out), "frozen 90px QR <img> removed");
+    assert.ok(/id="nl-qr" data-qr-size="70"><\/td>/.test(out), "#nl-qr emptied so the export rebuilds the QR at the compact size");
+    // Other templates are untouched.
+    const nonGz = frozen.replace('data-template-id="newspaper"', 'data-template-id="poster"');
+    assert.equal(U.compactGazetteFooter(nonGz), nonGz, "non-gazette HTML is left unchanged");
+  });
+
+  test("the gap above the Report-to-SOC button is tightened", () => {
+    const NB = loadBuilder(builderContext());
+    const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test" }, ARTS3, OPTS);
+    assert.ok(html.includes("padding:6px 30px 24px;background-color:#FFFFFF"), "CTA cell top padding reduced to 6px");
+    assert.ok(html.includes("padding:20px 28px 8px;background-color:#FCFBF7"), "precautionary-measures cell bottom padding reduced to 8px");
+    assert.ok(!/padding:22px 30px 24px;background-color:#FFFFFF/.test(html), "old large CTA top padding is gone");
+  });
+
+  test("tightenGazetteCtaGap tightens the button gap in a saved gazette, gated to the gazette only", () => {
+    const ctx = vm.createContext({ window: {}, URL, Date, console, navigator: {} });
+    ctx.window = ctx; ctx.App = ctx.window.App = {};
+    loadScript(ctx, "js/utils.js");
+    const U = ctx.App.Utils;
+    const frozen = '<table data-template-id="newspaper"><tr>'
+      + '<td bgcolor="#FCFBF7" style="padding:20px 28px;background-color:#FCFBF7;border-top:1px solid #E4E2DC;">measures</td></tr><tr>'
+      + '<td align="center" bgcolor="#FFFFFF" style="padding:22px 30px 24px;background-color:#FFFFFF;">Report to SOC</td></tr></table>';
+    const out = U.tightenGazetteCtaGap(frozen);
+    assert.ok(out.includes("padding:6px 30px 24px;background-color:#FFFFFF"), "CTA cell top padding shrunk in a saved gazette");
+    assert.ok(out.includes("padding:20px 28px 8px;background-color:#FCFBF7"), "measures cell bottom padding shrunk in a saved gazette");
+    assert.ok(!/padding:22px 30px 24px;background-color:#FFFFFF/.test(out), "old CTA padding gone in a saved gazette");
+    // Other templates are untouched.
+    const nonGz = frozen.replace('data-template-id="newspaper"', 'data-template-id="poster"');
+    assert.equal(U.tightenGazetteCtaGap(nonGz), nonGz, "non-gazette HTML is left unchanged");
+  });
+
+  test("stackGazetteMastheadSubline wraps 'Monthly Bulletin' on its own line with spacing above", () => {
+    const ctx = vm.createContext({ window: {}, URL, Date, console, navigator: {} });
+    ctx.window = ctx; ctx.App = ctx.window.App = {};
+    loadScript(ctx, "js/utils.js");
+    const U = ctx.App.Utils;
+    const frozen = '<table data-template-id="newspaper"><tr><td align="right">'
+      + '<div style="color:#D4A420;">Security &amp; Compliance Awareness Monthly Bulletin</div></td></tr></table>';
+    const out = U.stackGazetteMastheadSubline(frozen);
+    assert.ok(out.includes('Security &amp; Compliance Awareness<div data-nl-subline="1" style="margin-top:6px;">Monthly Bulletin</div>'),
+      "tagline split onto its own line with a margin-top gap above");
+    // Idempotent: a second pass changes nothing (the data-nl-subline marker short-circuits).
+    assert.equal(U.stackGazetteMastheadSubline(out), out, "second pass is a no-op");
+    // Gated to the gazette.
+    const nonGz = frozen.replace('data-template-id="newspaper"', 'data-template-id="poster"');
+    assert.equal(U.stackGazetteMastheadSubline(nonGz), nonGz, "non-gazette HTML is left unchanged");
+  });
+
+  test("stackGazetteMastheadSubline upgrades an earlier bare-<br> heal to the spaced line without doubling the break", () => {
+    const ctx = vm.createContext({ window: {}, URL, Date, console, navigator: {} });
+    ctx.window = ctx; ctx.App = ctx.window.App = {};
+    loadScript(ctx, "js/utils.js");
+    const U = ctx.App.Utils;
+    const bareBr = '<table data-template-id="newspaper"><div style="color:#D4A420;">Security &amp; Compliance Awareness<br>Monthly Bulletin</div></table>';
+    const out = U.stackGazetteMastheadSubline(bareBr);
+    assert.ok(out.includes('Security &amp; Compliance Awareness<div data-nl-subline="1" style="margin-top:6px;">Monthly Bulletin</div>'),
+      "bare <br> upgraded to the spaced sub-line");
+    assert.ok(!/<br\s*\/?>\s*<div data-nl-subline/.test(out), "the old <br> is consumed, not left dangling before the wrap");
+  });
+
+  test("stackGazetteMastheadSubline wraps 'Monthly Bulletin' whatever the markup (inline spans), gated by gazette content", () => {
+    const ctx = vm.createContext({ window: {}, URL, Date, console, navigator: {} });
+    ctx.window = ctx; ctx.App = ctx.window.App = {};
+    loadScript(ctx, "js/utils.js");
+    const U = ctx.App.Utils;
+    // Inline-span tagline that wraps as one run — and NO data-template-id stamp, so the
+    // heal must fall back to the "Incidents from Around The World" gazette marker.
+    const frozen = '<div>Incidents from Around The World</div><table><tr><td align="right">'
+      + '<span style="color:#D4A420;">Security &amp; Compliance Awareness</span> '
+      + '<span style="color:#888888;">Monthly Bulletin</span></td></tr></table>';
+    const out = U.stackGazetteMastheadSubline(frozen);
+    assert.ok(out.includes('<div data-nl-subline="1" style="margin-top:6px;">Monthly Bulletin</div>'),
+      "Monthly Bulletin wrapped on its own spaced line via the gazette-content gate");
+    // Idempotent.
+    assert.equal(U.stackGazetteMastheadSubline(out), out, "second pass is a no-op");
+    // A non-gazette bulletin (gen_* with its own "Monthly Bulletin" block) is untouched.
+    const genBulletin = '<div>Phishing Maestro</div><div>Monthly Bulletin</div>';
+    assert.equal(U.stackGazetteMastheadSubline(genBulletin), genBulletin, "non-gazette 'Monthly Bulletin' left unchanged");
+  });
+
   test("the masthead, the section nameplate, and numbered incident kickers all render", () => {
     const NB = loadBuilder(builderContext());
     const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test" }, ARTS3, OPTS);
@@ -262,10 +375,10 @@ test.describe("buildCyberGazette renders the broadsheet from up to 3 articles", 
     assert.ok(html.includes("feelnoways.jpeg"), "third article (no own image) falls back to the feelnoways default");
   });
 
-  test("QR cell renders at 90x90 when useQR is on", () => {
+  test("QR cell renders at the compact 70px size when useQR is on", () => {
     const NB = loadBuilder(builderContext());
     const html = NB.build("newspaper", { org: "ACME", soc: "soc@acme.test", portal: "https://p" }, ARTS3, { ...OPTS, useQR: true });
-    assert.ok(html.includes('id="nl-qr" data-qr-size="90"'), "QR cell present");
+    assert.ok(html.includes('id="nl-qr" data-qr-size="70"'), "QR cell present at the reduced size");
     assert.ok(html.includes("Scan for Portal"), "QR caption present");
   });
 

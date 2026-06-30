@@ -74,9 +74,13 @@ test('built gen_wifi_safety shows the See-something-suspicious capsule above the
   // fool the order check below.
   const html = buildReplica('gen_wifi_safety', { portal: 'p.example' }).replace(/<!--[\s\S]*?-->/g, '');
   assert.ok(html.includes('See something suspicious'), 'capsule label present');
-  assert.ok(/data-soc-capsule/.test(html), 'capsule carries the idempotency marker');
+  assert.ok(/data-soc-capsule="3"/.test(html), 'capsule carries the current version marker');
   // Phishing-Maestro pill styling.
   assert.ok(/#231d0d/i.test(html) && /border-radius:20px/.test(html), 'dark pill with 20px radius (Phishing Maestro style)');
+  // The pill is centered (margin:0 auto) with a tight 10px gap to the SOC button.
+  const pillTd = html.slice(html.indexOf('data-soc-capsule'));
+  assert.ok(/bgcolor="#231d0d"[^>]*text-align:center/.test(pillTd), 'the pill text is centered inside the pill');
+  assert.ok(/data-soc-capsule="3"[^>]*margin:0 auto 10px/.test(html), 'the pill is centered with a tight 10px gap');
   // The capsule appears exactly once and BEFORE the Report-to-SOC button.
   assert.equal((html.match(/See something suspicious/g) || []).length, 1, 'exactly one capsule');
   const capIdx = html.indexOf('data-soc-capsule');
@@ -84,17 +88,17 @@ test('built gen_wifi_safety shows the See-something-suspicious capsule above the
   assert.ok(capIdx >= 0 && btnIdx >= 0 && capIdx < btnIdx, 'capsule sits above the button');
 });
 
-test('the article source line is left-aligned, and the capsule has breathing room above the button', () => {
+test('the article source line is centered, and the capsule sits left with breathing room above the button', () => {
   const html = buildReplica('gen_wifi_safety', { portal: 'p.example' },
     [{ source: 'Bleeping Computer', url: 'https://example.test/a', title: 'USB worm' }]);
-  // Article source/attribution row is left-aligned (was centered).
+  // Article source/attribution row is centered (swapped with the capsule).
   const srcIdx = html.indexOf('nl-wifi-source-name');
   const cellStart = html.lastIndexOf('<td', srcIdx);
   const cell = html.slice(cellStart, srcIdx);
-  assert.ok(/align="left"/.test(cell), 'the article source cell is left-aligned');
-  assert.ok(!/align="center"/.test(cell), 'the source cell is no longer centered');
-  // Extra space between the capsule heading and the SOC button.
-  assert.ok(/data-soc-capsule[^>]*margin:0 auto 24px/.test(html), 'capsule has a 24px gap before the button');
+  assert.ok(/align="center"/.test(cell) && /text-align:center/.test(cell), 'the article source cell is centered');
+  assert.ok(!/align="left"/.test(cell), 'the source cell is no longer left-aligned');
+  // The centered capsule sits a tight 10px above the SOC button.
+  assert.ok(/data-soc-capsule[^>]*margin:0 auto 10px/.test(html), 'capsule has a tight 10px gap before the button');
 });
 
 test('injectWifiSocCapsule adds the capsule to frozen Wi-Fi HTML, above the button', () => {
@@ -112,6 +116,27 @@ test('injectWifiSocCapsule is idempotent and Wi-Fi-scoped', () => {
   // Non–Wi-Fi HTML (no nl-wifi marker) is untouched, even with the same SOC button.
   const nonWifi = FROZEN_WIFI.replace('id="nl-wifi-tip1"', 'id="nl-other"');
   assert.equal(U.injectWifiSocCapsule(nonWifi), nonWifi, 'other templates are not touched');
+});
+
+test('injectWifiSocCapsule replaces an older capsule version so design changes reach saved projects', () => {
+  const U = loadUtils();
+  // A saved project frozen with an OLDER capsule version above the button.
+  const old = '<table data-soc-capsule="1" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;margin:0 auto 24px;"><tr><td align="center" bgcolor="#231d0d" style="text-align:center;"><span>&#9679; See something suspicious</span></td></tr></table>';
+  const frozenOld = FROZEN_WIFI.replace(/(<td\b[^>]*padding:14px 30px 20px[^>]*>)/i, (m) => m + old);
+  const out = U.injectWifiSocCapsule(frozenOld);
+  assert.ok(out.indexOf('data-soc-capsule="3"') !== -1, 'upgraded to the current v3 capsule');
+  assert.ok(out.indexOf('data-soc-capsule="1"') === -1, 'old capsule version removed');
+  assert.equal((out.match(/See something suspicious/g) || []).length, 1, 'exactly one capsule after replace');
+  const newCap = out.match(/<table[^>]*data-soc-capsule[\s\S]*?<\/table>/)[0];
+  assert.ok(/margin:0 auto 10px/.test(newCap), 'the replacement capsule is centered with the tight 10px gap');
+});
+
+test('centerWifiSourceLine re-centers a left-aligned source line saved in a project', () => {
+  const U = loadUtils();
+  const leftSource = '<div id="nl-wifi-tip1"></div><td align="left" style="padding:10px 30px 0;background:#FFFFFF;text-align:left;"><span id="nl-wifi-source-name">Source</span></td>';
+  const out = U.centerWifiSourceLine(leftSource);
+  assert.ok(/align="center"/.test(out) && /text-align:center/.test(out), 'source re-centered');
+  assert.ok(!/align="left"/.test(out) && !/text-align:left/.test(out), 'no left alignment remains');
 });
 
 test('normalizeVariant adds the capsule to a frozen saved Wi-Fi variant', () => {

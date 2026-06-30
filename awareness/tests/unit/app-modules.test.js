@@ -564,6 +564,6 @@ test("NewsletterBuilder newspaper (Cyber Gazette) renders 3-article broadsheet",
   assert.ok(html.includes("Ransomware hits logistics sector"), "first secondary headline must come from arts[1]");
   assert.ok(html.includes("Supplier portal exposed records"), "second secondary headline must come from arts[2]");
   assert.ok(html.includes("Verify sender"), "precautions must be drawn from article watchouts");
-  assert.ok(html.includes("Report to SOC Now &rarr; soc-support@ab-inbev.com"), "newspaper must have the hardcoded Report-to-SOC CTA before the footer");
+  assert.ok(html.includes("Report to SOC &rarr; soc-support@ab-inbev.com"), "newspaper must have the hardcoded Report-to-SOC CTA before the footer");
   assert.ok(!html.includes("EDITOR'S PICK"), "old digest layout must be gone from the Cyber Gazette");
 });

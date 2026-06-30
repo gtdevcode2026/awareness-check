@@ -422,8 +422,16 @@ App.UI = (() => {
       // variant HTML frozen in a previously saved project (new builds omit it).
       if (typeof U.stripGazetteIncidentImageBorder === 'function') h = U.stripGazetteIncidentImageBorder(h);
       // Add the "See something suspicious" capsule above the Wi-Fi poster's SOC
-      // button for Wi-Fi variants saved before it shipped (Wi-Fi-only, idempotent).
+      // button for Wi-Fi variants saved before it shipped (Wi-Fi-only, versioned).
       if (typeof U.injectWifiSocCapsule === 'function') h = U.injectWifiSocCapsule(h);
+      // Re-center the Wi-Fi article source line in projects saved while it was left.
+      if (typeof U.centerWifiSourceLine === 'function') h = U.centerWifiSourceLine(h);
+      // Drop "Now" + shrink the footer in a previously generated Cyber Gazette.
+      if (typeof U.compactGazetteFooter === 'function') h = U.compactGazetteFooter(h);
+      // Tighten the gap above the gazette's Report-to-SOC button in saved gazettes.
+      if (typeof U.tightenGazetteCtaGap === 'function') h = U.tightenGazetteCtaGap(h);
+      // Stack the gazette masthead tagline ("Monthly Bulletin" on its own line) in saved gazettes.
+      if (typeof U.stackGazetteMastheadSubline === 'function') h = U.stackGazetteMastheadSubline(h);
       return h;
     };
     if (!variantLike) return makeVariant();

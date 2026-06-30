@@ -673,22 +673,105 @@ App.Utils = (() => {
   // The "See something suspicious" capsule (Phishing-Maestro pill) shown above the
   // Wi-Fi poster's Report-to-SOC button. Single source of truth so the template and
   // the saved-project heal stay byte-identical.
+  // Centered (margin:0 auto), with a tight 10px gap to the SOC button. The version in
+  // data-soc-capsule lets the heal REPLACE an older capsule when the design changes.
   const WIFI_SOC_CAPSULE =
-    '<table data-soc-capsule="1" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;margin:0 auto 24px;">'
+    '<table data-soc-capsule="3" align="center" border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;margin:0 auto 10px;">'
     + '<tr><td align="center" valign="middle" bgcolor="#231d0d" style="background-color:#231d0d;border:1px solid #5d4915;border-radius:20px;padding:6px 14px;text-align:center;">'
     + '<span style="font-family:Arial,Helvetica,sans-serif;font-size:10px;color:#D4A420;font-weight:700;letter-spacing:2px;text-transform:uppercase;">&#9679; See something suspicious</span>'
     + '</td></tr></table>';
 
-  // Add the "See something suspicious" capsule above the Wi-Fi poster's Report-to-SOC
+  // Put the "See something suspicious" capsule above the Wi-Fi poster's Report-to-SOC
   // button in variant HTML frozen in a previously saved project (new builds ship it).
   // Scoped to Wi-Fi only (gated on the nl-wifi markers so other templates that share
-  // the SOC button are untouched) and idempotent (skips when data-soc-capsule exists).
-  // Anchors on the report cell's unique padding, so it survives a DOM round-trip.
+  // the SOC button are untouched). VERSION-BASED so a design change actually reaches
+  // saved projects: skip only when the CURRENT version is present; otherwise strip any
+  // older capsule and inject the current one. Anchors on the report cell's unique
+  // padding, so it survives a DOM round-trip.
   function injectWifiSocCapsule(html) {
     if (typeof html !== 'string' || !html) return html;
-    if (!/id="nl-wifi-tip/.test(html)) return html;     // Wi-Fi poster only
-    if (html.indexOf('data-soc-capsule') !== -1) return html; // already present
-    return html.replace(/(<td\b[^>]*padding:14px 30px 20px[^>]*>)/i, (m) => m + WIFI_SOC_CAPSULE);
+    if (!/id="nl-wifi-tip/.test(html)) return html;             // Wi-Fi poster only
+    if (html.indexOf('data-soc-capsule="3"') !== -1) return html; // current version already present
+    // Drop any older capsule (single table, no nested table inside → first </table> closes it).
+    const stripped = html.replace(/<table[^>]*\bdata-soc-capsule\b[\s\S]*?<\/table>/i, '');
+    return stripped.replace(/(<td\b[^>]*padding:14px 30px 20px[^>]*>)/i, (m) => m + WIFI_SOC_CAPSULE);
+  }
+
+  // Apply the Cyber Gazette tweaks to variant HTML frozen in a previously generated
+  // gazette (new builds already ship them): drop "Now" from the Report-to-SOC button
+  // and shrink the footer (cell padding, portal-name + blurb + disclaimer fonts).
+  // Gated on data-template-id="newspaper" so no other template is touched; each
+  // replacement targets a string unique to the gazette footer. Idempotent (the source
+  // strings only exist in the pre-tweak HTML).
+  function compactGazetteFooter(html) {
+    if (typeof html !== 'string' || !html) return html;
+    if (html.indexOf('data-template-id="newspaper"') === -1) return html;
+    return html
+      .replace('Report to SOC Now', 'Report to SOC')
+      .replace('padding:28px 36px 22px', 'padding:16px 30px 14px')
+      .replace('font-size:20px;color:#D4A420;font-weight:700;', 'font-size:16px;color:#D4A420;font-weight:700;')
+      .replace('font-size:14px;color:#909090;line-height:1.5;', 'font-size:12px;color:#909090;line-height:1.5;')
+      .replace('padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;', 'padding-top:10px;font-size:12px;color:#D4A420;letter-spacing:0.1em;font-style:italic;')
+      // Shrink the footer QR to the compact size (saved gazettes froze the old 90px box;
+      // new builds already ship 70px). Each old value is unique to the gazette QR cell.
+      .replace('width="200" valign="top" align="center"', 'width="150" valign="top" align="center"')
+      .replace('border:4px solid #C09010', 'border:3px solid #C09010')
+      .replace('padding:8px;" id="nl-qr"', 'padding:6px;" id="nl-qr"')
+      .replace('data-qr-size="90"', 'data-qr-size="70"')
+      // Empty #nl-qr so its QR is regenerated at the new data-qr-size everywhere. A saved
+      // project froze a 90px <img> into this cell; the EXPORT path (withEmbeddedQrInBodyHtml)
+      // leaves an existing data: image untouched, so without this it would keep shipping the
+      // big QR. Clearing it makes the export regenerate at 70px (the preview already re-renders).
+      .replace(/(<td[^>]*\bid="nl-qr"[^>]*>)[\s\S]*?(<\/td>)/i, '$1$2');
+  }
+
+  // Tighten the white gap above the Cyber Gazette's Report-to-SOC button in variant
+  // HTML frozen in a previously generated gazette (new builds ship the tighter
+  // spacing): trim the precautionary-measures cell's bottom padding and the CTA cell's
+  // top padding. Gated on data-template-id="newspaper"; each target string is unique to
+  // the gazette. Idempotent — the pre-tweak strings only exist before the trim.
+  function tightenGazetteCtaGap(html) {
+    if (typeof html !== 'string' || !html) return html;
+    if (html.indexOf('data-template-id="newspaper"') === -1) return html;
+    return html
+      .replace('padding:20px 28px;background-color:#FCFBF7', 'padding:20px 28px 8px;background-color:#FCFBF7')
+      .replace('padding:22px 30px 24px;background-color:#FFFFFF', 'padding:6px 30px 24px;background-color:#FFFFFF');
+  }
+
+  // Drop "Monthly Bulletin" onto its own line — with a little space above it — in the
+  // Cyber Gazette masthead tagline of variant HTML frozen in a previously generated
+  // gazette, where it otherwise wraps mid-phrase ("…AWARENESS MONTHLY" / "BULLETIN").
+  // We anchor only on the stable literal "Monthly Bulletin" and wrap it in a block with
+  // a small margin-top, so it works no matter how the surrounding tagline is marked up
+  // (one combined run, two inline spans, adjacent text) and reads as a separated sub-line.
+  // Gazette-scoped via a marker unique to it (the engine stamp OR the section nameplate),
+  // so the gen_* bulletins — which carry a "Monthly Bulletin" sub-line intentionally on
+  // its own block line — are never touched. Idempotent via the data-nl-subline marker; the
+  // optional <br> in the match also upgrades an earlier bare-<br> heal without doubling it.
+  function stackGazetteMastheadSubline(html) {
+    if (typeof html !== 'string' || !html) return html;
+    if (html.indexOf('data-template-id="newspaper"') === -1
+      && html.indexOf('Incidents from Around The World') === -1) return html;
+    // Case-insensitive so any saved casing ("Monthly Bulletin", "MONTHLY BULLETIN", …) is caught;
+    // $1 keeps the original text verbatim. Bail if absent or already wrapped.
+    if (!/Monthly Bulletin/i.test(html)) return html;
+    if (html.indexOf('data-nl-subline') !== -1) return html;
+    return html.replace(
+      /(?:<br\s*\/?>)?\s*(Monthly Bulletin)/i,
+      '<div data-nl-subline="1" style="margin-top:6px;">$1</div>'
+    );
+  }
+
+  // Re-center the Wi-Fi poster's article source line in variant HTML frozen in a saved
+  // project (an earlier build left-aligned it). Wi-Fi-scoped via the source id, anchored
+  // on the source cell's unique padding; a no-op once it is already centered.
+  function centerWifiSourceLine(html) {
+    if (typeof html !== 'string' || !html) return html;
+    if (html.indexOf('nl-wifi-source-name') === -1) return html;
+    return html.replace(
+      /(<td\b[^>]*?)align="left"([^>]*padding:10px 30px 0[^>]*?)text-align:left([^>]*>)/i,
+      '$1align="center"$2text-align:center$3'
+    );
   }
 
   // Strip the near-black 1px framing border the Cyber Gazette incident hero images
@@ -1140,7 +1223,7 @@ App.Utils = (() => {
     htmlToSvgExport, downloadSVG, downloadBlob, injectNlQrImageIntoHtml, inlineCidAttachments,
     inlineDataUriAttachments, buildEmlMime, combineHtmlBodies, emlFileName, compositeRgbaOverHex, flattenEmailColors, enforceEmailFont,
     showToast, skeleton, debounce, wait,
-    esc, stripTags, truncate, uid, normalizeWebUrl, wireVisitPortalCta, stripGazetteIncidentImageBorder, injectWifiSocCapsule, stripLegacyFooterClassification,
+    esc, stripTags, truncate, uid, normalizeWebUrl, wireVisitPortalCta, stripGazetteIncidentImageBorder, injectWifiSocCapsule, centerWifiSourceLine, compactGazetteFooter, tightenGazetteCtaGap, stackGazetteMastheadSubline, stripLegacyFooterClassification,
     removeNewsletterNodeByBodyChildPath, removeNewsletterNodeByTemplateChildPath, removeNewsletterNodeByMirrorPath,
     updateNewsletterNodeTextByBodyChildPath, updateNewsletterNodeTextByTemplateChildPath, updateNewsletterNodeTextByMirrorPath,
     updateNewsletterNodeImageSrcByBodyChildPath, updateNewsletterNodeImageSrcByTemplateChildPath, updateNewsletterNodeImageSrcByMirrorPath

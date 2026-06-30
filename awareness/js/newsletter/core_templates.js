@@ -2897,7 +2897,7 @@ ${redFlagsRowsHtml}
       + `${tbl()}${tbc(
         `<table width="100%" cellpadding="0" cellspacing="0" border="0" role="presentation" bgcolor="#0A0A0A" style="background:#0A0A0A;"><tr>`
         + `<td valign="middle" align="left" style="padding:16px 26px 14px;vertical-align:middle;"><img src="${assetSrc('ABI.png')}" alt="ABInBev" height="34" style="height:34px;width:auto;display:block;border:0;"></td>`
-        + `<td valign="middle" align="right" style="padding:16px 26px 14px;vertical-align:middle;text-align:right;"><div style="${NLFF};font-weight:700;font-size:12px;letter-spacing:3px;color:#D4A420;text-transform:uppercase;">Security &amp; Compliance Awareness</div><div style="${NLFF};font-weight:600;font-size:10px;letter-spacing:3px;color:#888888;text-transform:uppercase;margin-top:3px;">The Cyber Gazette</div></td>`
+        + `<td valign="middle" align="right" style="padding:16px 26px 14px;vertical-align:middle;text-align:right;"><div style="${NLFF};font-weight:700;font-size:12px;letter-spacing:3px;color:#D4A420;text-transform:uppercase;white-space:nowrap;">Security &amp; Compliance Awareness</div><div style="${NLFF};font-weight:600;font-size:10px;letter-spacing:3px;color:#888888;text-transform:uppercase;margin-top:3px;white-space:nowrap;">The Cyber Gazette</div></td>`
         + `</tr></table>`,
         'style="padding:0;background:#0A0A0A;background-color:#0A0A0A;"'
       )}${tblx()}`;
@@ -2968,13 +2968,14 @@ ${redFlagsRowsHtml}
       + `<tr>${measureItem('01', measures[0], 'left')}${measureItem('02', measures[1], 'right')}</tr>`
       + `<tr>${measureItem('03', measures[2], 'left')}${measureItem('04', measures[3], 'right')}</tr>`
       + `</table>`,
-      'bgcolor="#FCFBF7" style="padding:20px 28px;background-color:#FCFBF7;border-top:1px solid #E4E2DC;"'
+      'bgcolor="#FCFBF7" style="padding:20px 28px 8px;background-color:#FCFBF7;border-top:1px solid #E4E2DC;"'
     )}${tblx()}`;
 
     // ── Report-to-SOC CTA (hardcoded gold button, matches the gen_* bulletins) ──
+    // Tight top padding keeps the button close under the precautionary-measures block.
     const reportCta = `${tbl()}${tbc(
-      `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;"><tr><td align="center" bgcolor="#D4A420" style="background-color:#D4A420;border-radius:6px;"><a href="mailto:soc-support@ab-inbev.com" style="display:inline-block;padding:13px 26px;${NLFF};font-size:15px;font-weight:700;color:#0A0A0A;text-decoration:none;">Report to SOC Now &rarr; soc-support@ab-inbev.com</a></td></tr></table>`,
-      'align="center" bgcolor="#FFFFFF" style="padding:22px 30px 24px;background-color:#FFFFFF;"'
+      `<table role="presentation" border="0" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;"><tr><td align="center" bgcolor="#D4A420" style="background-color:#D4A420;border-radius:6px;"><a href="mailto:soc-support@ab-inbev.com" style="display:inline-block;padding:13px 26px;${NLFF};font-size:15px;font-weight:700;color:#0A0A0A;text-decoration:none;">Report to SOC &rarr; soc-support@ab-inbev.com</a></td></tr></table>`,
+      'align="center" bgcolor="#FFFFFF" style="padding:6px 30px 24px;background-color:#FFFFFF;"'
     )}${tblx()}`;
 
     // ── Config-driven portal/QR footer (gold portal block) ──
@@ -2984,16 +2985,16 @@ ${redFlagsRowsHtml}
     const portalBlurb = escapeHtml((c.portalBlurb || 'Training modules, policies, and past bulletins.').trim());
     const goldLine = `${tbl()}${tbc('&nbsp;', 'bgcolor="#C09010" style="height:2px;line-height:2px;font-size:0;background-color:#C09010;"')}${tblx()}`;
     const qrCell = qr
-      ? `<td width="200" valign="top" align="center" style="padding-left:24px;"><table cellpadding="0" cellspacing="0" border="0" style="border:4px solid #C09010;background-color:#FFFFFF;" bgcolor="#FFFFFF"><tr><td style="padding:8px;" id="nl-qr" data-qr-size="90"></td></tr></table><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-top:12px;font-size:9px;color:#909090;letter-spacing:0.08em;text-transform:uppercase;${NLFF};font-weight:700;">Scan for Portal</td></tr></table></td>`
+      ? `<td width="150" valign="top" align="center" style="padding-left:24px;"><table cellpadding="0" cellspacing="0" border="0" style="border:3px solid #C09010;background-color:#FFFFFF;" bgcolor="#FFFFFF"><tr><td style="padding:6px;" id="nl-qr" data-qr-size="70"></td></tr></table><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr><td align="center" style="padding-top:8px;font-size:8px;color:#909090;letter-spacing:0.08em;text-transform:uppercase;${NLFF};font-weight:700;">Scan for Portal</td></tr></table></td>`
       : '';
     const portalFooter = goldLine + `${tbl()}${tbc(
       `<table width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" bgcolor="#0A0A0A"><tr>`
-      + `<td valign="top"><p style="margin:0 0 14px;${NLFF};font-size:20px;color:#D4A420;font-weight:700;">${portalName}</p>`
-      + `<p style="margin:0 0 22px;${NLFF};font-size:14px;color:#909090;line-height:1.5;">${portalBlurb}</p>`
+      + `<td valign="top"><p style="margin:0 0 8px;${NLFF};font-size:16px;color:#D4A420;font-weight:700;">${portalName}</p>`
+      + `<p style="margin:0 0 14px;${NLFF};font-size:12px;color:#909090;line-height:1.5;">${portalBlurb}</p>`
       + `<table border="0" cellpadding="0" cellspacing="0" role="presentation" style="border-collapse:separate;"><tr><td align="center" style="border:1px solid #C09010;border-radius:4px;padding:10px 22px;line-height:1;${NLFF};font-size:14px;font-weight:700;"><a href="${portalHref}" style="color:#D4A420;text-decoration:none;" target="_blank" rel="noopener noreferrer">Visit Portal</a></td></tr></table></td>`
       + qrCell
-      + `</tr><tr><td colspan="2" align="center" style="padding-top:16px;font-size:16px;color:#D4A420;letter-spacing:0.1em;font-style:italic;${NLFF}">Disclaimer: The above content is curated and created with AI</td></tr></table>`,
-      'bgcolor="#0A0A0A" style="background-color:#0A0A0A;padding:28px 36px 22px;"'
+      + `</tr><tr><td colspan="2" align="center" style="padding-top:10px;font-size:12px;color:#D4A420;letter-spacing:0.1em;font-style:italic;${NLFF}">Disclaimer: The above content is curated and created with AI</td></tr></table>`,
+      'bgcolor="#0A0A0A" style="background-color:#0A0A0A;padding:16px 30px 14px;"'
     )}${tblx()}` + goldLine;
 
     return `${nlOuterOpen()}${masthead}${sectionHeading}${incidents}${checklist}${reportCta}${portalFooter}${nlOuterClose()}`;
