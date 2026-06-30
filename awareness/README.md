@@ -56,8 +56,7 @@ Turn **live security news** into **employee-ready awareness content** in minutes
 Pick **one** way to run it — full details in [`REQUIREMENTS.txt`](REQUIREMENTS.txt):
 
 - **Docker** *(recommended for hosting)* — Docker Desktop (Engine 20.10+ with Compose v2). The production build runs **inside the image** — nothing else to install.  
-- **nginx 1.18+** *(bare-metal hosting, no Docker)* — serve the static app with the bundled [`deploy/nginx.conf.example`](deploy/nginx.conf.example).  
-- **Python 3.8+** *(optional)* — only for the SMTP / AI relay servers and the CVE advisory sender. **Standard library only — no `pip install` needed.**  
+- **nginx 1.18+** *(bare-metal hosting, no Docker)* — serve the static app with the bundled [`deploy/nginx.conf.example`](deploy/nginx.conf.example).
 
 AI summaries need an API key (entered in the app); email sending needs an SMTP/Graph relay; RSS needs nothing.
 

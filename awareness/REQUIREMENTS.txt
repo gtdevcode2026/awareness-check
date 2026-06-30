@@ -55,12 +55,6 @@ SET UP:
 ------------------------------------------------------------------------------
 OPTIONAL — only if you use these features
 ------------------------------------------------------------------------------
-  * Python 3.8+  — STANDARD LIBRARY ONLY, no pip packages required.
-        Needed only to run the optional helper servers:
-            python scripts/smtp_relay_server.py     (email sending relay)
-            python scripts/ai_relay_server.py        (AI proxy relay)
-            python nessus_advisory/cve_alert.py      (CVE advisory sender)
-
   * A modern web browser (Chrome, Edge, Firefox, or Safari) to use the app.
 
 ------------------------------------------------------------------------------
@@ -87,5 +81,4 @@ QUICK SUMMARY
 ------------------------------------------------------------------------------
   Just want to run it?          -> Install Docker Desktop, use PATH A.
   Prefer no Docker?             -> Install nginx, use PATH B.
-  Want email/AI relays too?     -> Also install Python 3.8+ (no pip needed).
 ==============================================================================
