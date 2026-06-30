@@ -51,11 +51,37 @@ Turn **live security news** into **employee-ready awareness content** in minutes
 
 ---
 
+## Prerequisites
+
+Pick **one** way to run it — full details in [`REQUIREMENTS.txt`](REQUIREMENTS.txt):
+
+- **Docker** *(recommended for hosting)* — Docker Desktop (Engine 20.10+ with Compose v2). The production build runs **inside the image** — nothing else to install.  
+- **nginx 1.18+** *(bare-metal hosting, no Docker)* — serve the static app with the bundled [`deploy/nginx.conf.example`](deploy/nginx.conf.example).  
+- **Python 3.8+** *(optional)* — only for the SMTP / AI relay servers and the CVE advisory sender. **Standard library only — no `pip install` needed.**  
+
+AI summaries need an API key (entered in the app); email sending needs an SMTP/Graph relay; RSS needs nothing.
+
+---
+
 ## Quick start
 
-1. Clone or download this folder.  
-2. Open **`index.html`** in a modern browser (or serve the folder with any static file server for best results).  
-3. Click **Fetch Live News** or **Load from DB** after a first fetch.  
+**Simplest — no install:** open **`index.html`** in a modern browser, then click **Fetch Live News** (or **Load from DB** after a first fetch). A few extras — server-side ensemble logging, and saving a replaced image into the shipped library — need one of the served options below.
+
+**Serve with Docker + nginx** *(from the `awareness/` folder):*
+
+```bash
+docker compose -f deploy/docker-compose.yml up -d --build
+# then open http://localhost:8080
+```
+
+**Serve with nginx** *(bare metal, no Docker):*
+
+Point nginx at the app using the bundled [`deploy/nginx.conf.example`](deploy/nginx.conf.example) — set `__WEB_ROOT__` to the `awareness/` folder (or a built `dist/`), fill in your domain and TLS, then:
+
+```bash
+nginx -t && nginx -s reload
+# then open your site
+```
 
 ---
 

@@ -1,0 +1,91 @@
+==============================================================================
+PREREQUISITES — Security Awareness Newsletter / Poster Generator
+==============================================================================
+
+This is a static, no-build web app (vanilla JavaScript). It is NOT a Python
+project, so there is no pip "requirements.txt" to install — this file lists the
+tools a person needs on their laptop to run it.
+
+You can run it TWO ways. Pick ONE path. Everything under OPTIONAL is only
+needed for specific features.
+
+The app lives in the "awareness/" subfolder of the repo. After cloning:
+    git clone https://github.com/gtdevcode2026/awareness-check.git
+    cd awareness-check/awareness        <-- run all commands below from here
+
+
+------------------------------------------------------------------------------
+PATH A — Docker  (recommended: simplest, most portable, nothing else to install)
+------------------------------------------------------------------------------
+REQUIRED:
+  * Docker Desktop  — Docker Engine 20.10+ with Docker Compose v2
+        Windows / macOS:  https://www.docker.com/products/docker-desktop
+        Linux:            Docker Engine + the docker-compose-plugin package
+
+  Node, npm, and the production build all run INSIDE the image — you do not
+  install them yourself.
+
+RUN:
+    docker compose -f deploy/docker-compose.yml up -d --build
+    # then open  http://localhost:8080
+STOP:
+    docker compose -f deploy/docker-compose.yml down
+
+
+------------------------------------------------------------------------------
+PATH B — nginx  (bare-metal hosting, no Docker)
+------------------------------------------------------------------------------
+REQUIRED:
+  * nginx 1.18+  (or any recent build)
+        https://nginx.org/en/download.html  — or your OS package manager
+
+SET UP:
+  1. Point nginx at the "awareness/" folder as the web root.
+  2. Start from the bundled config and fill in the placeholders
+     (__DOMAIN__, __WEB_ROOT__, and the TLS cert/key paths):
+        deploy/nginx.conf.example
+  3. Validate and (re)load nginx, then open your site:
+        nginx -t
+        nginx -s reload
+
+  The config already sets the security headers, gzip, caching, an SPA-style
+  fallback, and blocks the dev-only folders (tests/, scripts/, docs/, etc.).
+
+
+------------------------------------------------------------------------------
+OPTIONAL — only if you use these features
+------------------------------------------------------------------------------
+  * Python 3.8+  — STANDARD LIBRARY ONLY, no pip packages required.
+        Needed only to run the optional helper servers:
+            python scripts/smtp_relay_server.py     (email sending relay)
+            python scripts/ai_relay_server.py        (AI proxy relay)
+            python nessus_advisory/cve_alert.py      (CVE advisory sender)
+
+  * A modern web browser (Chrome, Edge, Firefox, or Safari) to use the app.
+
+------------------------------------------------------------------------------
+RUNTIME CONFIGURATION  (entered in the app — nothing to install)
+------------------------------------------------------------------------------
+  * AI features:    an API key (Anthropic / OpenAI / OpenAI-compatible),
+                    pasted into the app's Config page.
+  * Email sending:  an SMTP or Microsoft Graph relay endpoint + credentials,
+                    set in the app. If the site is served over HTTPS, the relay
+                    URL must also be HTTPS.
+  * RSS feeds:      nothing to configure — fetched via public CORS proxies.
+
+
+------------------------------------------------------------------------------
+NETWORK
+------------------------------------------------------------------------------
+  Internet access is needed the FIRST time only — to pull the Docker base
+  images (Path A). After that the app runs offline, except for the optional
+  AI / RSS / email features, which call out to the internet by design.
+
+
+------------------------------------------------------------------------------
+QUICK SUMMARY
+------------------------------------------------------------------------------
+  Just want to run it?          -> Install Docker Desktop, use PATH A.
+  Prefer no Docker?             -> Install nginx, use PATH B.
+  Want email/AI relays too?     -> Also install Python 3.8+ (no pip needed).
+==============================================================================
