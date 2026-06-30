@@ -69,11 +69,28 @@
   function getActiveTemplateId() { return _activeTemplateId; }
   function getActiveSession()    { return _activeSession; }
 
+  // Same-origin path used on any non-localhost origin. nginx reverse-proxies
+  // it to the ensemble-log service (see deploy/nginx.docker.conf), so the
+  // browser sees a same-origin POST — no CORS, no mixed-content, and the
+  // connect-src 'self' rule already allows it.
+  const DEPLOYED_LOG_PATH = '/ensemble/save';
+
+  // Resolve the log endpoint by origin:
+  //   • localhost (dev: dev_servers.mjs runs the writer on :4175) → the direct
+  //     loopback URL, exactly as before.
+  //   • any other origin (a Docker/nginx deployment) → the same-origin proxy
+  //     path above.
+  function resolveLogUrl() {
+    return isLocalhost() ? ENSEMBLE_LOG_URL : DEPLOYED_LOG_PATH;
+  }
+
   function postPayload(payload) {
-    if (!isLocalhost()) return; // production: never make the futile POST.
+    // Logging is always attempted (the old non-localhost early-return is gone)
+    // so deployments capture the AI prompt+response corpus too. The POST stays
+    // best-effort: any failure is swallowed and never blocks an AI build.
     try {
       const body = JSON.stringify(payload);
-      const promise = fetch(ENSEMBLE_LOG_URL, {
+      const promise = fetch(resolveLogUrl(), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body

@@ -8,16 +8,40 @@ services:
     restart: unless-stopped
     ports:
       - "8080:80"
+    # nginx reverse-proxies /ensemble/save to the collector below. depends_on
+    # gets the service onto the network (and into Docker DNS) before nginx
+    # starts; nginx also resolves the name lazily at request time, so a brief
+    # collector outage never takes the site down.
+    depends_on:
+      - ensemble-log
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://127.0.0.1/health.html"]
       interval: 30s
       timeout: 3s
       retries: 3
       start_period: 5s
+
+  # ── Ensemble AI-prompt log collector ──────────────────────────────────────
+  # Receives the browser's prompt+response logs (same-origin, proxied by nginx)
+  # and persists them to the ensemble_logs volume. No host port is published —
+  # only the nginx container reaches it over the compose network.
+  ensemble-log:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile.ensemble-log
+    image: awareness-ensemble-log:latest
+    container_name: awareness-ensemble-log
+    restart: unless-stopped
+    environment:
+      - ENSEMBLE_LOG_HOST=0.0.0.0
+      - ENSEMBLE_LOG_PORT=4175
+    expose:
+      - "4175"
+    volumes:
+      - ensemble_logs:/app/ensemble-logs
+
     # If you want auto-HTTPS in front of this container, uncomment the
     # `caddy` service below and set CADDY_DOMAIN.
-    # depends_on:
-    #   - caddy
 
   # ── Optional: front the container with Caddy for free TLS. ────────────────
   # caddy:
@@ -37,6 +61,9 @@ services:
   #     - caddy_data:/data
   #     - caddy_config:/config
 
-# volumes:
-#   caddy_data:
-#   caddy_config:
+volumes:
+  # Persists the AI prompt+response logs across container restarts.
+  ensemble_logs:
+  # Uncomment alongside the caddy service above for TLS state.
+  # caddy_data:
+  # caddy_config:

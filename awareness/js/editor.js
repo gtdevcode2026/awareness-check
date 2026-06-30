@@ -1296,24 +1296,39 @@ App.Editor = (function () {
   }
 
   async function _replaceImagePersistToProject(filename, mimeType, dataUri) {
-    if (!_replaceImageIsLocalhost()) return; // only when authoring with the dev server running
-    const comma = String(dataUri || '').indexOf(',');
-    if (comma < 0) return;
-    const base64 = dataUri.slice(comma + 1);
     const safeName = _replaceImageSafeProjectName(filename, mimeType);
-    try {
-      const resp = await fetch('http://127.0.0.1:4175/save-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename: safeName, mimeType, base64 })
-      });
-      if (resp.ok) {
-        _replaceImageSetStatus(`Saved to the project library (${safeName}) — it will ship with the app.`);
+
+    // Dev authoring only: when the local dev server is running, ALSO bake the
+    // image into the on-disk project library (assets/image-library/) so it
+    // ships in the bundle for everyone. This is the one part that needs a
+    // server — it edits the distributable, which a browser on a deployed host
+    // cannot do. The image is already in IndexedDB regardless (saved by the
+    // upload handler) and embedded in the newsletter as a data URI.
+    if (_replaceImageIsLocalhost()) {
+      const comma = String(dataUri || '').indexOf(',');
+      if (comma >= 0) {
+        const base64 = dataUri.slice(comma + 1);
+        try {
+          const resp = await fetch('http://127.0.0.1:4175/save-image', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ filename: safeName, mimeType, base64 })
+          });
+          if (resp.ok) {
+            _replaceImageSetStatus(`Saved to the project library (${safeName}) — it will ship with the app.`);
+            return;
+          }
+        } catch (err) {
+          // Dev server not reachable — fall through to the browser-library note.
+          console.info('[replace-image] project save skipped (no dev server):', err && err.message);
+        }
       }
-    } catch (err) {
-      // No dev server (e.g. opened from a zip) — the image stays in this browser only.
-      console.info('[replace-image] project save skipped (no dev server):', err && err.message);
     }
+
+    // No backend (deployed app, or dev server down): the image already lives in
+    // this browser's IndexedDB library and in the saved newsletter, so it
+    // persists and is reusable here. Confirm it so the action never looks lost.
+    _replaceImageSetStatus(`Saved to your image library (${safeName}, this browser).`);
   }
 
   async function _replaceImageApply(dataUri, imageRecord) {

@@ -3,8 +3,12 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const PORT = 4175;
-const HOST = '127.0.0.1';
+const PORT = Number(process.env.ENSEMBLE_LOG_PORT) || 4175;
+// Loopback by default (developer machine). In a container, set
+// ENSEMBLE_LOG_HOST=0.0.0.0 so a sibling nginx container can reach it over the
+// compose network. The collector still publishes no host port — only the
+// reverse proxy talks to it.
+const HOST = process.env.ENSEMBLE_LOG_HOST || '127.0.0.1';
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const LOG_DIR = path.join(ROOT, 'ensemble-logs');
 const TEMPLATES_DIR = path.join(ROOT, 'templates');

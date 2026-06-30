@@ -1,0 +1,29 @@
+# Ensemble-log collector — receives the browser's AI prompt+response logs
+# (reverse-proxied same-origin by the nginx container) and writes them under
+# /app/ensemble-logs. The server uses node stdlib only — nothing to install.
+#
+# Build context is the repo root (awareness/), same as deploy/Dockerfile.
+FROM node:20-alpine AS runtime
+
+WORKDIR /app
+
+# Only the collector script is needed. It resolves its log dir relative to its
+# own location: scripts/ -> ROOT=/app -> /app/ensemble-logs (a mounted volume).
+COPY scripts/ensemble_log_server.mjs ./scripts/ensemble_log_server.mjs
+
+# Pre-create the log dir owned by the unprivileged `node` user. A named volume
+# mounted here inherits this ownership on first mount, so writes succeed after
+# we drop privileges below (otherwise the fresh volume is root-owned -> EACCES).
+RUN mkdir -p /app/ensemble-logs && chown -R node:node /app
+
+# Bind all interfaces inside the container so the nginx sidecar can reach it
+# over the compose network. No host port is published (see docker-compose.yml).
+ENV ENSEMBLE_LOG_HOST=0.0.0.0
+ENV ENSEMBLE_LOG_PORT=4175
+
+EXPOSE 4175
+
+# Drop to the unprivileged user that the node image already ships.
+USER node
+
+CMD ["node", "scripts/ensemble_log_server.mjs"]

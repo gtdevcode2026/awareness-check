@@ -43,6 +43,8 @@ const INCLUDE_DIRS = [
   'css',
   'assets',
   'templates',
+  'vendor',       // jszip.min.js (ZIP download) + qrcode.min.js (QR render) — loaded via <script src> on the entry pages.
+  'article-seed', // articles.js — loaded via <script src> in index.html to seed the starter article set.
 ];
 
 // ─── Per-folder exclusions inside included dirs ──────────────────────────────

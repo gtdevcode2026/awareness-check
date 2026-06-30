@@ -120,10 +120,12 @@ test("no console.* call in js/ logs a sensitive storage key value", () => {
   assert.deepEqual(offenders, [], `Found console.* calls referencing sensitive keys:\n${offenders.join("\n")}`);
 });
 
-// ─── 3. Ensemble logger respects the hostname guard ─────────────────────────
+// ─── 3. Ensemble logger endpoint resolution by origin ───────────────────────
 
-test("ai/logger.js postPayload is gated by isLocalhost (skips fetch in prod)", () => {
-  // Simulate a production hostname.
+test("ai/logger.js postPayload posts to the same-origin proxy path off-localhost", () => {
+  // Ensemble logging is intentionally always-on. On a deployed (non-localhost)
+  // origin it routes through nginx via a SAME-ORIGIN path; the ensemble-log
+  // sidecar writes the corpus server-side. (See deploy/nginx.docker.conf.)
   const fetchCalls = [];
   const ctx = vm.createContext({
     window: {
@@ -151,7 +153,10 @@ test("ai/logger.js postPayload is gated by isLocalhost (skips fetch in prod)", (
   AILogger.logRaw({ session: "sess", name: "raw.txt", content: "c" });
   AILogger.endBuild();
 
-  assert.deepEqual(fetchCalls, [], "fetch must not be called from non-localhost host");
+  assert.equal(fetchCalls.length, 2, "both log() and logRaw() must post from a deployed host");
+  for (const c of fetchCalls) {
+    assert.equal(c.url, "/ensemble/save", "deployed logging must use the same-origin proxy path");
+  }
 });
 
 test("ai/logger.js postPayload calls fetch when hostname IS localhost", () => {

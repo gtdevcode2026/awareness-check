@@ -88,6 +88,20 @@ server {
         add_header Cache-Control "no-store" always;
     }
 
+    # ── Optional: ensemble AI-prompt log collector ───────────────────────────
+    # The app posts AI prompt+response logs to a SAME-ORIGIN /ensemble/save.
+    # To capture them on a bare-metal host, run the collector on this machine
+    #   ENSEMBLE_LOG_HOST=127.0.0.1 node scripts/ensemble_log_server.mjs
+    # (or `npm run ensemble:logs`) and uncomment the block below. Leave it
+    # commented to disable logging entirely on this deployment.
+    # location ^~ /ensemble/ {
+    #     rewrite ^/ensemble/(.*)$ /$1 break;
+    #     proxy_pass http://127.0.0.1:4175;
+    #     proxy_set_header Host $host;
+    #     client_max_body_size 4m;
+    #     access_log off;
+    # }
+
     # ── Defense-in-depth deny rules ─────────────────────────────────────────
     # build-dist.mjs already excludes these, but block them here too in case
     # someone rsyncs the full repo by mistake.
